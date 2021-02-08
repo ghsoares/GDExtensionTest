@@ -1,0 +1,675 @@
+[gd_scene load_steps=31 format=2]
+
+[ext_resource path="res://Assets/Scripts/Game.cs" type="Script" id=1]
+[ext_resource path="res://Assets/Scenes/World.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Assets/Scenes/Platform.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Assets/Scenes/PopupText.tscn" type="PackedScene" id=4]
+[ext_resource path="res://Assets/Scripts/WorldCamera.cs" type="Script" id=5]
+[ext_resource path="res://Assets/Textures/Icons/RotRight.png" type="Texture" id=6]
+[ext_resource path="res://Assets/Scripts/ScreenTouch.cs" type="Script" id=7]
+[ext_resource path="res://Assets/Textures/Icons/Accelerate.png" type="Texture" id=8]
+[ext_resource path="res://Assets/Textures/Icons/Deccelerate.png" type="Texture" id=9]
+[ext_resource path="res://Assets/Textures/Icons/RotLeft.png" type="Texture" id=10]
+[ext_resource path="res://Assets/Textures/Icons/Restart.png" type="Texture" id=11]
+[ext_resource path="res://Assets/Textures/Icons/NextLevel.png" type="Texture" id=12]
+[ext_resource path="res://Assets/Scripts/UI.cs" type="Script" id=13]
+[ext_resource path="res://Assets/Fonts/m5x7.ttf" type="DynamicFontData" id=14]
+[ext_resource path="res://Assets/Scripts/TextLabel.cs" type="Script" id=15]
+[ext_resource path="res://Assets/Fonts/m5x7.tres" type="DynamicFont" id=16]
+[ext_resource path="res://Assets/Textures/Icons/Pause.png" type="Texture" id=17]
+
+[sub_resource type="OpenSimplexNoise" id=1]
+seed = 1
+octaves = 2
+period = 128.0
+persistence = 0.4
+
+[sub_resource type="Curve" id=2]
+_data = [ Vector2( 0, 0 ), 0.0, -0.017628, 0, 0, Vector2( 0.74848, 1 ), -0.0827211, 0.0, 0, 0 ]
+
+[sub_resource type="ViewportTexture" id=3]
+viewport_path = NodePath("View")
+
+[sub_resource type="Gradient" id=4]
+offsets = PoolRealArray( 0, 0.5, 1 )
+colors = PoolColorArray( 0.499334, 1, 0.473633, 1, 1, 0.945024, 0.313477, 1, 1, 0.235352, 0.235352, 1 )
+
+[sub_resource type="DynamicFont" id=5]
+outline_size = 1
+outline_color = Color( 0, 0, 0, 1 )
+extra_spacing_top = -3
+extra_spacing_char = 1
+font_data = ExtResource( 14 )
+
+[sub_resource type="Animation" id=6]
+resource_name = "Warning"
+length = 0.3
+loop = true
+step = 0.05
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.15 ),
+"transitions": PoolRealArray( 0, 0 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 1 ), Color( 1, 1, 1, 0 ) ]
+}
+
+[sub_resource type="Animation" id=7]
+resource_name = "Warning"
+length = 0.3
+loop = true
+step = 0.05
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.15 ),
+"transitions": PoolRealArray( 0, 0 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 1 ), Color( 1, 1, 1, 0 ) ]
+}
+
+[sub_resource type="Shader" id=8]
+code = "shader_type canvas_item;
+
+uniform vec2 size;
+uniform float triangles = 8f;
+uniform float transition : hint_range(0, 1);
+uniform float timeOffset : hint_range(0, .5f) = .05f;
+uniform float transitionCurve = 1f;
+uniform bool invert;
+uniform sampler2D triangleGradient;
+uniform float pixelSize = 1f;
+uniform float speed = 2f;
+
+float remap(float value, float start1, float stop1, float start2, float stop2) {
+	return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
+}
+
+float ease(float x, float c) {
+	if (x < 0f) x = 0f;
+	if (x > 1f) x = 1f;
+	
+	if (c > 0f) {
+		if (c < 1f) {
+			return 1f - pow(1f - x, 1f / c);
+		} else {
+			return pow(x, c);
+		}
+	} else if (c < 0f) {
+		if (x < 0.5f) {
+			return pow(x * 2f, -c) * .5f;
+		} else {
+			return (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;
+		}
+	}
+	
+	return 0f;
+}
+
+
+void fragment() {
+	vec2 pos = UV * size;
+	pos = floor(pos / pixelSize) * pixelSize;
+	
+	float triSize = size.y / triangles;
+	float triPosX = mod(pos.y, triSize);
+	float idx = floor(pos.y / triSize);
+	
+	float gT = idx / (triangles - 1f);
+	COLOR = texture(triangleGradient, vec2(gT, 0f));
+	
+	if (invert) {
+		idx = (triangles - 1f) - idx;
+	}
+	
+	triPosX -= triSize;
+	
+	float between = 1f - timeOffset * 2f;
+	float o = timeOffset / triangles;
+	float t = remap(
+		transition, idx * o, between + idx * o, 0, 1
+	);
+	
+	t = clamp(t, 0, 1);
+	t = ease(t, transitionCurve);
+	
+	triPosX += (size.x + triSize) * t;
+	
+	if (pos.x > triPosX) {
+		COLOR.a = 0f;
+	}
+}"
+
+[sub_resource type="Gradient" id=9]
+offsets = PoolRealArray( 0, 0.333, 0.667, 1 )
+colors = PoolColorArray( 1, 0.615686, 0, 1, 1, 0.898039, 0, 1, 1, 0.615686, 0, 1, 1, 0.898039, 0, 1 )
+
+[sub_resource type="GradientTexture" id=10]
+gradient = SubResource( 9 )
+
+[sub_resource type="ShaderMaterial" id=11]
+shader = SubResource( 8 )
+shader_param/size = Vector2( 1024, 600 )
+shader_param/triangles = 8.0
+shader_param/transition = 0.0
+shader_param/timeOffset = 0.3
+shader_param/transitionCurve = -2.0
+shader_param/invert = false
+shader_param/pixelSize = 8.0
+shader_param/speed = -0.05
+shader_param/triangleGradient = SubResource( 10 )
+
+[sub_resource type="Animation" id=12]
+length = 1.25
+tracks/0/type = "value"
+tracks/0/path = NodePath("../Transition:material:shader_param/transition")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 1 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ 0.0, 1.0 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("../Transition:material:shader_param/invert")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+
+[sub_resource type="Animation" id=13]
+tracks/0/type = "value"
+tracks/0/path = NodePath("../Transition:material:shader_param/transition")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 1 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ 1.0, 0.0 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("../Transition:material:shader_param/invert")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ true ]
+}
+
+[node name="Game" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+terrainNoise = SubResource( 1 )
+terrainSize = Vector2( 2048, 600 )
+platformInterpolationSize = 21.333
+platformInterpolationEasing = -2.0
+resolution = 0.25
+height = 200.0
+gravity = 12.0
+cameraTransitionLen = 256.0
+cameraTransitionCurve = SubResource( 2 )
+zoomRange = Vector2( 1, 0.5 )
+platformScene = ExtResource( 3 )
+scoreScene = ExtResource( 4 )
+pixelSize = 1.0
+surfaceColor = Color( 0.737255, 0.203922, 0.141176, 1 )
+
+[node name="View" type="Viewport" parent="."]
+size = Vector2( 1024, 600 )
+size_override_stretch = true
+render_target_v_flip = true
+
+[node name="World" parent="View" instance=ExtResource( 2 )]
+margin_right = 2048.0
+margin_bottom = 900.0
+
+[node name="Cam" type="Camera2D" parent="View"]
+current = true
+process_mode = 0
+limit_left = 0
+limit_top = 0
+limit_right = 2048
+limit_bottom = 900
+script = ExtResource( 5 )
+
+[node name="Tex" type="TextureRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = SubResource( 3 )
+expand = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Cam" type="Camera2D" parent="."]
+current = true
+process_mode = 0
+limit_left = 0
+limit_top = 0
+limit_right = 960
+limit_bottom = 540
+limit_smoothed = true
+editor_draw_limits = true
+
+[node name="UI" type="CanvasLayer" parent="."]
+pause_mode = 2
+script = ExtResource( 13 )
+playerSpeedGradient = SubResource( 4 )
+playerFuelGradient = SubResource( 4 )
+
+[node name="Input" type="Control" parent="UI"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="RotLeft" type="Control" parent="UI/Input"]
+modulate = Color( 1, 1, 1, 0.3 )
+anchor_top = 1.0
+anchor_bottom = 1.0
+margin_left = 50.0
+margin_top = -178.0
+margin_right = 146.0
+margin_bottom = -81.9999
+script = ExtResource( 7 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+action = "rot_left"
+releasedColor = Color( 1, 1, 1, 0.3 )
+
+[node name="Tex" type="TextureRect" parent="UI/Input/RotLeft"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource( 10 )
+expand = true
+stretch_mode = 6
+
+[node name="RotRight" type="Control" parent="UI/Input"]
+modulate = Color( 1, 1, 1, 0.3 )
+anchor_top = 1.0
+anchor_bottom = 1.0
+margin_left = 194.0
+margin_top = -146.0
+margin_right = 290.0
+margin_bottom = -49.9999
+script = ExtResource( 7 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+action = "rot_right"
+releasedColor = Color( 1, 1, 1, 0.3 )
+
+[node name="Tex" type="TextureRect" parent="UI/Input/RotRight"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource( 6 )
+expand = true
+stretch_mode = 6
+
+[node name="Deccelerate" type="Control" parent="UI/Input"]
+modulate = Color( 1, 1, 1, 0.3 )
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -290.0
+margin_top = -146.0
+margin_right = -194.0
+margin_bottom = -49.9999
+script = ExtResource( 7 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+action = "deccelerate"
+releasedColor = Color( 1, 1, 1, 0.3 )
+
+[node name="Tex" type="TextureRect" parent="UI/Input/Deccelerate"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource( 9 )
+expand = true
+stretch_mode = 6
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Accelerate" type="Control" parent="UI/Input"]
+modulate = Color( 1, 1, 1, 0.3 )
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -146.0
+margin_top = -178.0
+margin_right = -49.9999
+margin_bottom = -82.0
+script = ExtResource( 7 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+action = "accelerate"
+releasedColor = Color( 1, 1, 1, 0.3 )
+
+[node name="Tex" type="TextureRect" parent="UI/Input/Accelerate"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource( 8 )
+expand = true
+stretch_mode = 6
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Reset" type="Control" parent="UI/Input"]
+modulate = Color( 1, 1, 1, 0.3 )
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = -48.0
+margin_top = -146.0
+margin_right = 48.0
+margin_bottom = -49.9999
+script = ExtResource( 7 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+action = "reset"
+releasedColor = Color( 1, 1, 1, 0.3 )
+
+[node name="Tex" type="TextureRect" parent="UI/Input/Reset"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource( 11 )
+expand = true
+stretch_mode = 6
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Next" type="Control" parent="UI/Input"]
+modulate = Color( 1, 1, 1, 0.3 )
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = -48.0
+margin_top = -146.0
+margin_right = 48.0
+margin_bottom = -49.9999
+script = ExtResource( 7 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+action = "next"
+releasedColor = Color( 1, 1, 1, 0.3 )
+
+[node name="Tex" type="TextureRect" parent="UI/Input/Next"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource( 12 )
+expand = true
+stretch_mode = 6
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Pause" type="Control" parent="UI/Input"]
+modulate = Color( 1, 1, 1, 0.3 )
+anchor_left = 0.5
+anchor_right = 0.5
+margin_left = -32.0
+margin_top = 32.0
+margin_right = 32.0
+margin_bottom = 96.0
+script = ExtResource( 7 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+action = "game_pause"
+releasedColor = Color( 1, 1, 1, 0.196078 )
+
+[node name="Tex" type="TextureRect" parent="UI/Input/Pause"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource( 17 )
+expand = true
+stretch_mode = 6
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="GUI" type="Control" parent="UI"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 16.0
+margin_top = 16.0
+margin_right = -16.0
+margin_bottom = -16.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Stats" type="VBoxContainer" parent="UI/GUI"]
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -276.0
+margin_bottom = 74.0
+custom_constants/separation = 10
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Speed" type="HBoxContainer" parent="UI/GUI/Stats"]
+margin_right = 276.0
+margin_bottom = 32.0
+rect_min_size = Vector2( 0, 32 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Title" type="Control" parent="UI/GUI/Stats/Speed"]
+margin_right = 100.0
+margin_bottom = 32.0
+rect_min_size = Vector2( 100, 0 )
+size_flags_stretch_ratio = 1.6
+script = ExtResource( 15 )
+text = "SPEED"
+color = Color( 1, 1, 1, 1 )
+font = ExtResource( 16 )
+fitHeight = 32.0
+vAlign = 2
+
+[node name="Value" type="Control" parent="UI/GUI/Stats/Speed"]
+margin_left = 104.0
+margin_right = 224.0
+margin_bottom = 32.0
+size_flags_horizontal = 3
+script = ExtResource( 15 )
+text = "1000"
+color = Color( 1, 1, 1, 1 )
+font = ExtResource( 16 )
+fitHeight = 32.0
+vAlign = 2
+
+[node name="Warning" type="Control" parent="UI/GUI/Stats/Speed"]
+margin_left = 228.0
+margin_right = 276.0
+margin_bottom = 32.0
+rect_min_size = Vector2( 48, 0 )
+script = ExtResource( 15 )
+text = "!"
+color = Color( 1, 1, 1, 1 )
+font = SubResource( 5 )
+fitHeight = 48.0
+hAlign = 1
+vAlign = 1
+
+[node name="Anim" type="AnimationPlayer" parent="UI/GUI/Stats/Speed/Warning"]
+autoplay = "Warning"
+anims/Warning = SubResource( 6 )
+
+[node name="Fuel" type="HBoxContainer" parent="UI/GUI/Stats"]
+margin_top = 42.0
+margin_right = 276.0
+margin_bottom = 74.0
+rect_min_size = Vector2( 0, 32 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Title" type="Control" parent="UI/GUI/Stats/Fuel"]
+margin_right = 100.0
+margin_bottom = 32.0
+rect_min_size = Vector2( 100, 0 )
+size_flags_stretch_ratio = 1.6
+script = ExtResource( 15 )
+text = "FUEL"
+color = Color( 1, 1, 1, 1 )
+font = ExtResource( 16 )
+fitHeight = 32.0
+vAlign = 2
+
+[node name="Value" type="Control" parent="UI/GUI/Stats/Fuel"]
+margin_left = 104.0
+margin_right = 224.0
+margin_bottom = 32.0
+size_flags_horizontal = 3
+script = ExtResource( 15 )
+text = "500/500"
+color = Color( 1, 1, 1, 1 )
+font = ExtResource( 16 )
+fitHeight = 32.0
+vAlign = 2
+
+[node name="Warning" type="Control" parent="UI/GUI/Stats/Fuel"]
+margin_left = 228.0
+margin_right = 276.0
+margin_bottom = 32.0
+rect_min_size = Vector2( 48, 0 )
+script = ExtResource( 15 )
+text = "!"
+color = Color( 1, 1, 1, 1 )
+font = SubResource( 5 )
+fitHeight = 48.0
+hAlign = 1
+vAlign = 1
+
+[node name="Anim" type="AnimationPlayer" parent="UI/GUI/Stats/Fuel/Warning"]
+autoplay = "Warning"
+anims/Warning = SubResource( 7 )
+
+[node name="Score" type="HBoxContainer" parent="UI/GUI"]
+margin_right = 300.0
+margin_bottom = 32.0
+rect_min_size = Vector2( 0, 32 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Title" type="Control" parent="UI/GUI/Score"]
+margin_right = 100.0
+margin_bottom = 32.0
+rect_min_size = Vector2( 100, 0 )
+size_flags_stretch_ratio = 1.6
+script = ExtResource( 15 )
+text = "SCORE"
+color = Color( 1, 1, 1, 1 )
+font = ExtResource( 16 )
+fitHeight = 32.0
+vAlign = 2
+
+[node name="Value" type="Control" parent="UI/GUI/Score"]
+margin_left = 104.0
+margin_right = 300.0
+margin_bottom = 32.0
+size_flags_horizontal = 3
+script = ExtResource( 15 )
+text = "1000"
+color = Color( 1, 1, 1, 1 )
+font = ExtResource( 16 )
+fitHeight = 32.0
+vAlign = 2
+
+[node name="Pause" type="Control" parent="UI"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Text" type="Control" parent="UI/Pause"]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -135.0
+margin_top = -51.5
+margin_right = 135.0
+margin_bottom = 51.5
+mouse_filter = 2
+script = ExtResource( 15 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+text = "PAUSED"
+color = Color( 1, 1, 1, 1 )
+font = ExtResource( 16 )
+fitHeight = 64.0
+hAlign = 1
+vAlign = 1
+
+[node name="Debug" type="RichTextLabel" parent="UI"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+bbcode_enabled = true
+scroll_active = false
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Transition" type="ColorRect" parent="UI"]
+material = SubResource( 11 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Anim" type="AnimationPlayer" parent="UI/Transition"]
+playback_speed = 0.75
+anims/In = SubResource( 12 )
+anims/Out = SubResource( 13 )

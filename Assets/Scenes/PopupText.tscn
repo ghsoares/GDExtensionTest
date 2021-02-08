@@ -1,0 +1,31 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://Assets/Fonts/m5x7.tres" type="DynamicFont" id=1]
+[ext_resource path="res://Assets/Scripts/PopupText.cs" type="Script" id=2]
+
+[node name="PopupText" type="Node2D"]
+scale = Vector2( 0.5, 1 )
+script = ExtResource( 2 )
+lifetime = 5.4
+
+[node name="Pivot" type="Node2D" parent="."]
+
+[node name="Text" type="Label" parent="Pivot"]
+modulate = Color( 0.4, 1, 0.426953, 1 )
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -128.0
+margin_top = -32.0
+margin_right = 128.0
+margin_bottom = 32.0
+custom_fonts/font = ExtResource( 1 )
+text = "12341241234123"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Tween" type="Tween" parent="."]

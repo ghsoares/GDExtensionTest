@@ -1,0 +1,329 @@
+[gd_scene load_steps=29 format=2]
+
+[ext_resource path="res://Assets/Textures/Ship.png" type="Texture" id=1]
+[ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemUpdateParticle.cs" type="Script" id=2]
+[ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemDrawMesh.cs" type="Script" id=3]
+[ext_resource path="res://Assets/Scripts/ParticleSystem2D/ParticleSystem2D.cs" type="Script" id=4]
+[ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemEmitOptions.cs" type="Script" id=5]
+[ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemEmitRate.cs" type="Script" id=6]
+[ext_resource path="res://Assets/Scripts/Player.cs" type="Script" id=7]
+[ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemInheritVelocity.cs" type="Script" id=8]
+[ext_resource path="res://Assets/Scripts/ParticleSystem2D/Custom Modules/HeightMapCollision.cs" type="Script" id=9]
+[ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemColorOverLife.cs" type="Script" id=10]
+[ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemEmitCone.cs" type="Script" id=11]
+[ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemSizeOverLife.cs" type="Script" id=12]
+[ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemEmitBurst.cs" type="Script" id=13]
+[ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemEmitCircle.cs" type="Script" id=14]
+[ext_resource path="res://Assets/Scripts/ParticleSystem2D/Custom Modules/EmitTrail.cs" type="Script" id=15]
+[ext_resource path="res://Assets/Scripts/ParticleSystem2D/Custom Modules/Collision.cs" type="Script" id=16]
+[ext_resource path="res://Assets/Scripts/ParticleSystem2D/Custom Modules/EmitPlane.cs" type="Script" id=17]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+void fragment() {
+	float d = distance(UV, vec2(.5f)) / .5f;
+	COLOR.a = clamp(ceil(1f - d), 0, 1);
+}"
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = SubResource( 1 )
+
+[sub_resource type="Curve" id=3]
+max_value = 2.0
+_data = [ Vector2( 0, 1.04908 ), 0.0, 0.0127401, 0, 0, Vector2( 0.639299, 2 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), -5.54476, 0.0, 1, 0 ]
+
+[sub_resource type="Gradient" id=4]
+offsets = PoolRealArray( 0, 0.122047, 0.232283, 0.46063, 0.787402 )
+colors = PoolColorArray( 1, 1, 1, 1, 1, 1, 1, 1, 0, 0.853516, 1, 1, 0, 0.572266, 1, 1, 0, 0, 0, 1 )
+
+[sub_resource type="Curve" id=5]
+max_value = 4.0
+_data = [ Vector2( 0, 4 ), 0.0, 0.0127401, 0, 0, Vector2( 0.111624, 1.41104 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), -1.58834, 0.0, 1, 0 ]
+
+[sub_resource type="Gradient" id=6]
+offsets = PoolRealArray( 0, 0.122047, 0.232283, 0.46063, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.849609, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1 )
+
+[sub_resource type="Curve" id=7]
+_data = [ Vector2( 0, 1 ), 0.0, 0.0127401, 0, 0, Vector2( 1, 0 ), -0.579244, 0.0, 1, 0 ]
+
+[sub_resource type="Gradient" id=8]
+offsets = PoolRealArray( 0, 0.122047, 0.232283, 0.46063, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.849609, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1 )
+
+[sub_resource type="Curve" id=9]
+max_value = 2.0
+_data = [ Vector2( 0, 1.04908 ), 0.0, 0.0127401, 0, 0, Vector2( 0.639299, 2 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), -5.54476, 0.0, 1, 0 ]
+
+[sub_resource type="Gradient" id=10]
+offsets = PoolRealArray( 0, 0.122047, 0.232283, 0.46063, 0.787402 )
+colors = PoolColorArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.849609, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1 )
+
+[sub_resource type="RectangleShape2D" id=11]
+extents = Vector2( 8, 8 )
+
+[node name="Player" type="RigidBody2D"]
+position = Vector2( 370.107, 199.418 )
+gravity_scale = 0.0
+contacts_reported = 4
+contact_monitor = true
+script = ExtResource( 7 )
+maxAngularVelocity = 10.0
+angularAcceleration = 12.0
+maxThrusterForce = 40.0
+velocityDrag = 0.1
+angularVelocityDrag = 5.0
+explodeAtSpeed = 15.0
+scoreMinDistance = 2.0
+scoreMinAngle = 3.0
+scoreMinSpeed = 5.0
+
+[node name="Particles" type="Node2D" parent="."]
+
+[node name="Rocket" type="Node2D" parent="Particles"]
+material = SubResource( 2 )
+position = Vector2( 0, 6 )
+script = ExtResource( 4 )
+gravity = Vector2( 0, -30 )
+onEditorSafeFPS = 1.0
+
+[node name="EmitOptions" type="Node" parent="Particles/Rocket"]
+script = ExtResource( 5 )
+maxSize = 3.0
+maxSpeed = 100.0
+minRotation = 45.0
+maxRotation = 45.0
+startColor = Color( 1, 1, 1, 1 )
+minSpeed = 70.0
+minLifetime = 0.5
+
+[node name="EmitRate" type="Node" parent="Particles/Rocket"]
+script = ExtResource( 6 )
+rate = 64.0
+
+[node name="EmitCone" type="Node" parent="Particles/Rocket"]
+script = ExtResource( 11 )
+radius = 0.01
+rotation = 90.0
+coneAngle = 15.0
+
+[node name="InheritVelocity" type="Node" parent="Particles/Rocket"]
+script = ExtResource( 8 )
+percentage = 0.5
+
+[node name="Update" type="Node" parent="Particles/Rocket"]
+script = ExtResource( 2 )
+
+[node name="SizeOverLife" type="Node" parent="Particles/Rocket"]
+script = ExtResource( 12 )
+curve = SubResource( 3 )
+
+[node name="HeightMapCollision" type="Node" parent="Particles/Rocket"]
+script = ExtResource( 9 )
+
+[node name="Collision" type="Node" parent="Particles/Rocket"]
+script = ExtResource( 16 )
+
+[node name="ColorOverLife" type="Node" parent="Particles/Rocket"]
+script = ExtResource( 10 )
+gradient = SubResource( 4 )
+
+[node name="Draw" type="Node" parent="Particles/Rocket"]
+script = ExtResource( 3 )
+
+[node name="Explosion" type="Node2D" parent="Particles"]
+
+[node name="_1" type="Node2D" parent="Particles/Explosion"]
+material = SubResource( 2 )
+script = ExtResource( 4 )
+gravity = Vector2( 0, -30 )
+emitOnStart = false
+debugMode = true
+onEditorSafeFPS = 1.0
+maxParticles = 32
+
+[node name="EmitOptions" type="Node" parent="Particles/Explosion/_1"]
+script = ExtResource( 5 )
+maxSize = 6.0
+minSize = 2.0
+maxSpeed = 100.0
+minRotation = 45.0
+maxRotation = 45.0
+startColor = Color( 1, 1, 1, 1 )
+minSpeed = 10.0
+minLifetime = 0.5
+
+[node name="EmitCircle" type="Node" parent="Particles/Explosion/_1"]
+script = ExtResource( 14 )
+radius = 8.0
+
+[node name="EmitBurst" type="Node" parent="Particles/Explosion/_1"]
+script = ExtResource( 13 )
+rate = 1.0
+minAmount = 32
+maxAmount = 32
+
+[node name="Update" type="Node" parent="Particles/Explosion/_1"]
+script = ExtResource( 2 )
+
+[node name="SizeOverLife" type="Node" parent="Particles/Explosion/_1"]
+script = ExtResource( 12 )
+curve = SubResource( 5 )
+
+[node name="HeightMapCollision" type="Node" parent="Particles/Explosion/_1"]
+script = ExtResource( 9 )
+
+[node name="ColorOverLife" type="Node" parent="Particles/Explosion/_1"]
+script = ExtResource( 10 )
+gradient = SubResource( 6 )
+
+[node name="Draw" type="Node" parent="Particles/Explosion/_1"]
+script = ExtResource( 3 )
+
+[node name="_2" type="Node2D" parent="Particles/Explosion"]
+material = SubResource( 2 )
+script = ExtResource( 4 )
+gravity = Vector2( 0, 98 )
+emitOnStart = false
+onEditorSafeFPS = 1.0
+maxParticles = 8
+timeScale = 2.0
+
+[node name="EmitOptions" type="Node" parent="Particles/Explosion/_2"]
+script = ExtResource( 5 )
+maxSize = 6.0
+minSize = 2.0
+maxSpeed = 150.0
+minRotation = 45.0
+maxRotation = 45.0
+startColor = Color( 1, 1, 1, 1 )
+minSpeed = 112.5
+minLifetime = 3.0
+maxLifetime = 4.0
+
+[node name="EmitCone" type="Node" parent="Particles/Explosion/_2"]
+script = ExtResource( 11 )
+rotation = -90.0
+coneAngle = 45.0
+
+[node name="EmitBurst" type="Node" parent="Particles/Explosion/_2"]
+script = ExtResource( 13 )
+rate = 0.1
+minAmount = 3
+maxAmount = 4
+
+[node name="Update" type="Node" parent="Particles/Explosion/_2"]
+script = ExtResource( 2 )
+
+[node name="SizeOverLife" type="Node" parent="Particles/Explosion/_2"]
+script = ExtResource( 12 )
+curve = SubResource( 7 )
+
+[node name="EmitTrail" type="Node" parent="Particles/Explosion/_2"]
+script = ExtResource( 15 )
+rate = 0.2
+particleSystemTrailPath = NodePath("../../_3")
+
+[node name="HeightMapCollision" type="Node" parent="Particles/Explosion/_2"]
+script = ExtResource( 9 )
+bounciness = 1.0
+
+[node name="Collision" type="Node" parent="Particles/Explosion/_2"]
+script = ExtResource( 16 )
+bounciness = 1.0
+
+[node name="ColorOverLife" type="Node" parent="Particles/Explosion/_2"]
+script = ExtResource( 10 )
+gradient = SubResource( 8 )
+
+[node name="Draw" type="Node" parent="Particles/Explosion/_2"]
+script = ExtResource( 3 )
+
+[node name="_3" type="Node2D" parent="Particles/Explosion"]
+material = SubResource( 2 )
+script = ExtResource( 4 )
+gravity = Vector2( 0, -30 )
+emitOnStart = false
+onEditorSafeFPS = 1.0
+
+[node name="EmitOptions" type="Node" parent="Particles/Explosion/_3"]
+script = ExtResource( 5 )
+maxSize = 4.0
+minSize = 2.0
+maxSpeed = 0.0
+minRotation = 45.0
+maxRotation = 45.0
+startColor = Color( 1, 1, 1, 1 )
+minSpeed = 0.0
+
+[node name="EmitCircle" type="Node" parent="Particles/Explosion/_3"]
+script = ExtResource( 14 )
+radius = 2.0
+
+[node name="Update" type="Node" parent="Particles/Explosion/_3"]
+script = ExtResource( 2 )
+
+[node name="SizeOverLife" type="Node" parent="Particles/Explosion/_3"]
+script = ExtResource( 12 )
+curve = SubResource( 7 )
+
+[node name="ColorOverLife" type="Node" parent="Particles/Explosion/_3"]
+script = ExtResource( 10 )
+gradient = SubResource( 8 )
+
+[node name="Draw" type="Node" parent="Particles/Explosion/_3"]
+script = ExtResource( 3 )
+
+[node name="Speed" type="Node2D" parent="Particles"]
+
+[node name="Speed" type="Node2D" parent="Particles/Speed"]
+material = SubResource( 2 )
+position = Vector2( 6, 0 )
+z_index = 1
+script = ExtResource( 4 )
+gravity = Vector2( 0, 0 )
+onEditorSafeFPS = 1.0
+
+[node name="EmitOptions" type="Node" parent="Particles/Speed/Speed"]
+script = ExtResource( 5 )
+maxSize = 2.0
+minSize = 0.5
+maxSpeed = 35.0
+minRotation = 45.0
+maxRotation = 45.0
+startColor = Color( 1, 1, 1, 1 )
+minSpeed = 10.0
+minLifetime = 0.75
+
+[node name="EmitRate" type="Node" parent="Particles/Speed/Speed"]
+script = ExtResource( 6 )
+rate = 64.0
+
+[node name="EmitPlane" type="Node" parent="Particles/Speed/Speed"]
+script = ExtResource( 17 )
+size = 6.0
+
+[node name="InheritVelocity" type="Node" parent="Particles/Speed/Speed"]
+script = ExtResource( 8 )
+percentage = 0.5
+
+[node name="Update" type="Node" parent="Particles/Speed/Speed"]
+script = ExtResource( 2 )
+
+[node name="SizeOverLife" type="Node" parent="Particles/Speed/Speed"]
+script = ExtResource( 12 )
+curve = SubResource( 9 )
+
+[node name="ColorOverLife" type="Node" parent="Particles/Speed/Speed"]
+script = ExtResource( 10 )
+gradient = SubResource( 10 )
+
+[node name="Draw" type="Node" parent="Particles/Speed/Speed"]
+script = ExtResource( 3 )
+
+[node name="Spr" type="Sprite" parent="."]
+texture = ExtResource( 1 )
+
+[node name="Col" type="CollisionShape2D" parent="."]
+shape = SubResource( 11 )
