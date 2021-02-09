@@ -70,6 +70,7 @@ contacts_reported = 4
 contact_monitor = true
 script = ExtResource( 7 )
 maxAngularVelocity = 10.0
+maxVelocity = 128.0
 angularAcceleration = 12.0
 maxThrusterForce = 40.0
 velocityDrag = 0.1
@@ -90,13 +91,13 @@ onEditorSafeFPS = 1.0
 
 [node name="EmitOptions" type="Node" parent="Particles/Rocket"]
 script = ExtResource( 5 )
-maxSize = 3.0
 maxSpeed = 100.0
+maxSize = 3.0
+minLifetime = 0.5
+minSpeed = 70.0
+startColor = Color( 1, 1, 1, 1 )
 minRotation = 45.0
 maxRotation = 45.0
-startColor = Color( 1, 1, 1, 1 )
-minSpeed = 70.0
-minLifetime = 0.5
 
 [node name="EmitRate" type="Node" parent="Particles/Rocket"]
 script = ExtResource( 6 )
@@ -139,20 +140,20 @@ material = SubResource( 2 )
 script = ExtResource( 4 )
 gravity = Vector2( 0, -30 )
 emitOnStart = false
-debugMode = true
 onEditorSafeFPS = 1.0
 maxParticles = 32
+debugMode = true
 
 [node name="EmitOptions" type="Node" parent="Particles/Explosion/_1"]
 script = ExtResource( 5 )
-maxSize = 6.0
-minSize = 2.0
 maxSpeed = 100.0
+maxSize = 6.0
+minLifetime = 0.5
+minSpeed = 10.0
+minSize = 2.0
+startColor = Color( 1, 1, 1, 1 )
 minRotation = 45.0
 maxRotation = 45.0
-startColor = Color( 1, 1, 1, 1 )
-minSpeed = 10.0
-minLifetime = 0.5
 
 [node name="EmitCircle" type="Node" parent="Particles/Explosion/_1"]
 script = ExtResource( 14 )
@@ -192,15 +193,15 @@ timeScale = 2.0
 
 [node name="EmitOptions" type="Node" parent="Particles/Explosion/_2"]
 script = ExtResource( 5 )
-maxSize = 6.0
-minSize = 2.0
+maxLifetime = 4.0
 maxSpeed = 150.0
+maxSize = 6.0
+minLifetime = 3.0
+minSpeed = 112.5
+minSize = 2.0
+startColor = Color( 1, 1, 1, 1 )
 minRotation = 45.0
 maxRotation = 45.0
-startColor = Color( 1, 1, 1, 1 )
-minSpeed = 112.5
-minLifetime = 3.0
-maxLifetime = 4.0
 
 [node name="EmitCone" type="Node" parent="Particles/Explosion/_2"]
 script = ExtResource( 11 )
@@ -249,13 +250,13 @@ onEditorSafeFPS = 1.0
 
 [node name="EmitOptions" type="Node" parent="Particles/Explosion/_3"]
 script = ExtResource( 5 )
-maxSize = 4.0
-minSize = 2.0
 maxSpeed = 0.0
+maxSize = 4.0
+minSpeed = 0.0
+minSize = 2.0
+startColor = Color( 1, 1, 1, 1 )
 minRotation = 45.0
 maxRotation = 45.0
-startColor = Color( 1, 1, 1, 1 )
-minSpeed = 0.0
 
 [node name="EmitCircle" type="Node" parent="Particles/Explosion/_3"]
 script = ExtResource( 14 )
@@ -287,14 +288,14 @@ onEditorSafeFPS = 1.0
 
 [node name="EmitOptions" type="Node" parent="Particles/Speed/Speed"]
 script = ExtResource( 5 )
-maxSize = 2.0
-minSize = 0.5
 maxSpeed = 35.0
+maxSize = 2.0
+minLifetime = 0.75
+minSpeed = 10.0
+minSize = 0.5
+startColor = Color( 1, 1, 1, 1 )
 minRotation = 45.0
 maxRotation = 45.0
-startColor = Color( 1, 1, 1, 1 )
-minSpeed = 10.0
-minLifetime = 0.75
 
 [node name="EmitRate" type="Node" parent="Particles/Speed/Speed"]
 script = ExtResource( 6 )

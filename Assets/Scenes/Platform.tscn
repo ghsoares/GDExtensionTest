@@ -21,7 +21,7 @@ void fragment() {
 	float t = TIME * speed;
 	t = mod(t, 1f);
 	
-	vec4 c = texture(gradient, vec2(t, 0));
+	vec4 c = texture(TEXTURE, UV) * texture(gradient, vec2(t, 0));
 	
 	COLOR *= c;
 }
@@ -68,7 +68,6 @@ material = SubResource( 4 )
 margin_left = -24.0
 margin_right = 24.0
 margin_bottom = 2.0
-color = Color( 1, 1, 1, 0.784314 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -101,6 +100,7 @@ __meta__ = {
 [node name="Landed" type="Node2D" parent="."]
 material = SubResource( 7 )
 script = ExtResource( 1 )
+emitting = true
 gravity = Vector2( 0, 0 )
 emitOnStart = false
 onEditorSafeFPS = 2.0
@@ -108,10 +108,10 @@ maxParticles = 64
 
 [node name="EmitOptions" type="Node" parent="Landed"]
 script = ExtResource( 4 )
-maxSpeed = 8.0
+maxSpeed = 16.0
 maxSize = 4.0
-minSpeed = 0.0
-startColor = Color( 0.694118, 0.223529, 0.223529, 1 )
+minSpeed = 2.0
+startColor = Color( 0.729412, 0.290196, 0.290196, 1 )
 
 [node name="RandomHue" type="Node" parent="Landed"]
 script = ExtResource( 10 )

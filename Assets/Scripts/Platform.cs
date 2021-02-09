@@ -28,7 +28,11 @@ public class Platform : StaticBody2D
         platformControl.RectSize = size;
         colShape.Extents = size / 2f;
         col.Shape = colShape;
-        landParticleSystemEmitOptions.startColor = Game.main.surfaceColor;
+
+        Color c = Game.main.surfaceColor;
+        c.v += .01f;
+
+        landParticleSystemEmitOptions.startColor = c;
         landParticleSystemEmitPlane.size = size.x / 2f;
     }
 
@@ -39,5 +43,7 @@ public class Platform : StaticBody2D
 
     public void Land() {
         landParticleSystem.Emit();
+        platformControl.Hide();
+        multiplierText.Hide();
     }
 }

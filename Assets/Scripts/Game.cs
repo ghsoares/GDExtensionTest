@@ -170,7 +170,7 @@ public class Game : Control
             float sizeY = 3f;
 
             float posX = p.Position.x;
-            float posY = terrainSize.y - SampleHeight(posX);
+            float posY = Mathf.Floor(terrainSize.y - SampleHeight(posX));
 
             p.Position = new Vector2(posX, posY);
             p.size = new Vector2(sizeX, sizeY);
@@ -207,15 +207,15 @@ public class Game : Control
             h = Mathf.Lerp(h, pH, t);
         }
 
-        h = Mathf.Floor(h);
         h = Mathf.Clamp(h, 1f, terrainSize.y);
         return h;
     }
 
     public Vector2 SampleNormal(float x)
     {
-        float hl = (SampleHeight(x - .01f));
-        float hr = (SampleHeight(x + .01f));
+        float spacing = 1f;
+        float hl = (SampleHeight(x - spacing));
+        float hr = (SampleHeight(x + spacing));
         Vector2 n = new Vector2(hl - hr, -1f).Normalized();
         return n;
     }

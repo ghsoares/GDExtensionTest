@@ -229,7 +229,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 terrainNoise = SubResource( 1 )
-terrainSize = Vector2( 2048, 600 )
+terrainSize = Vector2( 4096, 600 )
 platformInterpolationSize = 21.333
 platformInterpolationEasing = -2.0
 resolution = 0.25

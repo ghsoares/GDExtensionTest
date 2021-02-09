@@ -113,6 +113,8 @@ public class Player : RigidBody2D
                 SetProcess(false);
             }
         }
+
+        Update();
     }
 
     public override void _PhysicsProcess(float delta) {
@@ -170,7 +172,7 @@ public class Player : RigidBody2D
         };
 
         Platform p = Game.main.GetPlatformOnX(Position.x);
-        bool insidePlatform = true;
+        bool landedPlatform = true;
         bool landedGround = false;
 
         foreach (Vector2 col in colPositions) {
@@ -185,24 +187,27 @@ public class Player : RigidBody2D
                 ApplyImpulse(GlobalTransform.BasisXform(col), -LinearVelocity * Mathf.Clamp(2f * delta, 0, 1));
 
                 if (Mathf.Abs(GlobalRotationDegrees) >= explodeAtCollisionAngle || LinearVelocity.Length() >= explodeAtSpeed) {
+                    landedPlatform = false;
                     Explode();
-                    break;
+                    continue;
                 }
 
                 landedGround = true;
                 if (p == null) {
-                    insidePlatform = false;
+                    landedPlatform = false;
                     Explode();
+                    continue;
                 }
 
                 if (!p.IsInside(gCol.x)) {
-                    insidePlatform = false;
+                    landedPlatform = false;
                     Explode();
+                    continue;
                 }
             }
         }
     
-        if (landedGround && insidePlatform) {
+        if (landedGround && landedPlatform) {
             Land(p);
         }
     }
@@ -320,47 +325,20 @@ public class Player : RigidBody2D
         landed = false;
     }
 
-    /*public void OnBodyEnter(Node2D body) {
-        for (int i = 0; i < prevState.GetContactCount(); i++) {
-            var obj = prevState.GetContactColliderObject(i);
-            if (obj != body) continue;
+    public override void _Draw() {
+        //DrawSetTransformMatrix(GetGlobalTransform().AffineInverse());
 
-            Vector2 n = prevState.GetContactLocalNormal(i);
-            float a1 = Mathf.Abs(n.AngleTo(Vector2.Up));
-            a1 = Mathf.Rad2Deg(a1);
-            
-            n = GlobalTransform.BasisXformInv(n);
-            float a2 = Mathf.Abs(n.AngleTo(Vector2.Up));
-            a2 = Mathf.Rad2Deg(a2);
-            
-            if (Mathf.Max(a1, a2) >= explodeAtCollisionAngle || prevVelocity.Length() >= explodeAtSpeed) {
-                Explode();
-                break;
-            }
+        /*float posX = GlobalPosition.x;
+        float h = Game.main.SampleHeight(posX);
+        float globalY = Game.main.terrainSize.y - h;
 
-            Platform p = obj as Platform;
-            bool inside = true;
-            if (p != null) {
-                Vector2 ext = colShape.Extents;
-                Vector2[] colPositions = new Vector2[] {
-                    ext,
-                    new Vector2(-ext.x, ext.y),
-                };
-                foreach (Vector2 col in colPositions) {
-                    Vector2 gCol = GlobalTransform.Xform(col);
-                    if (!p.IsInside(gCol.x)) {
-                        inside = false;
-                        break;
-                    }
-                }
-            }
+        Vector2 circlePos = new Vector2(posX, globalY);
+        Vector2 normal = Game.main.SampleNormal(posX);
 
-            if (!inside) {
-                Explode();
-                break;
-            }
+        circlePos = GlobalTransform.XformInv(circlePos);
+        normal = GlobalTransform.BasisXformInv(normal);
 
-            Land(p);
-        }
-    }*/
+        DrawCircle(circlePos, 4f, Colors.Red);
+        DrawLine(circlePos, circlePos + normal * 16f, Colors.Green);*/
+    }
 }
