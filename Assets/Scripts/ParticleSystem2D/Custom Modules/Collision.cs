@@ -7,7 +7,7 @@ public class Collision : ParticleSystemModule
     public Godot.Collections.Array excludeBodies {get; private set;}
 
     [Export]
-    public float sizeOffset = .5f;
+    public float sizeScale = .5f;
     [Export(PropertyHint.Range, "0,1")]
     public float bounciness = 0f;
 
@@ -20,9 +20,8 @@ public class Collision : ParticleSystemModule
     }
 
     public override void UpdateParticle(ref ParticleSystem2D.Particle p, float delta) {
-        if (Engine.EditorHint) return;
         Vector2 dir = p.velocity.Normalized();
-        float l = p.velocity.Length() * delta + sizeOffset;
+        float l = p.velocity.Length() * delta + sizeScale;
         var res = spaceState.IntersectRay(p.position, p.position + dir * l, excludeBodies);
         if (res.Count == 0) return;
 
@@ -32,7 +31,7 @@ public class Collision : ParticleSystemModule
 
         if (!normal.IsNormalized()) return;
 
-        p.position = point + normal * sizeOffset;
+        p.position = point + normal * (sizeScale * p.size * 1.08f);
         p.velocity = p.velocity.Slide(normal);
         p.velocity = p.velocity.LinearInterpolate(p.velocity.Bounce(normal), bounciness);
     }

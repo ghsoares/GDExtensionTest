@@ -31,10 +31,10 @@ public class PopupText : Node2D
     }
 
     public void ConfigureMotion(
-        Vector2 pos, float duration = 3f, float delay = 0f
+        Vector2 motion, float duration = 3f, float delay = 0f
     ) {
         motionTween.InterpolateProperty(
-            this, "global_position", GlobalPosition, pos, duration,
+            this, "global_position", GlobalPosition, GlobalPosition + motion, duration,
             Tween.TransitionType.Quad, Tween.EaseType.InOut, delay
         );
     }

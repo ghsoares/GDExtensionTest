@@ -159,6 +159,7 @@ public class FastNoiseLite
     /// Default: 1337
     /// </remarks>
     public void SetSeed(int seed) { mSeed = seed; }
+    public int GetSeed() {return mSeed;}
 
     /// <summary>
     /// Sets frequency for all noise types
@@ -344,6 +345,9 @@ public class FastNoiseLite
                 return GenFractalPingPong(x, y);
         }
     }
+    public float GetNoiseUnsigned(FNLfloat x, FNLfloat y) {
+        return GetNoise(x, y) / 2f + .5f;
+    }
 
     /// <summary>
     /// 3D noise at given position using current settings
@@ -367,6 +371,9 @@ public class FastNoiseLite
             case FractalType.PingPong:
                 return GenFractalPingPong(x, y, z);
         }
+    }
+    public float GetNoiseUnsigned(FNLfloat x, FNLfloat y, FNLfloat z) {
+        return GetNoise(x, y, z) / 2f + .5f;
     }
 
 

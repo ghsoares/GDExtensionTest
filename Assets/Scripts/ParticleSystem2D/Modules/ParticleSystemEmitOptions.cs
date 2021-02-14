@@ -13,22 +13,32 @@ public class ParticleSystemEmitOptions : ParticleSystemModule
     [Export]
     public float minRotation = 0f, maxRotation = 0f;
     [Export]
-    public Color startColor;
+    public Color startColor = Colors.White;
     [Export]
     public Gradient randomColorGradient;
 
     public override void InitParticle(ref ParticleSystem2D.Particle p, ParticleSystem2D.EmitParams emitParams)
     {
-        float speed = particleSystem.random.NextFloat(minSpeed, maxSpeed);
-        float lifetime = particleSystem.random.NextFloat(minLifetime, maxLifetime);
-        float size = particleSystem.random.NextFloat(minSize, maxSize);
-        float rotation = particleSystem.random.NextFloat(minRotation, maxRotation);
+        FastNoiseLite r = particleSystem.noiseRandom;
+
+        float speed = Mathf.Lerp(
+            minSpeed, maxSpeed, r.GetNoiseUnsigned(p.idx, 0)
+        );
+        float lifetime = Mathf.Lerp(
+            minLifetime, maxLifetime, r.GetNoiseUnsigned(p.idx, 1)
+        );
+        float size = Mathf.Lerp(
+            minSize, maxSize, r.GetNoiseUnsigned(p.idx, 2)
+        );
+        float rotation = Mathf.Lerp(
+            minRotation, maxRotation, r.GetNoiseUnsigned(p.idx, 3)
+        );
 
         Color color = startColor;
 
         if (randomColorGradient != null)
         {
-            color = randomColorGradient.Interpolate(particleSystem.random.NextFloat());
+            color = randomColorGradient.Interpolate(r.GetNoiseUnsigned(p.idx, 4));
         }
 
         p.position = emitParams.position;

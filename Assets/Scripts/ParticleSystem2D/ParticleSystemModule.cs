@@ -11,6 +11,8 @@ public class ParticleSystemModule : Node {
     public bool enabled = true;
 
     public ParticleSystem2D particleSystem {get; set;}
+    public World2D world {get; set;}
+    public RID space {get; set;}
     public Physics2DDirectSpaceState spaceState {get; set;}
     public DrawMode drawMode = DrawMode.Single;
 
@@ -24,9 +26,12 @@ public class ParticleSystemModule : Node {
 
     public virtual void UpdateParticle(ref ParticleSystem2D.Particle p, float delta) {}
 
+    public virtual void DestroyParticle(ref ParticleSystem2D.Particle p) {}
+
     public virtual void DrawModule() {}
 
     public virtual void DrawParticle(ParticleSystem2D.Particle p) {}
 
     public virtual void DrawBatch(ParticleSystem2D.Particle[] particles) {}
+
 }

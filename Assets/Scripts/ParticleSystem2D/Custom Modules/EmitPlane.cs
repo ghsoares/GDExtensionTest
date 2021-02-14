@@ -12,23 +12,18 @@ public class EmitPlane : ParticleSystemModule
     [Export]
     public float rotation = 0f;
     [Export]
-    public Vector2 direction = Vector2.Zero;
-    [Export]
-    public float directionRotation = 0f;
+    public Vector2 directionRotationRange = Vector2.Zero;
 
     public override void InitParticle(ref ParticleSystem2D.Particle p, ParticleSystem2D.EmitParams emitParams) {
-        System.Random r = particleSystem.random;
+        FastNoiseLite r = particleSystem.noiseRandom;
 
-        float s = r.NextFloat() < .5f ? -1f : 1f;
+        float s = Mathf.Sign(r.GetNoise(p.idx, 0));
 
-        float a = Mathf.Pi / 2f * s + Mathf.Deg2Rad(rotation);
-        float o = r.NextFloat(1f - sizeThickness, 1f) * size;
-
-        Vector2 off = emitParams.shapeDirection.Rotated(particleSystem.GlobalRotation + a) * o;
-        Vector2 dir = off.Normalized();
-        if (direction != Vector2.Zero) {
-            dir = direction.Rotated(particleSystem.GlobalRotation + Mathf.Deg2Rad(directionRotation));
-        }
+        float o = r.GetNoiseUnsigned(p.idx, 1);
+        Vector2 dir = Vector2.Up.Rotated(particleSystem.GlobalRotation + Mathf.Deg2Rad(rotation) + Mathf.Deg2Rad(
+            Mathf.Lerp(directionRotationRange.x, directionRotationRange.y, o) * s
+        ));
+        Vector2 off = Vector2.Right.Rotated(particleSystem.GlobalRotation + Mathf.Deg2Rad(rotation)) * o * s * size;
 
         p.position += off;
         p.velocity = dir * p.velocity.Length();

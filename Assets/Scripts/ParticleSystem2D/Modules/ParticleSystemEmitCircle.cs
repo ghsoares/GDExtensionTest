@@ -9,10 +9,12 @@ public class ParticleSystemEmitCircle : ParticleSystemModule {
     public float radiusThickness = 1f;
 
     public override void InitParticle(ref ParticleSystem2D.Particle p, ParticleSystem2D.EmitParams emitParams) {
-        System.Random r = particleSystem.random;
+        FastNoiseLite r = particleSystem.noiseRandom;
 
-        float a = r.NextFloat(0f, Mathf.Pi * 2f);
-        float o = r.NextFloat(1f - radiusThickness, 1f) * radius;
+        float a = GD.Randf() * Mathf.Pi * 2f;
+        float o = Mathf.Lerp(
+            1f - radiusThickness, 1f, GD.Randf()
+        ) * radius;
 
         Vector2 off = Vector2.Right.Rotated(a) * o;
         Vector2 dir = off.Normalized();

@@ -1,6 +1,7 @@
 using Godot;
 using System;
 
+[Tool]
 public class Platform : StaticBody2D
 {
     private Control platformControl {get; set;}
@@ -12,6 +13,8 @@ public class Platform : StaticBody2D
     public Vector2 size {get; set;}
 
     public override void _Ready() {
+        if (Engine.EditorHint) return;
+
         platformControl = GetNode<Control>("Spr");
         multiplierText = GetNode<Label>("Multiplier/Text");
         col = GetNode<CollisionShape2D>("Col");
@@ -29,7 +32,7 @@ public class Platform : StaticBody2D
         colShape.Extents = size / 2f;
         col.Shape = colShape;
 
-        Color c = Game.main.surfaceColor;
+        Color c = World.main.surfaceColor;
         c.v += .01f;
 
         landParticleSystemEmitOptions.startColor = c;

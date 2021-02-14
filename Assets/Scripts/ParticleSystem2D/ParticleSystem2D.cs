@@ -61,6 +61,7 @@ public class ParticleSystem2D : Node2D
     private float currentFrameDelta {get; set;}
     private Vector2 prevPos {get; set;}
     public Random random {get; private set;}
+    public FastNoiseLite noiseRandom {get; private set;}
     public Vector2 currentVelocity {get; set;}
     public Vector2 pos {
         get {
@@ -82,6 +83,8 @@ public class ParticleSystem2D : Node2D
     public SpaceMode spaceMode = SpaceMode.World;
     [Export]
     public int maxParticles = 256;
+    [Export]
+    public int seed = 1337;
     [Export]
     public bool emitting;
     [Export]
@@ -117,7 +120,11 @@ public class ParticleSystem2D : Node2D
             module.InitModule();
         }
 
-        random = new Random();
+        random = new Random(seed);
+
+        noiseRandom = new FastNoiseLite(seed);
+        noiseRandom.SetNoiseType(FastNoiseLite.NoiseType.Value);
+        noiseRandom.SetFrequency(2f);
     }
 
     public T GetModule<T>() where T : ParticleSystemModule {
@@ -127,7 +134,9 @@ public class ParticleSystem2D : Node2D
     public void ResetIfNeeded() {
         bool resetParticles = particles == null || maxParticles != particles.Length;
         bool resetModules = modules == null || this.GetChildCount<ParticleSystemModule>() != modules.Length;
-        if (resetParticles || (Engine.EditorHint && resetModules)) {
+        bool resetRandom = random == null;
+        bool resetNoise = noiseRandom == null || noiseRandom.GetSeed() != seed;
+        if (resetParticles || resetRandom || resetNoise || (Engine.EditorHint && resetModules)) {
             Reset();
         }
     }
@@ -171,11 +180,15 @@ public class ParticleSystem2D : Node2D
             currentVelocity = deltaPos / delta;
             ResetIfNeeded();
 
-            Physics2DDirectSpaceState spaceState = GetWorld2d().DirectSpaceState;
+            World2D world = GetWorld2d();
+            RID spaceRID = world.Space;
+            Physics2DDirectSpaceState spaceState = world.DirectSpaceState;
 
             foreach (ParticleSystemModule module in modules) {
                 if (!module.enabled) continue;
                 module.particleSystem = this;
+                module.world = world;
+                module.space = spaceRID;
                 module.spaceState = spaceState;
                 module.UpdateModule(delta);
                 for (int i = 0; i < maxParticles; i++) {
@@ -183,6 +196,11 @@ public class ParticleSystem2D : Node2D
                         module.UpdateParticle(ref particles[i], delta);
                         if (particles[i].currentLife <= 0f) {
                             particles[i].currentLife = 0f;
+
+                            foreach (ParticleSystemModule module2 in modules) {
+                                module2.DestroyParticle(ref particles[i]);
+                            }
+
                             particles[i].alive = false;
                         }
                     }
@@ -195,13 +213,23 @@ public class ParticleSystem2D : Node2D
         }
     }
 
-    private void InternalEmit(int pIdx, EmitParams emitParams) {   
+    private void InternalEmit(int pIdx, EmitParams emitParams) {
         Particle p = particles[pIdx];
 
         p.customData = new Dictionary<string, object>();
         p.alive = true;
+
+        World2D world = GetWorld2d();
+        RID spaceRID = world.Space;
+        Physics2DDirectSpaceState spaceState = world.DirectSpaceState;
+
         foreach (ParticleSystemModule module in modules) {
             if (!module.enabled) continue;
+
+            module.world = world;
+            module.space = spaceRID;
+            module.spaceState = spaceState;
+
             module.InitParticle(ref p, emitParams);
         }
 

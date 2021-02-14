@@ -48,10 +48,10 @@ public class EmitTexture : ParticleSystemModule
     public override void InitParticle(ref ParticleSystem2D.Particle p, ParticleSystem2D.EmitParams emitParams) {
         if (sampledPoints == null || imgSizeX == 0 || imgSizeY == 0) return;
 
-        Random r = particleSystem.random;
+        FastNoiseLite r = particleSystem.noiseRandom;
 
-        int x = r.Next(0, imgSizeX);
-        int y = r.Next(0, imgSizeY);
+        int x = Mathf.FloorToInt(r.GetNoiseUnsigned(p.idx, 0) * imgSizeX);
+        int y = Mathf.FloorToInt(r.GetNoiseUnsigned(p.idx, 1) * imgSizeY);
 
         Color c = p.baseColor * sampledPoints[x + y * imgSizeY];
 
