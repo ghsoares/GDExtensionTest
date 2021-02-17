@@ -6,7 +6,7 @@ public class Player : RigidBody2D
 	public static Player main {get; private set;}
 
 	private Sprite spr;
-	private ShaderMaterial sprShaderMaterial;
+	private ShaderMaterial speedShaderMaterial;
 	private RectangleShape2D colShape;
 	private ParticleSystem2D rocketParticleSystem;
 	private ParticleSystem2D explosion1;
@@ -73,7 +73,7 @@ public class Player : RigidBody2D
 
 	public override void _Ready() {
 		spr = GetNode<Sprite>("Spr");
-		sprShaderMaterial = spr.Material as ShaderMaterial;
+		speedShaderMaterial = GetNode<Sprite>("Speed").Material as ShaderMaterial;
 
 		colShape = GetNode<CollisionShape2D>("Col").Shape as RectangleShape2D;
 
@@ -93,8 +93,7 @@ public class Player : RigidBody2D
 		startTransform = GlobalTransform;
 		currentFuel = maxFuel;
 
-		//Connect("body_entered", this, "OnBodyEnter");
-		Game.main.Connect("OnReset", this, "Reset");
+		World.main.Connect("OnLevelStart", this, "Reset");
 	}
 
 	public override void _Process(float delta) {
@@ -104,28 +103,29 @@ public class Player : RigidBody2D
 		if (Input.IsActionPressed("deccelerate")) thrusterAdd -= 1f;
 		if (dead) {
 			if (Input.IsActionJustPressed("reset")) {
-				if (currentFuel == 0) {
-					Game.main.Reset();
-				} else {
-					Game.main.ResetLevel();
-				}
+				World.main.ResetLevel();
 				SetProcess(false);
 			}
 		}
 		if (landed) {
 			if (Input.IsActionJustPressed("next")) {
-				Game.main.NextLevel();
+				World.main.NextLevel();
 				SetProcess(false);
 			}
 		}
 
-		sprShaderMaterial.SetShaderParam("velocity", GlobalTransform.BasisXformInv(LinearVelocity));
+		speedShaderMaterial.SetShaderParam("velocity", GlobalTransform.BasisXformInv(LinearVelocity));
+		speedShaderMaterial.SetShaderParam("transform", GlobalTransform);
 
 		Update();
 	}
 
 	public override void _PhysicsProcess(float delta) {
 		LinearVelocity += Vector2.Down * World.main.gravity * delta;
+
+		if (Mathf.Abs(RotationDegrees) <= 1f) RotationDegrees = 0f;
+		if (Mathf.Rad2Deg(Mathf.Abs(AngularVelocity)) <= 1f) AngularVelocity = 0f;
+		if (LinearVelocity.Length() <= .1f) LinearVelocity = Vector2.Zero;
 
 		if (currentFuel <= 0f || landed) {
 			thrusterPower = 0f;

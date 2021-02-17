@@ -9,7 +9,7 @@ public class HeightMapCollision : ParticleSystemModule
     public float bounciness = 0f;
 
     public override void UpdateParticle(ref ParticleSystem2D.Particle p, float delta) {
-        if (Game.main == null) return;
+        if (World.main == null) return;
 
         float pY = p.position.y;
         pY += p.size * sizeOffset;

@@ -1,0 +1,179 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://Assets/Scripts/GameMain.cs" type="Script" id=1]
+[ext_resource path="res://Assets/Scenes/Game.tscn" type="PackedScene" id=2]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform vec2 size;
+uniform float triangles = 8f;
+uniform float transition : hint_range(0, 1);
+uniform float timeOffset : hint_range(0, .5f) = .05f;
+uniform float transitionCurve = 1f;
+uniform bool invert;
+uniform sampler2D triangleGradient;
+uniform float pixelSize = 1f;
+
+float remap(float value, float start1, float stop1, float start2, float stop2) {
+	return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
+}
+
+float ease(float x, float c) {
+	if (x < 0f) x = 0f;
+	if (x > 1f) x = 1f;
+	
+	if (c > 0f) {
+		if (c < 1f) {
+			return 1f - pow(1f - x, 1f / c);
+		} else {
+			return pow(x, c);
+		}
+	} else if (c < 0f) {
+		if (x < 0.5f) {
+			return pow(x * 2f, -c) * .5f;
+		} else {
+			return (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;
+		}
+	}
+	
+	return 0f;
+}
+
+
+void fragment() {
+	vec2 pos = UV * size;
+	pos = floor(pos / pixelSize) * pixelSize;
+	
+	float triSize = size.y / triangles;
+	float triPosX = mod(pos.y, triSize);
+	float idx = floor(pos.y / triSize);
+	
+	float gT = idx / (triangles - 1f);
+	COLOR = texture(triangleGradient, vec2(gT, 0f));
+	
+	if (invert) {
+		idx = (triangles - 1f) - idx;
+	}
+	
+	triPosX -= triSize;
+	
+	float between = 1f - timeOffset * 2f;
+	float o = timeOffset / triangles;
+	float t = remap(
+		transition, idx * o, between + idx * o, 0, 1
+	);
+	
+	t = clamp(t, 0, 1);
+	t = ease(t, transitionCurve);
+	
+	triPosX += (size.x + triSize) * t;
+	
+	if (pos.x > triPosX) {
+		COLOR.a = 0f;
+	}
+}"
+
+[sub_resource type="Gradient" id=2]
+offsets = PoolRealArray( 0, 0.333, 0.667, 1 )
+colors = PoolColorArray( 1, 0.309804, 0, 1, 1, 0.898039, 0, 1, 1, 0.309804, 0, 1, 1, 0.898039, 0, 1 )
+
+[sub_resource type="GradientTexture" id=3]
+gradient = SubResource( 2 )
+
+[sub_resource type="ShaderMaterial" id=4]
+shader = SubResource( 1 )
+shader_param/size = Vector2( 1024, 600 )
+shader_param/triangles = 8.0
+shader_param/transition = 0.0
+shader_param/timeOffset = 0.3
+shader_param/transitionCurve = -2.0
+shader_param/invert = false
+shader_param/pixelSize = 8.0
+shader_param/triangleGradient = SubResource( 3 )
+
+[sub_resource type="Animation" id=5]
+length = 1.25
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:material:shader_param/transition")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 1 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ 0.0, 1.0 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath(".:material:shader_param/invert")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+
+[sub_resource type="Animation" id=6]
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:material:shader_param/transition")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 1 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ 1.0, 0.0 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath(".:material:shader_param/invert")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ true ]
+}
+
+[node name="GameMain" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+startScene = ExtResource( 2 )
+
+[node name="Scene" type="Control" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Top" type="CanvasLayer" parent="."]
+layer = 128
+
+[node name="Transition" type="ColorRect" parent="Top"]
+material = SubResource( 4 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_lock_": true,
+"_edit_use_anchors_": false
+}
+
+[node name="Anim" type="AnimationPlayer" parent="Top/Transition"]
+playback_speed = 0.75
+anims/In = SubResource( 5 )
+anims/Out = SubResource( 6 )

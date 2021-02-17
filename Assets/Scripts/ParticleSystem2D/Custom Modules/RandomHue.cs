@@ -13,10 +13,9 @@ public class RandomHue : ParticleSystemModule
     public float randomValue = .2f;
 
     public override void InitParticle(ref ParticleSystem2D.Particle p, ParticleSystem2D.EmitParams emitParams) {
-        FastNoiseLite r = particleSystem.noiseRandom;
-        float rH = r.GetNoiseUnsigned(p.idx, 0) * randomHue;
-        float rS = r.GetNoiseUnsigned(p.idx, 1) * randomSaturation;
-        float rV = r.GetNoiseUnsigned(p.idx, 2) * randomValue;
+        float rH = GD.Randf() * randomHue;
+        float rS = GD.Randf() * randomSaturation;
+        float rV = GD.Randf() * randomValue;
 
         Color c = p.baseColor;
         c.h += rH;

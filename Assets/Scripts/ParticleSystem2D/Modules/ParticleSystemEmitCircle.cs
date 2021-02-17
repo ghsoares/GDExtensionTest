@@ -9,8 +9,6 @@ public class ParticleSystemEmitCircle : ParticleSystemModule {
     public float radiusThickness = 1f;
 
     public override void InitParticle(ref ParticleSystem2D.Particle p, ParticleSystem2D.EmitParams emitParams) {
-        FastNoiseLite r = particleSystem.noiseRandom;
-
         float a = GD.Randf() * Mathf.Pi * 2f;
         float o = Mathf.Lerp(
             1f - radiusThickness, 1f, GD.Randf()

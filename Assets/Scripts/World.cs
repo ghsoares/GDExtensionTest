@@ -1,4 +1,7 @@
+#pragma warning disable 4014
+
 using Godot;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using ExtensionMethods.RandomMethods;
 
@@ -7,6 +10,8 @@ public class World : Control
 {
     public static World main {get; private set;}
     public float highestPoint = 0f;
+    public bool generating {get; private set;}
+    public int level {get; set;}
 
     private Platform[] platforms;
     private OpenSimplexNoise terrainNoise;
@@ -45,6 +50,9 @@ public class World : Control
         }
     }
 
+    [Signal]
+    delegate void OnLevelStart();
+
     public World() {
         main = this;
     }
@@ -54,7 +62,28 @@ public class World : Control
     }
 
     public override void _Ready() {
+        level = 0;
         Generate();
+        EmitSignal("OnLevelStart");
+    }
+
+    public async void NextLevel() {
+        if (generating) return;
+        generating = true;
+        await GameMain.main.TransitionIn();
+        Generate();
+        EmitSignal("OnLevelStart");
+        generating = false;
+        GameMain.main.TransitionOut();
+    }
+
+    public async void ResetLevel() {
+        if (generating) return;
+        generating = true;
+        await GameMain.main.TransitionIn();
+        EmitSignal("OnLevelStart");
+        generating = false;
+        GameMain.main.TransitionOut();
     }
 
     public void Generate()
@@ -81,7 +110,7 @@ public class World : Control
         int size = Mathf.FloorToInt(terrainSize.x * resolution);
 
         Image bufferImg = new Image();
-        bufferImg.Create(size, 1, false, Image.Format.Rf);
+        bufferImg.Create(size, 1, false, Image.Format.Rgba8);
         bufferImg.Lock();
 
         for (int i = 0; i < size; i++)
@@ -91,7 +120,9 @@ public class World : Control
 
             if (h > highestPoint) highestPoint = h;
 
-            bufferImg.SetPixel(i, 0, new Color(h / terrainSize.y, 0, 0, 1f));
+            float hFloat = h / terrainSize.y;
+            
+            bufferImg.SetPixel(i, 0, ExtensionMethods.ColorMethods.ColorExtensionMethods.EncodeFloatIntoColor(hFloat));
         }
 
         bufferImg.Unlock();
@@ -155,14 +186,6 @@ public class World : Control
             platforms[i] = p;
         }
 
-        /*for (int i = 0; i < 5; i++) {
-            int j = Mathf.FloorToInt(Mathf.Lerp(0, 5, random.NextFloat()));
-            Vector2 posA = platforms[i].Position;
-            Vector2 posB = platforms[j].Position;
-            platforms[i].Position = posB;
-            platforms[j].Position = posA;
-        }*/
-
         foreach (Platform p in platforms) {
             float sizeX = p.size.x;
             float sizeY = 3f;
@@ -222,6 +245,7 @@ public class World : Control
             float pH = (pH1 + pH2) / 2f;
             pH *= height;
             pH += heightOffset;
+            pH = Mathf.Floor(pH);
             h = Mathf.Lerp(h, pH, t);
         }
 
@@ -264,5 +288,21 @@ public class World : Control
 
         min = platforms[minIdx+0];
         max = platforms[minIdx+1];
+    }
+
+    public Platform GetNearestPlatform(float x) {
+        Platform nearest = platforms[0];
+        float dist = Mathf.Abs(nearest.Position.x - x);
+
+        for (int i = 1; i < platforms.Length; i++) {
+            Platform p = platforms[i];
+            float thisDist = Mathf.Abs(p.Position.x - x);
+            if (thisDist < dist) {
+                nearest = p;
+                dist = thisDist;
+            }
+        }
+
+        return nearest;
     }
 }

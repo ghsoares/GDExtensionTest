@@ -10,7 +10,7 @@ public class ParticleSystemEmitBurst : ParticleSystemModule {
     public int minAmount = 8, maxAmount = 8;
 
     public override void EmitSimple() {
-        int amount = particleSystem.random.Next(minAmount, maxAmount+1);
+        int amount = (int)Mathf.Lerp(minAmount, maxAmount+1, GD.Randf());
         particleSystem.Emit(amount);
     }
 
@@ -21,7 +21,7 @@ public class ParticleSystemEmitBurst : ParticleSystemModule {
         }
         currentRate += delta * rate;
         while (currentRate >= 1f) {
-            int amount = particleSystem.random.Next(minAmount, maxAmount+1);
+            int amount = (int)Mathf.Lerp(minAmount, maxAmount+1, GD.Randf());
             particleSystem.Emit(amount);
             currentRate -= currentRate;
         }

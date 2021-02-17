@@ -1,6 +1,6 @@
 ﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moon Lander", "Moon Lander.csproj", "{17CF25E4-0553-4739-9526-2FF348677106}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astronoma", "Astronoma.csproj", "{17CF25E4-0553-4739-9526-2FF348677106}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

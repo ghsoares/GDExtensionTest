@@ -9,7 +9,6 @@ public class Game : Control
 
 	public static Game main { get; private set; }
 	public Viewport view { get; private set; }
-	public AnimationPlayer transitionAnim {get; private set;}
 	public WorldCamera worldCamera { get; private set; }
 	public Camera2D zoomCamera { get; private set; }
 	public Vector2 targetPosition { get; set; }
@@ -45,9 +44,6 @@ public class Game : Control
 		view = GetNode<Viewport>("View");
 		worldCamera = GetNode<WorldCamera>("View/Cam");
 		zoomCamera = GetNode<Camera2D>("Cam");
-
-		transitionAnim = GetNode<AnimationPlayer>("UI/Transition/Anim");
-		transitionAnim.Play("Out");
 	}
 
 	public override void _Process(float delta)
@@ -106,36 +102,6 @@ public class Game : Control
 		zoomCamera.Position = onViewPos;
 	}
 
-	public void ResetLevel() {
-		transitionAnim.Play("In");
-		transitionAnim.Connect(
-			"animation_finished", this, "OnTransitionAnimationFinished",
-			new Godot.Collections.Array(new object[] {
-				0
-			})
-		);
-	}
-
-	public void NextLevel() {
-		transitionAnim.Play("In");
-		transitionAnim.Connect(
-			"animation_finished", this, "OnTransitionAnimationFinished",
-			new Godot.Collections.Array(new object[] {
-				1
-			})
-		);
-	}
-
-	public void Reset() {
-		transitionAnim.Play("In");
-		transitionAnim.Connect(
-			"animation_finished", this, "OnTransitionAnimationFinished",
-			new Godot.Collections.Array(new object[] {
-				2
-			})
-		);
-	}
-
 	private Vector2 TransformBetweenViewports(Vector2 pos, Viewport fromViewport, Viewport toViewport)
 	{
 		Transform2D fromT = fromViewport.GetFinalTransform() * fromViewport.CanvasTransform;
@@ -143,26 +109,5 @@ public class Game : Control
 		pos = fromT.Xform(pos) / fromViewport.Size;
 		pos *= RectSize;
 		return pos;
-	}
-
-	public void OnTransitionAnimationFinished(string animName, int transitionType) {
-		switch (transitionType) {
-			case 0: {
-				EmitSignal("OnReset");
-				break;
-			}
-			case 1: {
-				World.main.Generate();
-				EmitSignal("OnReset");
-				break;
-			}
-			case 2: {
-				World.main.Generate();
-				EmitSignal("OnReset");
-				break;
-			}
-		}
-		transitionAnim.Play("Out");
-		transitionAnim.Disconnect("animation_finished", this, "OnTransitionAnimationFinished");
 	}
 }

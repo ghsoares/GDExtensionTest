@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=2]
+[gd_scene load_steps=24 format=2]
 
 [ext_resource path="res://Assets/Scripts/Game.cs" type="Script" id=1]
 [ext_resource path="res://Assets/Scenes/World.tscn" type="PackedScene" id=2]
@@ -19,61 +19,31 @@
 [sub_resource type="Curve" id=1]
 _data = [ Vector2( 0.249046, 0 ), 0.0, -0.017628, 0, 0, Vector2( 0.741412, 1 ), 0.202068, 0.0, 0, 0 ]
 
-[sub_resource type="Shader" id=13]
+[sub_resource type="Shader" id=2]
 code = "shader_type canvas_item;
 
-uniform vec3 colorRangeMagnitude = vec3(.1f, .05f, .25f);
-uniform float amplitude = 1f;
-uniform vec2 fadeRange = vec2(.25f, .75f);
-
-vec4 chromatic_aberration(vec4 originalCol, sampler2D tex, vec2 uv) {
-	vec2 dir = (vec2(.5f) - uv);
-	float l = length(dir) / .5f;
-	l = (l - fadeRange.x) / (fadeRange.y - fadeRange.x);
-	dir = normalize(dir) * clamp(l, 0, 1) * amplitude;
-	
-	float r = texture(tex, uv + dir * colorRangeMagnitude.r).r;
-	float g = texture(tex, uv + dir * colorRangeMagnitude.g).g;
-	float b = texture(tex, uv + dir * colorRangeMagnitude.b).b;
-	vec3 newCol = vec3(r, g, b);
-	vec3 diff = clamp(newCol - originalCol.rgb, vec3(0f), vec3(1f));
-	
-	originalCol.rgb = mix(originalCol.rgb, newCol, diff);
-	
-	return originalCol;
-}
-
 void fragment() {
-	vec2 uv = UV;
-	
-	vec4 col = texture(TEXTURE, uv);
-	col = chromatic_aberration(col, TEXTURE, uv);
-	
-	COLOR *= col;
+	COLOR.rgb = texture(TEXTURE, UV).rgb;
 }"
 
-[sub_resource type="ShaderMaterial" id=14]
-shader = SubResource( 13 )
-shader_param/colorRangeMagnitude = Vector3( 0.005, 0.01, 0.015 )
-shader_param/amplitude = 1.25
-shader_param/fadeRange = Vector2( 0.25, 0.75 )
+[sub_resource type="ShaderMaterial" id=3]
+shader = SubResource( 2 )
 
-[sub_resource type="ViewportTexture" id=2]
+[sub_resource type="ViewportTexture" id=4]
 viewport_path = NodePath("View")
 
-[sub_resource type="Gradient" id=3]
+[sub_resource type="Gradient" id=5]
 offsets = PoolRealArray( 0, 0.5, 1 )
 colors = PoolColorArray( 0.499334, 1, 0.473633, 1, 1, 0.945024, 0.313477, 1, 1, 0.235352, 0.235352, 1 )
 
-[sub_resource type="DynamicFont" id=4]
+[sub_resource type="DynamicFont" id=6]
 outline_size = 1
 outline_color = Color( 0, 0, 0, 1 )
 extra_spacing_top = -3
 extra_spacing_char = 1
 font_data = ExtResource( 14 )
 
-[sub_resource type="Animation" id=5]
-resource_name = "Warning"
+[sub_resource type="Animation" id=7]
 length = 0.3
 loop = true
 step = 0.05
@@ -90,8 +60,7 @@ tracks/0/keys = {
 "values": [ Color( 1, 1, 1, 1 ), Color( 1, 1, 1, 0 ) ]
 }
 
-[sub_resource type="Animation" id=6]
-resource_name = "Warning"
+[sub_resource type="Animation" id=8]
 length = 0.3
 loop = true
 step = 0.05
@@ -106,150 +75,6 @@ tracks/0/keys = {
 "transitions": PoolRealArray( 0, 0 ),
 "update": 0,
 "values": [ Color( 1, 1, 1, 1 ), Color( 1, 1, 1, 0 ) ]
-}
-
-[sub_resource type="Shader" id=7]
-code = "shader_type canvas_item;
-
-uniform vec2 size;
-uniform float triangles = 8f;
-uniform float transition : hint_range(0, 1);
-uniform float timeOffset : hint_range(0, .5f) = .05f;
-uniform float transitionCurve = 1f;
-uniform bool invert;
-uniform sampler2D triangleGradient;
-uniform float pixelSize = 1f;
-uniform float speed = 2f;
-
-float remap(float value, float start1, float stop1, float start2, float stop2) {
-	return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
-}
-
-float ease(float x, float c) {
-	if (x < 0f) x = 0f;
-	if (x > 1f) x = 1f;
-	
-	if (c > 0f) {
-		if (c < 1f) {
-			return 1f - pow(1f - x, 1f / c);
-		} else {
-			return pow(x, c);
-		}
-	} else if (c < 0f) {
-		if (x < 0.5f) {
-			return pow(x * 2f, -c) * .5f;
-		} else {
-			return (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;
-		}
-	}
-	
-	return 0f;
-}
-
-
-void fragment() {
-	vec2 pos = UV * size;
-	pos = floor(pos / pixelSize) * pixelSize;
-	
-	float triSize = size.y / triangles;
-	float triPosX = mod(pos.y, triSize);
-	float idx = floor(pos.y / triSize);
-	
-	float gT = idx / (triangles - 1f);
-	COLOR = texture(triangleGradient, vec2(gT, 0f));
-	
-	if (invert) {
-		idx = (triangles - 1f) - idx;
-	}
-	
-	triPosX -= triSize;
-	
-	float between = 1f - timeOffset * 2f;
-	float o = timeOffset / triangles;
-	float t = remap(
-		transition, idx * o, between + idx * o, 0, 1
-	);
-	
-	t = clamp(t, 0, 1);
-	t = ease(t, transitionCurve);
-	
-	triPosX += (size.x + triSize) * t;
-	
-	if (pos.x > triPosX) {
-		COLOR.a = 0f;
-	}
-}"
-
-[sub_resource type="Gradient" id=8]
-offsets = PoolRealArray( 0, 0.333, 0.667, 1 )
-colors = PoolColorArray( 1, 0.615686, 0, 1, 1, 0.898039, 0, 1, 1, 0.615686, 0, 1, 1, 0.898039, 0, 1 )
-
-[sub_resource type="GradientTexture" id=9]
-gradient = SubResource( 8 )
-
-[sub_resource type="ShaderMaterial" id=10]
-shader = SubResource( 7 )
-shader_param/size = Vector2( 1024, 600 )
-shader_param/triangles = 8.0
-shader_param/transition = 0.0
-shader_param/timeOffset = 0.3
-shader_param/transitionCurve = -2.0
-shader_param/invert = true
-shader_param/pixelSize = 8.0
-shader_param/speed = -0.05
-shader_param/triangleGradient = SubResource( 9 )
-
-[sub_resource type="Animation" id=11]
-length = 1.25
-tracks/0/type = "value"
-tracks/0/path = NodePath("../Transition:material:shader_param/transition")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/keys = {
-"times": PoolRealArray( 0, 1 ),
-"transitions": PoolRealArray( 1, 1 ),
-"update": 0,
-"values": [ 0.0, 1.0 ]
-}
-tracks/1/type = "value"
-tracks/1/path = NodePath("../Transition:material:shader_param/invert")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
-"update": 1,
-"values": [ false ]
-}
-
-[sub_resource type="Animation" id=12]
-tracks/0/type = "value"
-tracks/0/path = NodePath("../Transition:material:shader_param/transition")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/keys = {
-"times": PoolRealArray( 0, 1 ),
-"transitions": PoolRealArray( 1, 1 ),
-"update": 0,
-"values": [ 1.0, 0.0 ]
-}
-tracks/1/type = "value"
-tracks/1/path = NodePath("../Transition:material:shader_param/invert")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
-"update": 1,
-"values": [ true ]
 }
 
 [node name="Game" type="Control"]
@@ -268,6 +93,7 @@ pixelSize = 1.0
 [node name="View" type="Viewport" parent="."]
 size = Vector2( 1024, 600 )
 size_override_stretch = true
+usage = 0
 render_target_v_flip = true
 
 [node name="World" parent="View" instance=ExtResource( 2 )]
@@ -282,10 +108,10 @@ limit_bottom = 900
 script = ExtResource( 5 )
 
 [node name="Tex" type="TextureRect" parent="."]
-material = SubResource( 14 )
+material = SubResource( 3 )
 anchor_right = 1.0
 anchor_bottom = 1.0
-texture = SubResource( 2 )
+texture = SubResource( 4 )
 expand = true
 __meta__ = {
 "_edit_lock_": true,
@@ -306,8 +132,8 @@ editor_draw_limits = true
 [node name="UI" type="CanvasLayer" parent="."]
 pause_mode = 2
 script = ExtResource( 13 )
-playerSpeedGradient = SubResource( 3 )
-playerFuelGradient = SubResource( 3 )
+playerSpeedGradient = SubResource( 5 )
+playerFuelGradient = SubResource( 5 )
 
 [node name="Input" type="Control" parent="UI"]
 anchor_right = 1.0
@@ -533,8 +359,8 @@ script = ExtResource( 15 )
 text = "SPEED"
 color = Color( 1, 1, 1, 1 )
 font = ExtResource( 16 )
-fitHeight = 32.0
 vAlign = 2
+fitHeight = 32.0
 
 [node name="Value" type="Control" parent="UI/GUI/Stats/Speed"]
 margin_left = 104.0
@@ -545,8 +371,8 @@ script = ExtResource( 15 )
 text = "1000"
 color = Color( 1, 1, 1, 1 )
 font = ExtResource( 16 )
-fitHeight = 32.0
 vAlign = 2
+fitHeight = 32.0
 
 [node name="Warning" type="Control" parent="UI/GUI/Stats/Speed"]
 margin_left = 228.0
@@ -556,14 +382,14 @@ rect_min_size = Vector2( 48, 0 )
 script = ExtResource( 15 )
 text = "!"
 color = Color( 1, 1, 1, 1 )
-font = SubResource( 4 )
-fitHeight = 48.0
+font = SubResource( 6 )
 vAlign = 1
+fitHeight = 48.0
 hAlign = 1
 
 [node name="Anim" type="AnimationPlayer" parent="UI/GUI/Stats/Speed/Warning"]
 autoplay = "Warning"
-anims/Warning = SubResource( 5 )
+anims/Warning = SubResource( 7 )
 
 [node name="Fuel" type="HBoxContainer" parent="UI/GUI/Stats"]
 margin_top = 42.0
@@ -583,8 +409,8 @@ script = ExtResource( 15 )
 text = "FUEL"
 color = Color( 1, 1, 1, 1 )
 font = ExtResource( 16 )
-fitHeight = 32.0
 vAlign = 2
+fitHeight = 32.0
 
 [node name="Value" type="Control" parent="UI/GUI/Stats/Fuel"]
 margin_left = 104.0
@@ -595,8 +421,8 @@ script = ExtResource( 15 )
 text = "500/500"
 color = Color( 1, 1, 1, 1 )
 font = ExtResource( 16 )
-fitHeight = 32.0
 vAlign = 2
+fitHeight = 32.0
 
 [node name="Warning" type="Control" parent="UI/GUI/Stats/Fuel"]
 margin_left = 228.0
@@ -606,14 +432,14 @@ rect_min_size = Vector2( 48, 0 )
 script = ExtResource( 15 )
 text = "!"
 color = Color( 1, 1, 1, 1 )
-font = SubResource( 4 )
-fitHeight = 48.0
+font = SubResource( 6 )
 vAlign = 1
+fitHeight = 48.0
 hAlign = 1
 
 [node name="Anim" type="AnimationPlayer" parent="UI/GUI/Stats/Fuel/Warning"]
 autoplay = "Warning"
-anims/Warning = SubResource( 6 )
+anims/Warning = SubResource( 8 )
 
 [node name="Score" type="HBoxContainer" parent="UI/GUI"]
 margin_right = 300.0
@@ -632,8 +458,8 @@ script = ExtResource( 15 )
 text = "SCORE"
 color = Color( 1, 1, 1, 1 )
 font = ExtResource( 16 )
-fitHeight = 32.0
 vAlign = 2
+fitHeight = 32.0
 
 [node name="Value" type="Control" parent="UI/GUI/Score"]
 margin_left = 104.0
@@ -644,8 +470,8 @@ script = ExtResource( 15 )
 text = "1000"
 color = Color( 1, 1, 1, 1 )
 font = ExtResource( 16 )
-fitHeight = 32.0
 vAlign = 2
+fitHeight = 32.0
 
 [node name="Pause" type="Control" parent="UI"]
 anchor_right = 1.0
@@ -674,8 +500,8 @@ __meta__ = {
 text = "PAUSED"
 color = Color( 1, 1, 1, 1 )
 font = ExtResource( 16 )
-fitHeight = 64.0
 vAlign = 1
+fitHeight = 64.0
 hAlign = 1
 
 [node name="Debug" type="RichTextLabel" parent="UI"]
@@ -687,17 +513,3 @@ __meta__ = {
 "_edit_lock_": true,
 "_edit_use_anchors_": false
 }
-
-[node name="Transition" type="ColorRect" parent="UI"]
-material = SubResource( 10 )
-anchor_right = 1.0
-anchor_bottom = 1.0
-__meta__ = {
-"_edit_lock_": true,
-"_edit_use_anchors_": false
-}
-
-[node name="Anim" type="AnimationPlayer" parent="UI/Transition"]
-playback_speed = 0.75
-anims/In = SubResource( 11 )
-anims/Out = SubResource( 12 )

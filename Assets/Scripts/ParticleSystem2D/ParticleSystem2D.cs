@@ -10,6 +10,7 @@ public class ParticleSystem2D : Node2D
     public struct Particle {
         public int idx {get; set;}
 
+        public Vector2 prevPosition {get; set;}
         public Vector2 position {get; set;}
         public Vector2 velocity {get; set;}
         public float lifetime {get; set;}
@@ -60,8 +61,6 @@ public class ParticleSystem2D : Node2D
     private ParticleSystemModule[] modules {get; set;}
     private float currentFrameDelta {get; set;}
     private Vector2 prevPos {get; set;}
-    public Random random {get; private set;}
-    public FastNoiseLite noiseRandom {get; private set;}
     public Vector2 currentVelocity {get; set;}
     public Vector2 pos {
         get {
@@ -74,6 +73,19 @@ public class ParticleSystem2D : Node2D
                 }
             }
             return Vector2.Zero;
+        }
+    }
+    public float rot {
+        get {
+            switch (spaceMode) {
+                case SpaceMode.Local: {
+                    return 0f;
+                }
+                case SpaceMode.World: {
+                    return GlobalRotation;
+                }
+            }
+            return 0f;
         }
     }
 
@@ -119,12 +131,6 @@ public class ParticleSystem2D : Node2D
             module.particleSystem = this;
             module.InitModule();
         }
-
-        random = new Random(seed);
-
-        noiseRandom = new FastNoiseLite(seed);
-        noiseRandom.SetNoiseType(FastNoiseLite.NoiseType.Value);
-        noiseRandom.SetFrequency(2f);
     }
 
     public T GetModule<T>() where T : ParticleSystemModule {
@@ -134,9 +140,7 @@ public class ParticleSystem2D : Node2D
     public void ResetIfNeeded() {
         bool resetParticles = particles == null || maxParticles != particles.Length;
         bool resetModules = modules == null || this.GetChildCount<ParticleSystemModule>() != modules.Length;
-        bool resetRandom = random == null;
-        bool resetNoise = noiseRandom == null || noiseRandom.GetSeed() != seed;
-        if (resetParticles || resetRandom || resetNoise || (Engine.EditorHint && resetModules)) {
+        if (resetParticles || (Engine.EditorHint && resetModules)) {
             Reset();
         }
     }
@@ -206,6 +210,12 @@ public class ParticleSystem2D : Node2D
                     }
                 }
             }
+
+            for (int i = 0; i < maxParticles; i++) {
+                if (particles[i].alive) {
+                    particles[i].prevPosition = particles[i].position;
+                }
+            }
             prevPos = GlobalPosition;
         } catch (Exception e) {
             if (Engine.EditorHint) emitting = false;
@@ -232,6 +242,8 @@ public class ParticleSystem2D : Node2D
 
             module.InitParticle(ref p, emitParams);
         }
+
+        p.prevPosition = p.position;
 
         particles[pIdx] = p;
     }

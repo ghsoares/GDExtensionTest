@@ -13,19 +13,27 @@ public class EmitPlane : ParticleSystemModule
     public float rotation = 0f;
     [Export]
     public Vector2 directionRotationRange = Vector2.Zero;
+    [Export]
+    public bool overrideLifetime = false;
+    [Export]
+    public Vector2 lifetimeRange = Vector2.One;
 
     public override void InitParticle(ref ParticleSystem2D.Particle p, ParticleSystem2D.EmitParams emitParams) {
-        FastNoiseLite r = particleSystem.noiseRandom;
+        float s = Mathf.Sign(GD.Randf() * 2f - 1f);
 
-        float s = Mathf.Sign(r.GetNoise(p.idx, 0));
-
-        float o = r.GetNoiseUnsigned(p.idx, 1);
-        Vector2 dir = Vector2.Up.Rotated(particleSystem.GlobalRotation + Mathf.Deg2Rad(rotation) + Mathf.Deg2Rad(
+        float o = GD.Randf();
+        Vector2 dir = Vector2.Up.Rotated(particleSystem.rot + Mathf.Deg2Rad(rotation) + Mathf.Deg2Rad(
             Mathf.Lerp(directionRotationRange.x, directionRotationRange.y, o) * s
         ));
-        Vector2 off = Vector2.Right.Rotated(particleSystem.GlobalRotation + Mathf.Deg2Rad(rotation)) * o * s * size;
+        Vector2 off = Vector2.Right.Rotated(particleSystem.rot + Mathf.Deg2Rad(rotation)) * o * s * size;
 
         p.position += off;
         p.velocity = dir * p.velocity.Length();
+
+        if (overrideLifetime) {
+            float l = Mathf.Lerp(lifetimeRange.x, lifetimeRange.y, o);
+            p.lifetime = l;
+            p.currentLife = l;
+        }
     }
 }

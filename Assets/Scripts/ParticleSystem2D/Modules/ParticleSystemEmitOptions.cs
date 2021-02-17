@@ -19,26 +19,24 @@ public class ParticleSystemEmitOptions : ParticleSystemModule
 
     public override void InitParticle(ref ParticleSystem2D.Particle p, ParticleSystem2D.EmitParams emitParams)
     {
-        FastNoiseLite r = particleSystem.noiseRandom;
-
         float speed = Mathf.Lerp(
-            minSpeed, maxSpeed, r.GetNoiseUnsigned(p.idx, 0)
+            minSpeed, maxSpeed, GD.Randf()
         );
         float lifetime = Mathf.Lerp(
-            minLifetime, maxLifetime, r.GetNoiseUnsigned(p.idx, 1)
+            minLifetime, maxLifetime, GD.Randf()
         );
         float size = Mathf.Lerp(
-            minSize, maxSize, r.GetNoiseUnsigned(p.idx, 2)
+            minSize, maxSize, GD.Randf()
         );
         float rotation = Mathf.Lerp(
-            minRotation, maxRotation, r.GetNoiseUnsigned(p.idx, 3)
+            minRotation, maxRotation, GD.Randf()
         );
 
         Color color = startColor;
 
         if (randomColorGradient != null)
         {
-            color = randomColorGradient.Interpolate(r.GetNoiseUnsigned(p.idx, 4));
+            color = randomColorGradient.Interpolate(GD.Randf());
         }
 
         p.position = emitParams.position;
