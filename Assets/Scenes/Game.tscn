@@ -1,7 +1,9 @@
-[gd_scene load_steps=24 format=2]
+[gd_scene load_steps=26 format=2]
 
 [ext_resource path="res://Assets/Scripts/Game.cs" type="Script" id=1]
 [ext_resource path="res://Assets/Scenes/World.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Assets/Textures/LightTest.png" type="Texture" id=3]
+[ext_resource path="res://Assets/Textures/BayerMatrixDithering.png" type="Texture" id=4]
 [ext_resource path="res://Assets/Scripts/WorldCamera.cs" type="Script" id=5]
 [ext_resource path="res://Assets/Textures/Icons/RotRight.png" type="Texture" id=6]
 [ext_resource path="res://Assets/Scripts/ScreenTouch.cs" type="Script" id=7]
@@ -17,17 +19,83 @@
 [ext_resource path="res://Assets/Textures/Icons/Pause.png" type="Texture" id=17]
 
 [sub_resource type="Curve" id=1]
-_data = [ Vector2( 0.249046, 0 ), 0.0, -0.017628, 0, 0, Vector2( 0.741412, 1 ), 0.202068, 0.0, 0, 0 ]
+_data = [ Vector2( 0.245229, 0 ), 0.0, 0.0, 0, 0, Vector2( 0.745229, 1 ), 0.0, 0.0, 0, 0 ]
 
 [sub_resource type="Shader" id=2]
 code = "shader_type canvas_item;
 
+uniform float ambientLight = 1f;
+uniform sampler2D lightSources;
+uniform int numLightSources;
+uniform vec2 size;
+uniform float radiusMultiply = 2f;
+uniform sampler2D ditheringMatrix;
+uniform vec2 ditheringTiling = vec2(32f, 32f);
+uniform float ditheringThreshold = .5f;
+
+float smin( float a, float b, float k ) {
+    float h = clamp( 0.5+0.5*(b-a)/k, 0., 1. );
+    return mix( b, a, h ) - k*h*(1.0-h);
+}
+
+float distSqr(vec2 a, vec2 b) {
+	vec2 c = (b - a);
+	float d = pow(c.x, 2f) + pow(c.y, 2f);
+	return d;
+}
+
+float get_light(vec2 pos) {
+	float finalLightIntensity = ambientLight;
+	
+	for (int i = 0; i < numLightSources; i++) {
+		float x = float(i) / float(numLightSources) + .0001f;
+		vec4 light = texture(lightSources, vec2(x, 0f));
+		vec2 lightPos = light.rg * size;
+		float lightRadius = light.b * radiusMultiply;
+		float intensity = light.a;
+		
+		float dist = distance(lightPos, pos);
+		
+		float t = 1f - dist / lightRadius;
+		t *= intensity;
+		t = clamp(t, 0, 1);
+		
+		finalLightIntensity += t;
+	}
+	
+	return finalLightIntensity;
+}
+
+float get_dithering(vec2 pos) {
+	float d = texture(ditheringMatrix, pos / ditheringTiling).r;
+	return d;
+}
+
 void fragment() {
-	COLOR.rgb = texture(TEXTURE, UV).rgb;
-}"
+	vec2 pos = UV * size;
+	pos = floor(pos);
+	float light = get_dithering(pos) - 1f + get_light(pos) * 2f;
+	light = clamp(light, 0, 1);
+	light = step(ditheringThreshold, light);
+	
+	vec4 col = texture(TEXTURE, UV);
+	col.rgb *= light;
+	COLOR = col;
+}
+
+
+"
 
 [sub_resource type="ShaderMaterial" id=3]
 shader = SubResource( 2 )
+shader_param/ambientLight = 1.0
+shader_param/numLightSources = 2
+shader_param/size = Vector2( 960, 540 )
+shader_param/radiusMultiply = 64.0
+shader_param/ditheringTiling = Vector2( 32, 32 )
+shader_param/ditheringThreshold = 0.5
+shader_param/lightSources = ExtResource( 3 )
+shader_param/ditheringMatrix = ExtResource( 4 )
 
 [sub_resource type="ViewportTexture" id=4]
 viewport_path = NodePath("View")
@@ -85,7 +153,7 @@ __meta__ = {
 "_edit_lock_": true,
 "_edit_use_anchors_": false
 }
-cameraTransitionLen = 256.0
+cameraTransitionLen = 300.0
 cameraTransitionCurve = SubResource( 1 )
 zoomRange = Vector2( 1, 0.5 )
 pixelSize = 1.0
@@ -113,6 +181,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 texture = SubResource( 4 )
 expand = true
+stretch_mode = 1
 __meta__ = {
 "_edit_lock_": true,
 "_edit_use_anchors_": false
@@ -383,9 +452,9 @@ script = ExtResource( 15 )
 text = "!"
 color = Color( 1, 1, 1, 1 )
 font = SubResource( 6 )
+hAlign = 1
 vAlign = 1
 fitHeight = 48.0
-hAlign = 1
 
 [node name="Anim" type="AnimationPlayer" parent="UI/GUI/Stats/Speed/Warning"]
 autoplay = "Warning"
@@ -433,9 +502,9 @@ script = ExtResource( 15 )
 text = "!"
 color = Color( 1, 1, 1, 1 )
 font = SubResource( 6 )
+hAlign = 1
 vAlign = 1
 fitHeight = 48.0
-hAlign = 1
 
 [node name="Anim" type="AnimationPlayer" parent="UI/GUI/Stats/Fuel/Warning"]
 autoplay = "Warning"
@@ -500,9 +569,9 @@ __meta__ = {
 text = "PAUSED"
 color = Color( 1, 1, 1, 1 )
 font = ExtResource( 16 )
+hAlign = 1
 vAlign = 1
 fitHeight = 64.0
-hAlign = 1
 
 [node name="Debug" type="RichTextLabel" parent="UI"]
 anchor_right = 1.0

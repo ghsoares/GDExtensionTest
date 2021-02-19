@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=2]
+[gd_scene load_steps=36 format=2]
 
 [ext_resource path="res://Assets/Textures/Ship.png" type="Texture" id=1]
 [ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemUpdateParticle.cs" type="Script" id=2]
@@ -17,25 +17,48 @@
 [ext_resource path="res://Assets/Scripts/ParticleSystem2D/Custom Modules/EmitTrail.cs" type="Script" id=15]
 [ext_resource path="res://Assets/Textures/ShipNormalMap.tres" type="Texture" id=16]
 [ext_resource path="res://Assets/Scripts/ParticleSystem2D/Custom Modules/EmitPlane.cs" type="Script" id=17]
+[ext_resource path="res://Assets/Textures/BayerMatrixDithering.png" type="Texture" id=18]
 
 [sub_resource type="Shader" id=1]
 code = "shader_type canvas_item;
 
+uniform sampler2D ditheringMatrix;
+uniform float ditherScale = 1f;
+uniform float ditherThreshold;
+
 void fragment() {
 	float d = distance(UV, vec2(.5f)) / .5f;
-	COLOR.a = clamp(ceil(1f - d), 0, 1);
+	if (d > 1f) discard;
+	
+	vec2 ditheringSize = vec2(textureSize(ditheringMatrix, 0));
+	vec2 scSize = 1f / SCREEN_PIXEL_SIZE;
+	
+	vec2 ratio = scSize / ditheringSize;
+	vec2 ditheringUv = ratio * SCREEN_UV;
+	
+	float dither = texture(ditheringMatrix, ditheringUv * ditherScale).r;
+	dither += 1f;
+	dither -= (1f - COLOR.a) * 2f;
+	dither = step(ditherThreshold, dither);
+	
+	if (dither <= 0f) discard;
+	
+	COLOR.a = 1f;
 }"
 
 [sub_resource type="ShaderMaterial" id=2]
 shader = SubResource( 1 )
+shader_param/ditherScale = 1.0
+shader_param/ditherThreshold = 0.5
+shader_param/ditheringMatrix = ExtResource( 18 )
 
 [sub_resource type="Curve" id=3]
 max_value = 2.0
-_data = [ Vector2( 0, 1 ), 0.0, 0.0127401, 0, 0, Vector2( 0.561808, 1.53988 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), -3.51416, 0.0, 1, 0 ]
+_data = [ Vector2( 0, 1 ), 0.0, 0.0127401, 0, 0, Vector2( 0.561808, 1.53988 ), 0.0, 0.0, 0, 0, Vector2( 1, 1 ), -1.23206, 0.0, 1, 0 ]
 
 [sub_resource type="Gradient" id=4]
-offsets = PoolRealArray( 0, 0.122047, 0.232283, 0.669291, 0.929134 )
-colors = PoolColorArray( 1, 1, 1, 1, 1, 1, 1, 1, 0.204102, 1, 0.836779, 1, 0, 0.455078, 1, 1, 0, 0, 0, 1 )
+offsets = PoolRealArray( 0, 0.122047, 0.232283, 0.574803, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 1, 1, 1, 1, 0.204102, 1, 0.836779, 1, 0, 0.455078, 1, 1, 0, 0, 0, 0 )
 
 [sub_resource type="Curve" id=5]
 max_value = 4.0
@@ -181,27 +204,25 @@ explodeAtSpeed = 15.0
 scoreMinDistance = 2.0
 scoreMinAngle = 3.0
 scoreMinSpeed = 5.0
-adaptativePrecisionMin = 0.5
 
 [node name="Particles" type="Node2D" parent="."]
 
 [node name="Rocket" type="Node2D" parent="Particles"]
 material = SubResource( 2 )
 position = Vector2( 0, 6 )
-z_index = 1
 script = ExtResource( 4 )
 emitting = true
 gravity = Vector2( 0, -60 )
-onEditorSafeFPS = 1.0
 onEditorDrawFps = 60
+onEditorSafeFPS = 1.0
 
 [node name="EmitOptions" type="Node" parent="Particles/Rocket"]
 script = ExtResource( 5 )
-minLifetime = 0.5
-maxSize = 3.0
-maxRotation = 45.0
-maxSpeed = 100.0
 minSpeed = 70.0
+maxRotation = 45.0
+minLifetime = 0.5
+maxSize = 4.0
+maxSpeed = 100.0
 minRotation = 45.0
 
 [node name="EmitRate" type="Node" parent="Particles/Rocket"]
@@ -223,6 +244,7 @@ curve = SubResource( 3 )
 
 [node name="HeightMapCollision" type="Node" parent="Particles/Rocket"]
 script = ExtResource( 9 )
+sizeOffset = 0.25
 
 [node name="ColorOverLife" type="Node" parent="Particles/Rocket"]
 script = ExtResource( 10 )
@@ -240,19 +262,19 @@ script = ExtResource( 3 )
 material = SubResource( 2 )
 script = ExtResource( 4 )
 gravity = Vector2( 0, -30 )
-debugMode = true
 maxParticles = 32
+debugMode = true
 emitOnStart = false
 onEditorSafeFPS = 1.0
 
 [node name="EmitOptions" type="Node" parent="Particles/Explosion/_1"]
 script = ExtResource( 5 )
-minLifetime = 0.5
-minSize = 4.0
-maxSize = 16.0
-maxRotation = 45.0
-maxSpeed = 200.0
 minSpeed = 10.0
+maxRotation = 45.0
+minSize = 4.0
+minLifetime = 0.5
+maxSize = 16.0
+maxSpeed = 200.0
 minRotation = 45.0
 
 [node name="EmitCircle" type="Node" parent="Particles/Explosion/_1"]
@@ -288,18 +310,18 @@ script = ExtResource( 4 )
 gravity = Vector2( 0, 98 )
 maxParticles = 8
 emitOnStart = false
-timeScale = 2.0
 onEditorSafeFPS = 1.0
+timeScale = 2.0
 
 [node name="EmitOptions" type="Node" parent="Particles/Explosion/_2"]
 script = ExtResource( 5 )
-minLifetime = 3.0
-minSize = 2.0
-maxSize = 6.0
-maxRotation = 45.0
-maxSpeed = 150.0
-maxLifetime = 4.0
 minSpeed = 112.5
+maxRotation = 45.0
+minSize = 2.0
+minLifetime = 3.0
+maxSize = 6.0
+maxLifetime = 4.0
+maxSpeed = 150.0
 minRotation = 45.0
 
 [node name="EmitCone" type="Node" parent="Particles/Explosion/_2"]
@@ -345,11 +367,11 @@ onEditorSafeFPS = 1.0
 
 [node name="EmitOptions" type="Node" parent="Particles/Explosion/_3"]
 script = ExtResource( 5 )
+minSpeed = 0.0
+maxRotation = 45.0
 minSize = 2.0
 maxSize = 4.0
-maxRotation = 45.0
 maxSpeed = 0.0
-minSpeed = 0.0
 minRotation = 45.0
 
 [node name="EmitCircle" type="Node" parent="Particles/Explosion/_3"]
@@ -383,12 +405,12 @@ onEditorSafeFPS = 1.0
 
 [node name="EmitOptions" type="Node" parent="Particles/Speed/Speed"]
 script = ExtResource( 5 )
-minLifetime = 0.75
-minSize = 0.5
-maxSize = 2.0
-maxRotation = 45.0
-maxSpeed = 35.0
 minSpeed = 0.0
+maxRotation = 45.0
+minSize = 0.5
+minLifetime = 0.75
+maxSize = 2.0
+maxSpeed = 35.0
 minRotation = 45.0
 
 [node name="EmitRate" type="Node" parent="Particles/Speed/Speed"]

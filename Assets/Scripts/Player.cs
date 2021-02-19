@@ -125,7 +125,6 @@ public class Player : RigidBody2D
 
 		if (Mathf.Abs(RotationDegrees) <= 1f) RotationDegrees = 0f;
 		if (Mathf.Rad2Deg(Mathf.Abs(AngularVelocity)) <= 1f) AngularVelocity = 0f;
-		if (LinearVelocity.Length() <= .1f) LinearVelocity = Vector2.Zero;
 
 		if (currentFuel <= 0f || landed) {
 			thrusterPower = 0f;
@@ -179,7 +178,7 @@ public class Player : RigidBody2D
 		};
 
 		Platform p = World.main.GetPlatformOnX(Position.x);
-		bool landedPlatform = true;
+		bool landedCorrectly = true;
 		bool landedGround = false;
 
 		foreach (Vector2 col in colPositions) {
@@ -192,30 +191,31 @@ public class Player : RigidBody2D
 				Vector2 normal = World.main.SampleNormal(gCol.x);
 				ApplyImpulse(GlobalTransform.BasisXform(col), -normal * diff * delta * 100f);
 				ApplyImpulse(GlobalTransform.BasisXform(col), -LinearVelocity * Mathf.Clamp(2f * delta, 0, 1));
+				landedGround = true;
 
 				if (Mathf.Abs(GlobalRotationDegrees) >= explodeAtCollisionAngle || LinearVelocity.Length() >= explodeAtSpeed) {
-					landedPlatform = false;
-					Explode();
+					landedCorrectly = false;
 					continue;
 				}
 
-				landedGround = true;
 				if (p == null) {
-					landedPlatform = false;
-					Explode();
+					landedCorrectly = false;
 					continue;
 				}
 
 				if (!p.IsInside(gCol.x)) {
-					landedPlatform = false;
-					Explode();
+					landedCorrectly = false;
 					continue;
 				}
 			}
 		}
 	
-		if (landedGround && landedPlatform) {
-			Land(p);
+		if (landedGround) {
+			if (landedCorrectly) {
+				Land(p);
+			} else {
+				Explode();
+			}
 		}
 	}
 
@@ -225,11 +225,20 @@ public class Player : RigidBody2D
 		if (OS.GetName() == "Android" || OS.GetName() == "iOS") Input.VibrateHandheld(250);
 
 		Game.main.totalScore -= 250;
+		currentFuel -= 50;
 		perfects = 0;
 
 		PopupText popup = World.main.PopupText();
 		popup.GlobalPosition = GlobalPosition;
 		popup.ConfigureText("-250");
+		popup.ConfigureMotion(Vector2.Up * 32f, 1.5f);
+		popup.ConfigureColorCicle(new Color[] {Colors.White, new Color(1, .4f, .5f)}, 4f);
+		popup.ConfigureSize(1f);
+		popup.Start();
+
+		popup = World.main.PopupText();
+		popup.GlobalPosition = GlobalPosition + Vector2.Down * 16f + Vector2.Left * 32f;
+		popup.ConfigureText("-50 Fuel");
 		popup.ConfigureMotion(Vector2.Up * 32f, 1.5f);
 		popup.ConfigureColorCicle(new Color[] {Colors.White, new Color(1, .4f, .5f)}, 4f);
 		popup.ConfigureSize(1f);
@@ -366,19 +375,15 @@ public class Player : RigidBody2D
 	}
 
 	public override void _Draw() {
-		//DrawSetTransformMatrix(GetGlobalTransform().AffineInverse());
+		DrawSetTransformMatrix(GetGlobalTransform().AffineInverse());
 
-		/*float posX = GlobalPosition.x;
-		float h = Game.main.SampleHeight(posX);
-		float globalY = Game.main.terrainSize.y - h;
+		float posX = GlobalPosition.x;
+		float globalY = World.main.SamplePositionY(posX);
 
 		Vector2 circlePos = new Vector2(posX, globalY);
-		Vector2 normal = Game.main.SampleNormal(posX);
-
-		circlePos = GlobalTransform.XformInv(circlePos);
-		normal = GlobalTransform.BasisXformInv(normal);
+		Vector2 normal = World.main.SampleNormal(posX);
 
 		DrawCircle(circlePos, 4f, Colors.Red);
-		DrawLine(circlePos, circlePos + normal * 16f, Colors.Green);*/
+		DrawLine(circlePos, circlePos + normal * 16f, Colors.Green);
 	}
 }

@@ -90,11 +90,11 @@ public class Game : Control
 		Vector2 pos = worldCamera.GlobalPosition;
 		pos = pos.LinearInterpolate(targetPosition, 4f * delta);
 
-		worldCamera.position = pos;
+		worldCamera.desiredPosition = pos;
 
 		zoomCamera.Zoom = zoomCamera.Zoom.LinearInterpolate(zoom, 4f * delta);
 
-		Vector2 onViewPos = TransformBetweenViewports(worldCamera.position, worldCamera.GetViewport(), GetViewport());
+		Vector2 onViewPos = TransformBetweenViewports(worldCamera.desiredPosition, worldCamera.GetViewport(), GetViewport());
 		
 		onViewPos.x = Mathf.Stepify(onViewPos.x, z);
 		onViewPos.y = Mathf.Stepify(onViewPos.y, z);

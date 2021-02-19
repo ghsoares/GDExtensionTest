@@ -61,6 +61,9 @@ public class ParticleSystemDrawMesh : ParticleSystemModule {
 
     public override void DrawBatch(ParticleSystem2D.Particle[] particles) {
         InitMultiMeshIfNeeded();
+        if (multimesh.TransformFormat != MultiMesh.TransformFormatEnum.Transform2d) {
+            Reset();
+        }
         
         foreach (ParticleSystem2D.Particle p in particles) {
             if (p.alive) {

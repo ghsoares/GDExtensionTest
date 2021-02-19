@@ -1,25 +1,34 @@
 #pragma warning disable 4014
 
 using Godot;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 using ExtensionMethods.RandomMethods;
 
-[Tool]
 public class World : Control
 {
+    public struct HeightMapHit {
+        public Vector2 point;
+        public Vector2 normal;
+        public float travel;
+    }
+
     public static World main {get; private set;}
     public float highestPoint = 0f;
     public bool generating {get; private set;}
     public int level {get; set;}
 
     private Platform[] platforms;
-    private OpenSimplexNoise terrainNoise;
     private System.Random random;
     private ColorRect terrainVisual;
     private Node2D platformsRoot;
     private Node2D popupsRoot;
 
+    [Export]
+    public int planetSeed = 1337;
+    [Export]
+    public float planetSurfaceLuminanceThreshold = .75f;
+    [Export]
+    public OpenSimplexNoise terrainNoise;
     [Export]
     public Vector2 terrainSize = new Vector2(640, 320);
     [Export]
@@ -40,15 +49,6 @@ public class World : Control
     public PackedScene popupScene;
     [Export]
     public Color surfaceColor = Colors.White;
-    [Export]
-    public bool generate {
-        get {
-            return false;
-        }
-        set {
-            Generate();
-        }
-    }
 
     [Signal]
     delegate void OnLevelStart();
@@ -62,7 +62,13 @@ public class World : Control
     }
 
     public override void _Ready() {
+        terrainVisual = GetNode<ColorRect>("Terrain");
+        platformsRoot = GetNode<Node2D>("Platforms");
+        popupsRoot = GetNode<Node2D>("Popups");
         level = 0;
+        RandomNoises();
+        RandomPlanet();
+        GeneratePlatforms();
         Generate();
         EmitSignal("OnLevelStart");
     }
@@ -71,6 +77,12 @@ public class World : Control
         if (generating) return;
         generating = true;
         await GameMain.main.TransitionIn();
+        level++;
+        RandomNoises();
+        if (level % 5 == 0) {
+            RandomPlanet();
+        }
+        GeneratePlatforms();
         Generate();
         EmitSignal("OnLevelStart");
         generating = false;
@@ -88,29 +100,18 @@ public class World : Control
 
     public void Generate()
     {
-        terrainVisual = GetNode<ColorRect>("Terrain");
-        platformsRoot = GetNode<Node2D>("Platforms");
-        popupsRoot = GetNode<Node2D>("Popups");
-
-        foreach (Node c in platformsRoot.GetChildren()) {
-            c.QueueFree();
-        }
         foreach (Node c in popupsRoot.GetChildren()) {
             c.QueueFree();
         }
-
-        RandomNoises();
 
         highestPoint = 0f;
 
         ShaderMaterial terrainMaterial = terrainVisual.Material as ShaderMaterial;
 
-        GeneratePlatforms();
-
         int size = Mathf.FloorToInt(terrainSize.x * resolution);
 
         Image bufferImg = new Image();
-        bufferImg.Create(size, 1, false, Image.Format.Rgba8);
+        bufferImg.Create(size, 1, false, Image.Format.Rf);
         bufferImg.Lock();
 
         for (int i = 0; i < size; i++)
@@ -122,13 +123,13 @@ public class World : Control
 
             float hFloat = h / terrainSize.y;
             
-            bufferImg.SetPixel(i, 0, ExtensionMethods.ColorMethods.ColorExtensionMethods.EncodeFloatIntoColor(hFloat));
+            bufferImg.SetPixel(i, 0, new Color(hFloat, 0, 0));
         }
 
         bufferImg.Unlock();
 
         ImageTexture tex = new ImageTexture();
-        tex.CreateFromImage(bufferImg, 0);
+        tex.CreateFromImage(bufferImg, (uint)Texture.FlagsEnum.Filter);
 
         terrainMaterial.SetShaderParam("terrainHeightMap", tex);
         terrainMaterial.SetShaderParam("terrainSize", terrainSize);
@@ -144,12 +145,21 @@ public class World : Control
 
     private void GeneratePlatforms()
     {
-        platforms = new Platform[5];
+        foreach (Node c in platformsRoot.GetChildren()) {
+            c.QueueFree();
+        }
+
+        int numPlatforms = 5;
+        platforms = new Platform[numPlatforms];
+        List<int> platformScoreMultipliers = new List<int>();
 
         float totalSpacing = 0f;
-        List<int> platformScoreMultipliers = new List<int> {2,3,4,5};
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < numPlatforms; i++) {
+            platformScoreMultipliers.Add(2 + (i % 4));
+        }
+
+        for (int i = 0; i < numPlatforms; i++) {
             float spacing = Mathf.Lerp(32f, 64f, random.NextFloat());
             totalSpacing += spacing;
 
@@ -158,7 +168,7 @@ public class World : Control
             
             int scoreMultiplier = 0;
 
-            if (i == 2) {
+            if (i == numPlatforms / 2) {
                 scoreMultiplier = 1;
             } else {
                 int scoreIdx = random.Next(0, platformScoreMultipliers.Count);
@@ -174,7 +184,7 @@ public class World : Control
 
         totalSpacing += Mathf.Lerp(32f, 64f, random.NextFloat());
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < numPlatforms; i++) {
             Platform p = platforms[i];
             Vector2 pos = p.Position;
 
@@ -200,15 +210,71 @@ public class World : Control
         }
     }
 
+    private void RandomPlanet() {
+        ShaderMaterial terrainMaterial = terrainVisual.Material as ShaderMaterial;
+
+        planetSeed = new System.Random().Next();
+        System.Random r = new System.Random();
+
+        surfaceColor = Color.FromHsv(
+            r.NextFloat(),
+            Mathf.Lerp(.5f, .6f, r.NextFloat()),
+            Mathf.Lerp(.9f, 1f, r.NextFloat())
+        );
+        float lum = 0.2126f*surfaceColor.r + 0.7152f*surfaceColor.g + 0.0722f*surfaceColor.b;
+        while (lum >= planetSurfaceLuminanceThreshold) {
+            surfaceColor = Color.FromHsv(
+                r.NextFloat(),
+                Mathf.Lerp(.5f, .6f, r.NextFloat()),
+                Mathf.Lerp(.9f, 1f, r.NextFloat())
+            );
+            lum = 0.2126f*surfaceColor.r + 0.7152f*surfaceColor.g + 0.0722f*surfaceColor.b;
+        }
+        Color complementary = surfaceColor;
+        float diff = Mathf.Lerp(.15f, .3f, r.NextFloat());
+        complementary.h += diff;
+        complementary.s += diff;
+        complementary.v -= diff;
+
+        int numColors = 5;
+
+        float[] offsets = new float[numColors];
+        Color[] colors = new Color[numColors];
+
+        for (int i = 0; i < numColors; i++) {
+            float t = (float)i / (numColors - 1);
+            offsets[i] = 1f - t;
+            Color c = surfaceColor;
+
+            float fromAngle = c.h * Mathf.Pi * 2f;
+            float toAngle = complementary.h * Mathf.Pi * 2f;
+            float hue = Mathf.LerpAngle(fromAngle, toAngle, t) / (Mathf.Pi * 2f);
+
+            c.h = hue;
+            c.s = Mathf.Lerp(c.s, complementary.s, t);
+            c.v = Mathf.Lerp(c.v, complementary.v, t);
+            colors[i] = c;
+        }
+
+        Gradient grad = new Gradient();
+        grad.Offsets = offsets;
+        grad.Colors = colors;
+
+        GradientTexture tex = new GradientTexture();
+        tex.Gradient = grad;
+
+        terrainNoise.Octaves = r.Next(1, 4);
+        terrainNoise.Period = r.NextFloat(200, 300);
+        terrainNoise.Persistence = r.NextFloat(.4f, .6f);
+        terrainNoise.Lacunarity = r.NextFloat(1.5f, 2.5f);
+        
+        terrainMaterial.SetShaderParam("terrainGradient", tex);
+    }
+
     private void RandomNoises() {
         int seed = new System.Random().Next();
-        if (terrainNoise == null) {
-            terrainNoise = new OpenSimplexNoise();
-        }
-        terrainNoise.Period = 256f;
-        terrainNoise.Octaves = 2;
         terrainNoise.Seed = seed;
-        random = new System.Random();
+        random = new System.Random(seed);
     }
 
     public PopupText PopupText() {
@@ -253,6 +319,10 @@ public class World : Control
         return h;
     }
 
+    public float SamplePositionY(float x) {
+        return terrainSize.y - SampleHeight(x);
+    }
+
     public Vector2 SampleNormal(float x)
     {
         float spacing = 1f;
@@ -260,6 +330,27 @@ public class World : Control
         float hr = (SampleHeight(x + spacing));
         Vector2 n = new Vector2(hl - hr, -1f).Normalized();
         return n;
+    }
+
+    public HeightMapHit IntersectRay(Vector2 from, Vector2 direction, float maxDistance = -1f, float hitThreshold = 1f, int maxIterations = 32) {
+        HeightMapHit hit = new HeightMapHit();
+        hit.point = from;
+
+        for (int i = 0; i < maxIterations; i++) {
+            float posY = SamplePositionY(hit.point.x);
+            float diff = posY - hit.point.y;
+
+            if (Mathf.Abs(diff) > hitThreshold) {
+                hit.point += direction * diff;
+                hit.travel += diff;
+            } else {
+                break;
+            }
+        }
+
+        hit.normal = SampleNormal(hit.point.x);
+
+        return hit;
     }
 
     public Platform GetPlatformOnX(float x) {
@@ -279,6 +370,7 @@ public class World : Control
 
         for (int i = 0; i < platforms.Length; i++) {
             Platform p = platforms[i];
+            
             if (p.Position.x >= minX && p.Position.x <= x) minIdx = i;
         }
 

@@ -6,7 +6,7 @@ public class GameMain : Control
     public static GameMain main {get; private set;}
     public AnimationPlayer transitionAnim {get; private set;}
 
-    private bool transiting = false;
+    private bool isChangingScene = false;
     private Node sceneRoot;
     private Node currentScene;
 
@@ -24,20 +24,20 @@ public class GameMain : Control
         GoToScene(startScene, true);
     }
 
-    public async void GoToScene(PackedScene scene, bool transition = true) {
-        if (transiting) return;
-        transiting = true;
+    public async void GoToScene(PackedScene scene, bool animate = true) {
+        if (isChangingScene) return;
+        isChangingScene = true;
 
-        if (transition) await TransitionIn();
+        if (animate) await TransitionIn();
 
         if (currentScene != null) currentScene.QueueFree();
 
         currentScene = scene.Instance();
         sceneRoot.AddChild(currentScene);
 
-        if (transition) await TransitionOut();
+        if (animate) await TransitionOut();
         
-        transiting = false;
+        isChangingScene = false;
     }
 
     public SignalAwaiter TransitionIn() {

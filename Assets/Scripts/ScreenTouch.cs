@@ -5,7 +5,6 @@ public class ScreenTouch : Control
 {
     private bool _holding;
     private ShaderMaterial _shaderMaterial;
-    private Color desiredColor;
     private int touchId;
     public bool holding
     {
@@ -26,7 +25,6 @@ public class ScreenTouch : Control
                     } else {
                         Input.ActionPress(action);
                     }
-                    desiredColor = pressedColor;
                 }
                 else
                 {
@@ -35,7 +33,6 @@ public class ScreenTouch : Control
                     } else {
                         Input.ActionRelease(action);
                     }
-                    desiredColor = releasedColor;
                 }
             }
         }
@@ -59,16 +56,16 @@ public class ScreenTouch : Control
     public Color releasedColor = new Color(1f, 1f, 1f, .5f);
     [Export]
     public bool invert;
-
-    public override void _Ready()
-    {
-        desiredColor = releasedColor;
-        Modulate = releasedColor;
-    }
+    [Export]
+    public float colorLerp = 4f;
 
     public override void _Process(float delta)
     {
-        Modulate = Modulate.LinearInterpolate(desiredColor, 4f * delta);
+        if (Input.IsActionPressed(action)) {
+            Modulate = Modulate.LinearInterpolate(pressedColor, Mathf.Clamp(colorLerp * delta, 0, 1));
+        } else {
+            Modulate = Modulate.LinearInterpolate(releasedColor, Mathf.Clamp(colorLerp * delta, 0, 1));
+        }
 
         if (shaderMaterial != null) {
             shaderMaterial.SetShaderParam("size", RectSize);
