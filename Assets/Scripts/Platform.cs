@@ -3,7 +3,9 @@ using System;
 
 public class Platform : StaticBody2D
 {
+    private AnimationPlayer fadeAnim {get; set;}
     private Control platformControl {get; set;}
+    private Control lightControl {get; set;}
     private Label multiplierText {get; set;}
     private CollisionShape2D col {get; set;}
     private ParticleSystem2D landParticleSystem {get; set;}
@@ -12,7 +14,9 @@ public class Platform : StaticBody2D
     public Vector2 size {get; set;}
 
     public override void _Ready() {
-        platformControl = GetNode<Control>("Spr");
+        fadeAnim = GetNode<AnimationPlayer>("Base/Anim");
+        platformControl = GetNode<Control>("Base/Spr");
+        lightControl = GetNode<Control>("Base/Spr/Light/Light");
         multiplierText = GetNode<Label>("Multiplier/Text");
         col = GetNode<CollisionShape2D>("Col");
         landParticleSystem = GetNode<ParticleSystem2D>("Landed");
@@ -26,11 +30,13 @@ public class Platform : StaticBody2D
             -size.x / 2f, 0f
         );
         platformControl.RectSize = size;
+        lightControl.RectSize = new Vector2(size.x, lightControl.RectSize.y);
         colShape.Extents = size / 2f;
         col.Shape = colShape;
+        col.Position = Vector2.Down * (size.y / 2f + 1f);
 
         Color c = World.main.surfaceColor;
-        c.v += .01f;
+        c.v += .025f;
 
         landParticleSystemEmitOptions.startColor = c;
         landParticleSystemEmitPlane.size = size.x / 2f;
@@ -43,7 +49,6 @@ public class Platform : StaticBody2D
 
     public void Land() {
         landParticleSystem.Emit();
-        platformControl.Hide();
-        multiplierText.Hide();
+        fadeAnim.Play("FadeOut");
     }
 }

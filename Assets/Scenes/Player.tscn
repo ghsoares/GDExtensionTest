@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=2]
+[gd_scene load_steps=33 format=2]
 
 [ext_resource path="res://Assets/Textures/Ship.png" type="Texture" id=1]
 [ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemUpdateParticle.cs" type="Script" id=2]
@@ -6,7 +6,7 @@
 [ext_resource path="res://Assets/Scripts/ParticleSystem2D/ParticleSystem2D.cs" type="Script" id=4]
 [ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemEmitOptions.cs" type="Script" id=5]
 [ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemEmitRate.cs" type="Script" id=6]
-[ext_resource path="res://Assets/Scripts/Player.cs" type="Script" id=7]
+[ext_resource path="res://Assets/Scripts/Player/Player.cs" type="Script" id=7]
 [ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemInheritVelocity.cs" type="Script" id=8]
 [ext_resource path="res://Assets/Scripts/ParticleSystem2D/Custom Modules/HeightMapCollision.cs" type="Script" id=9]
 [ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemColorOverLife.cs" type="Script" id=10]
@@ -16,7 +16,6 @@
 [ext_resource path="res://Assets/Scripts/ParticleSystem2D/Modules/ParticleSystemEmitCircle.cs" type="Script" id=14]
 [ext_resource path="res://Assets/Scripts/ParticleSystem2D/Custom Modules/EmitTrail.cs" type="Script" id=15]
 [ext_resource path="res://Assets/Textures/ShipNormalMap.tres" type="Texture" id=16]
-[ext_resource path="res://Assets/Scripts/ParticleSystem2D/Custom Modules/EmitPlane.cs" type="Script" id=17]
 [ext_resource path="res://Assets/Textures/BayerMatrixDithering.png" type="Texture" id=18]
 
 [sub_resource type="Shader" id=1]
@@ -75,21 +74,14 @@ _data = [ Vector2( 0, 1 ), 0.0, 0.0127401, 0, 0, Vector2( 1, 0 ), -0.579244, 0.0
 offsets = PoolRealArray( 0, 0.122047, 0.232283, 0.46063, 1 )
 colors = PoolColorArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.849609, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1 )
 
-[sub_resource type="Curve" id=9]
-max_value = 2.0
-_data = [ Vector2( 0, 1.04908 ), 0.0, 0.0127401, 0, 0, Vector2( 0.639299, 2 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), -5.54476, 0.0, 1, 0 ]
-
-[sub_resource type="Gradient" id=10]
-offsets = PoolRealArray( 0, 0.122047, 0.232283, 0.46063, 0.787402 )
-colors = PoolColorArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.849609, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1 )
-
-[sub_resource type="Shader" id=11]
+[sub_resource type="Shader" id=9]
 code = "shader_type canvas_item;
 
 uniform float dotMultiply = 1f;
 uniform float dotSteps = 4f;
 uniform float normalMapLod = 1f;
 uniform mat4 transform;
+uniform float parallax = 1f;
 uniform vec2 velocity;
 uniform vec2 velocityRange = vec2(15f, 30f);
 uniform sampler2D gradient;
@@ -102,7 +94,8 @@ uniform float noiseMagnitude = .1f;
 varying vec2 worldPosition;
 
 void vertex() {
-	worldPosition = (transform * vec4(VERTEX, 0.0, 1.0)).xy;
+	vec2 pos = transform[3].rg * parallax;
+	worldPosition = VERTEX + pos;
 	worldPosition += TIME * noiseMotion;
 }
 
@@ -154,37 +147,38 @@ void fragment() {
 	COLOR = texture(gradient, vec2(d, 0));
 }"
 
-[sub_resource type="Gradient" id=12]
-offsets = PoolRealArray( 0, 0.396476, 0.735683, 1 )
-colors = PoolColorArray( 1, 0, 0, 0, 1, 0, 0, 0.792157, 1, 0.990234, 0, 0.889868, 1, 1, 1, 0.941176 )
+[sub_resource type="Gradient" id=10]
+offsets = PoolRealArray( 0, 0.396476, 0.709251, 1 )
+colors = PoolColorArray( 1, 0, 0, 0, 1, 0, 0.228516, 0.792157, 1, 0.826172, 0, 0.889868, 1, 1, 1, 0.941176 )
 
-[sub_resource type="GradientTexture" id=13]
-gradient = SubResource( 12 )
+[sub_resource type="GradientTexture" id=11]
+gradient = SubResource( 10 )
 
-[sub_resource type="OpenSimplexNoise" id=14]
+[sub_resource type="OpenSimplexNoise" id=12]
 persistence = 0.6
 
-[sub_resource type="NoiseTexture" id=15]
+[sub_resource type="NoiseTexture" id=13]
 flags = 3
 seamless = true
-noise = SubResource( 14 )
+noise = SubResource( 12 )
 
-[sub_resource type="ShaderMaterial" id=16]
-shader = SubResource( 11 )
+[sub_resource type="ShaderMaterial" id=14]
+shader = SubResource( 9 )
 shader_param/dotMultiply = 3.0
 shader_param/dotSteps = 4.0
 shader_param/normalMapLod = 1.0
 shader_param/transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+shader_param/parallax = 0.75
 shader_param/velocity = Vector2( 0, 30 )
 shader_param/velocityRange = Vector2( 15, 30 )
 shader_param/noiseMotion = Vector2( 0, 0 )
 shader_param/noiseTiling = 32.0
-shader_param/noiseEaseCurve = -16.0
+shader_param/noiseEaseCurve = -4.0
 shader_param/noiseMagnitude = 2.0
-shader_param/gradient = SubResource( 13 )
-shader_param/noise = SubResource( 15 )
+shader_param/gradient = SubResource( 11 )
+shader_param/noise = SubResource( 13 )
 
-[sub_resource type="RectangleShape2D" id=17]
+[sub_resource type="RectangleShape2D" id=15]
 extents = Vector2( 8, 8 )
 
 [node name="Player" type="RigidBody2D"]
@@ -213,17 +207,17 @@ position = Vector2( 0, 6 )
 script = ExtResource( 4 )
 emitting = true
 gravity = Vector2( 0, -60 )
-onEditorDrawFps = 60
 onEditorSafeFPS = 1.0
+onEditorDrawFps = 60
 
 [node name="EmitOptions" type="Node" parent="Particles/Rocket"]
 script = ExtResource( 5 )
-minSpeed = 70.0
-maxRotation = 45.0
-minLifetime = 0.5
 maxSize = 4.0
 maxSpeed = 100.0
+minLifetime = 0.5
+minSpeed = 70.0
 minRotation = 45.0
+maxRotation = 45.0
 
 [node name="EmitRate" type="Node" parent="Particles/Rocket"]
 script = ExtResource( 6 )
@@ -263,19 +257,19 @@ material = SubResource( 2 )
 script = ExtResource( 4 )
 gravity = Vector2( 0, -30 )
 maxParticles = 32
-debugMode = true
 emitOnStart = false
 onEditorSafeFPS = 1.0
+debugMode = true
 
 [node name="EmitOptions" type="Node" parent="Particles/Explosion/_1"]
 script = ExtResource( 5 )
-minSpeed = 10.0
-maxRotation = 45.0
-minSize = 4.0
-minLifetime = 0.5
 maxSize = 16.0
+minSize = 4.0
 maxSpeed = 200.0
+minLifetime = 0.5
+minSpeed = 10.0
 minRotation = 45.0
+maxRotation = 45.0
 
 [node name="EmitCircle" type="Node" parent="Particles/Explosion/_1"]
 script = ExtResource( 14 )
@@ -315,14 +309,14 @@ timeScale = 2.0
 
 [node name="EmitOptions" type="Node" parent="Particles/Explosion/_2"]
 script = ExtResource( 5 )
-minSpeed = 112.5
-maxRotation = 45.0
-minSize = 2.0
-minLifetime = 3.0
 maxSize = 6.0
-maxLifetime = 4.0
+minSize = 2.0
 maxSpeed = 150.0
+minLifetime = 3.0
+minSpeed = 112.5
 minRotation = 45.0
+maxRotation = 45.0
+maxLifetime = 4.0
 
 [node name="EmitCone" type="Node" parent="Particles/Explosion/_2"]
 script = ExtResource( 11 )
@@ -367,12 +361,12 @@ onEditorSafeFPS = 1.0
 
 [node name="EmitOptions" type="Node" parent="Particles/Explosion/_3"]
 script = ExtResource( 5 )
-minSpeed = 0.0
-maxRotation = 45.0
-minSize = 2.0
 maxSize = 4.0
+minSize = 2.0
 maxSpeed = 0.0
+minSpeed = 0.0
 minRotation = 45.0
+maxRotation = 45.0
 
 [node name="EmitCircle" type="Node" parent="Particles/Explosion/_3"]
 script = ExtResource( 14 )
@@ -392,63 +386,14 @@ gradient = SubResource( 8 )
 [node name="Draw" type="Node" parent="Particles/Explosion/_3"]
 script = ExtResource( 3 )
 
-[node name="Speed" type="Node2D" parent="Particles"]
-visible = false
-
-[node name="Speed" type="Node2D" parent="Particles/Speed"]
-material = SubResource( 2 )
-position = Vector2( 6, 0 )
-z_index = 1
-script = ExtResource( 4 )
-gravity = Vector2( 0, 0 )
-onEditorSafeFPS = 1.0
-
-[node name="EmitOptions" type="Node" parent="Particles/Speed/Speed"]
-script = ExtResource( 5 )
-minSpeed = 0.0
-maxRotation = 45.0
-minSize = 0.5
-minLifetime = 0.75
-maxSize = 2.0
-maxSpeed = 35.0
-minRotation = 45.0
-
-[node name="EmitRate" type="Node" parent="Particles/Speed/Speed"]
-script = ExtResource( 6 )
-rate = 64.0
-
-[node name="EmitPlane" type="Node" parent="Particles/Speed/Speed"]
-script = ExtResource( 17 )
-size = 6.0
-rotation = 90.0
-directionRotationRange = Vector2( 90, 90 )
-
-[node name="InheritVelocity" type="Node" parent="Particles/Speed/Speed"]
-script = ExtResource( 8 )
-percentage = 0.5
-
-[node name="Update" type="Node" parent="Particles/Speed/Speed"]
-script = ExtResource( 2 )
-
-[node name="SizeOverLife" type="Node" parent="Particles/Speed/Speed"]
-script = ExtResource( 12 )
-curve = SubResource( 9 )
-
-[node name="ColorOverLife" type="Node" parent="Particles/Speed/Speed"]
-script = ExtResource( 10 )
-gradient = SubResource( 10 )
-
-[node name="Draw" type="Node" parent="Particles/Speed/Speed"]
-script = ExtResource( 3 )
-
 [node name="Spr" type="Sprite" parent="."]
 texture = ExtResource( 1 )
 
 [node name="Speed" type="Sprite" parent="."]
-material = SubResource( 16 )
+material = SubResource( 14 )
 texture = ExtResource( 1 )
 normal_map = ExtResource( 16 )
 
 [node name="Col" type="CollisionShape2D" parent="."]
 visible = false
-shape = SubResource( 17 )
+shape = SubResource( 15 )

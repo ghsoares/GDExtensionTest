@@ -19,14 +19,12 @@ public class World : Control
 
     private Platform[] platforms;
     private System.Random random;
+    private PlanetCreator planetCreator;
     private ColorRect terrainVisual;
     private Node2D platformsRoot;
     private Node2D popupsRoot;
+    
 
-    [Export]
-    public int planetSeed = 1337;
-    [Export]
-    public float planetSurfaceLuminanceThreshold = .75f;
     [Export]
     public OpenSimplexNoise terrainNoise;
     [Export]
@@ -79,9 +77,10 @@ public class World : Control
         await GameMain.main.TransitionIn();
         level++;
         RandomNoises();
-        if (level % 5 == 0) {
+        /*if (level % 1 == 0) {
             RandomPlanet();
-        }
+        }*/
+        RandomPlanet();
         GeneratePlatforms();
         Generate();
         EmitSignal("OnLevelStart");
@@ -155,7 +154,7 @@ public class World : Control
 
         float totalSpacing = 0f;
 
-        for (int i = 0; i < numPlatforms; i++) {
+        for (int i = 0; i < numPlatforms - 1; i++) {
             platformScoreMultipliers.Add(2 + (i % 4));
         }
 
@@ -213,62 +212,16 @@ public class World : Control
     private void RandomPlanet() {
         ShaderMaterial terrainMaterial = terrainVisual.Material as ShaderMaterial;
 
-        planetSeed = new System.Random().Next();
-        System.Random r = new System.Random();
-
-        surfaceColor = Color.FromHsv(
-            r.NextFloat(),
-            Mathf.Lerp(.5f, .6f, r.NextFloat()),
-            Mathf.Lerp(.9f, 1f, r.NextFloat())
-        );
-        float lum = 0.2126f*surfaceColor.r + 0.7152f*surfaceColor.g + 0.0722f*surfaceColor.b;
-        while (lum >= planetSurfaceLuminanceThreshold) {
-            surfaceColor = Color.FromHsv(
-                r.NextFloat(),
-                Mathf.Lerp(.5f, .6f, r.NextFloat()),
-                Mathf.Lerp(.9f, 1f, r.NextFloat())
-            );
-            lum = 0.2126f*surfaceColor.r + 0.7152f*surfaceColor.g + 0.0722f*surfaceColor.b;
-        }
-        Color complementary = surfaceColor;
-        float diff = Mathf.Lerp(.15f, .3f, r.NextFloat());
-        complementary.h += diff;
-        complementary.s += diff;
-        complementary.v -= diff;
-
-        int numColors = 5;
-
-        float[] offsets = new float[numColors];
-        Color[] colors = new Color[numColors];
-
-        for (int i = 0; i < numColors; i++) {
-            float t = (float)i / (numColors - 1);
-            offsets[i] = 1f - t;
-            Color c = surfaceColor;
-
-            float fromAngle = c.h * Mathf.Pi * 2f;
-            float toAngle = complementary.h * Mathf.Pi * 2f;
-            float hue = Mathf.LerpAngle(fromAngle, toAngle, t) / (Mathf.Pi * 2f);
-
-            c.h = hue;
-            c.s = Mathf.Lerp(c.s, complementary.s, t);
-            c.v = Mathf.Lerp(c.v, complementary.v, t);
-            colors[i] = c;
+        if (planetCreator == null) {
+            planetCreator = new PlanetCreator();
         }
 
-        Gradient grad = new Gradient();
-        grad.Offsets = offsets;
-        grad.Colors = colors;
+        planetCreator.Random();
 
-        GradientTexture tex = new GradientTexture();
-        tex.Gradient = grad;
+        terrainNoise = planetCreator.planetNoise;
+        surfaceColor = planetCreator.surfaceColor;
 
-        terrainNoise.Octaves = r.Next(1, 4);
-        terrainNoise.Period = r.NextFloat(200, 300);
-        terrainNoise.Persistence = r.NextFloat(.4f, .6f);
-        terrainNoise.Lacunarity = r.NextFloat(1.5f, 2.5f);
-        
-        terrainMaterial.SetShaderParam("terrainGradient", tex);
+        terrainMaterial.SetShaderParam("terrainGradient", planetCreator.planetGradientTexture);
     }
 
     private void RandomNoises() {

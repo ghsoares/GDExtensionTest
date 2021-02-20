@@ -14,6 +14,7 @@ public class UI : CanvasLayer
     private Control pauseText {get; set;}
     private bool pausing {get; set;}
     private bool unPausing {get; set;}
+    private float currentFps {get; set;}
 
     [Export]
     public Gradient playerSpeedGradient;
@@ -42,7 +43,9 @@ public class UI : CanvasLayer
 
         List<string> debugText = new List<string>();
 
-        debugText.Add("FPS: " + Performance.GetMonitor(Performance.Monitor.TimeFps));
+        currentFps = Mathf.Lerp(currentFps, 1f / delta, Mathf.Clamp(8f * delta, 0, 1));
+
+        debugText.Add("FPS: " + currentFps.ToString("F0"));
         if (OS.GetName() == "Windows") {
             debugText.Add("Window Size: " + OS.WindowSize);
         } else {
