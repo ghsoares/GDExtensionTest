@@ -70,15 +70,10 @@ public class Game : Control
 
 	public override void _PhysicsProcess(float delta)
 	{
-		Platform minP;
-		Platform maxP;
-		World.main.GetBetweenPlatforms(targetPosition.x, out minP, out maxP);
-
-		float tPos = Mathf.InverseLerp(minP.Position.x, maxP.Position.x, targetPosition.x);
-		Vector2 platformPos = minP.Position.LinearInterpolate(maxP.Position, tPos);
+		Platform p = World.main.GetNearestPlatform(targetPosition.x);
 
 		float targetH = World.main.terrainSize.y - World.main.highestPoint;
-		float dist = platformPos.y - targetPosition.y;
+		float dist = (p.Position - targetPosition).Length();
 		float t = dist / cameraTransitionLen;
 		t = 1f - Mathf.Clamp(t, 0, 1);
 
