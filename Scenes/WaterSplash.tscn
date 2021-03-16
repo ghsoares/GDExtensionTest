@@ -1,0 +1,25 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://Scripts/WaterSplashParticleSystem.gd" type="Script" id=1]
+[ext_resource path="res://Materials/Particle.tres" type="Material" id=2]
+
+[sub_resource type="QuadMesh" id=1]
+
+[sub_resource type="Curve" id=2]
+_data = [ Vector2( 0, 0.48773 ), 0.0, 0.51227, 0, 1, Vector2( 1, 1 ), 0.448537, 0.0, 0, 0 ]
+
+[sub_resource type="Gradient" id=3]
+offsets = PoolRealArray( 0, 0.678862, 1 )
+colors = PoolColorArray( 0, 0.273438, 1, 0, 0, 0.789063, 1, 1, 0.957447, 0.991024, 1, 1 )
+
+[node name="WaterSplash" type="Node2D"]
+material = ExtResource( 2 )
+script = ExtResource( 1 )
+emitting = false
+mesh = SubResource( 1 )
+coneAngle = 25.0
+numParticlesRange = Vector2( 8, 16 )
+velocityRange = Vector2( 32, 96 )
+sizeRange = Vector2( 8, 20 )
+sizeCurve = SubResource( 2 )
+gradient = SubResource( 3 )

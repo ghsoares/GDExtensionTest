@@ -1,0 +1,619 @@
+[gd_scene load_steps=27 format=2]
+
+[ext_resource path="res://Scenes/World.tscn" type="PackedScene" id=1]
+[ext_resource path="res://Scripts/Game.gd" type="Script" id=2]
+[ext_resource path="res://Scripts/UI.gd" type="Script" id=3]
+[ext_resource path="res://Textures/ShockWaveTest.png" type="Texture" id=4]
+[ext_resource path="res://Scripts/PopText.gd" type="Script" id=5]
+[ext_resource path="res://Scripts/TextLabel.gd" type="Script" id=8]
+[ext_resource path="res://Fonts/Roboto/Roboto-Regular.ttf" type="DynamicFontData" id=9]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform float spacing : hint_range(.01f, 64f) = 1f;
+uniform float chromaticMagnitude = 4f;
+uniform sampler2D chromaticCenterBias;
+uniform sampler2D chromaticGradient;
+uniform sampler2D chromaticPowerRange;
+uniform float chromaticPowerRangeMultiply = 1f;
+uniform float chromaticGradientSteps = 32f;
+uniform mat4 cameraMat;
+uniform vec2 mapSize = vec2(1024, 600);
+
+uniform sampler2D shockwaves;
+uniform int numShockWaves = 1;
+uniform float maxShockwaveEnergy = 8.0;
+uniform float maxShockwaveFrequency = 8.0;
+uniform float waveSizeEasing = 1;
+
+uniform bool chromaticAberration;
+
+varying vec2 world_v;
+
+float ease(float x, float c) {
+	if (x < 0f) x = 0f;
+	if (x > 1f) x = 1f;
+	
+	if (c > 0f) {
+		if (c < 1f) {
+			return 1f - pow(1f - x, 1f / c);
+		} else {
+			return pow(x, c);
+		}
+	} else if (c < 0f) {
+		if (x < 0.5f) {
+			return pow(x * 2f, -c) * .5f;
+		} else {
+			return (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;
+		}
+	}
+	
+	return 0f;
+}
+
+vec3 rgb_to_hsv(vec3 rgb) {
+	vec3 c = rgb;
+	vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+	vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+	vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+	float d = q.x - min(q.w, q.y);
+	float e = 1.0e-10;
+	return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+
+vec3 hsv_to_rgb(vec3 hsv) {
+	vec3 c = hsv;
+	vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+	vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+	return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+vec3 hsvShift(vec3 col, vec3 shift) {
+	return hsv_to_rgb(fract(rgb_to_hsv(col) + shift));
+}
+
+void chromatic_aberration(inout vec4 col, sampler2D tex, vec2 uv, vec2 scUv, vec2 texPixSize) {
+	vec2 off = (scUv - .5f);
+	//off.y *= -1f;
+	vec2 texSize = texPixSize;
+	float len = clamp(length(off) / .5f, 0f, 1f);
+	
+	float cBias = texture(chromaticCenterBias, vec2(len, 0f)).r;
+	
+	vec3 p = vec3(1f);
+	
+	for (float o = 0f; o < chromaticMagnitude; o += spacing) {
+		float t = o / chromaticMagnitude;
+		float power = texture(chromaticPowerRange, vec2(t, 0f)).r * cBias * chromaticPowerRangeMultiply;
+		vec2 chrUv = uv - off * chromaticMagnitude * t * texSize;
+		vec2 gradientUv = vec2(t, 0f);
+		gradientUv = floor(gradientUv * chromaticGradientSteps) / chromaticGradientSteps;
+		vec3 mask = texture(chromaticGradient, gradientUv).rgb;
+		col.rgb += texture(tex, chrUv).rgb * mask * power;
+		p += mask * power * 1f;
+	}
+	
+	col.rgb /= p;
+}
+
+void get_shockwave_data(float idx, out vec2 pos, out float radius, out float energy, out float frequency, out float life) {
+	float tX = (idx + .5) / float(numShockWaves);
+	vec4 data1 = texture(shockwaves, vec2(tX, 0.0));
+	vec4 data2 = texture(shockwaves, vec2(tX, 0.75));
+	pos = data1.xy * mapSize;
+	radius = data1.z * max(mapSize.x, mapSize.y);
+	energy = data1.w * maxShockwaveEnergy;
+	frequency = data2.x * maxShockwaveFrequency;
+	life = data2.y;
+}
+
+vec2 shockwave_influence(float idx) {
+	vec2 influence = vec2(0.0);
+	
+	vec2 pos;
+	float radius, energy, frequency, life;
+	
+	get_shockwave_data(idx, pos, radius, energy, frequency, life);
+	
+	radius *= ease(1.0 - life, waveSizeEasing);
+	
+	vec2 off = (pos - world_v);
+	vec2 dir = normalize(off);
+	float dist = length(off);
+	float s = sin(dist * radians(360.0) * frequency * .01) * .5 + .5;
+	s = mix(.5, 1.0, s);
+	
+	float t = 1.0 - clamp(dist / radius, 0.0, 1.0);
+	
+	dir.y = -dir.y;
+	influence = dir * t * energy * s * life;
+	//influence = dir;
+	
+	return influence;
+}
+
+vec2 shockwaves_distortion() {
+	vec2 dist = vec2(0.0);
+	
+	for (int i = 0; i < numShockWaves; i++) {
+		dist += shockwave_influence(float(i));
+	}
+	
+	return dist;
+}
+
+void vertex() {
+	world_v = (cameraMat * vec4(VERTEX, 0.0, 1.0)).xy;
+}
+
+void fragment() {
+	vec2 distortion = shockwaves_distortion();
+	
+	vec4 col = texture(TEXTURE, UV + distortion * TEXTURE_PIXEL_SIZE);
+	
+	if (chromaticAberration) chromatic_aberration(col, TEXTURE, UV, SCREEN_UV, TEXTURE_PIXEL_SIZE);
+	
+	COLOR = col;
+}"
+
+[sub_resource type="Curve" id=2]
+_data = [ Vector2( 0, 0 ), 0.0, 0.058944, 0, 0, Vector2( 1, 1 ), 3.43945, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=3]
+curve = SubResource( 2 )
+
+[sub_resource type="Gradient" id=4]
+offsets = PoolRealArray( 0, 0.508772, 1 )
+colors = PoolColorArray( 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1 )
+
+[sub_resource type="GradientTexture" id=5]
+gradient = SubResource( 4 )
+
+[sub_resource type="Curve" id=6]
+_data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 1, Vector2( 1, 1 ), 0.0, 0.0, 1, 0 ]
+
+[sub_resource type="CurveTexture" id=7]
+curve = SubResource( 6 )
+
+[sub_resource type="ShaderMaterial" id=8]
+shader = SubResource( 1 )
+shader_param/spacing = 4.0
+shader_param/chromaticMagnitude = 16.0
+shader_param/chromaticPowerRangeMultiply = 1.0
+shader_param/chromaticGradientSteps = 32.0
+shader_param/cameraMat = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+shader_param/mapSize = Vector2( 4096, 600 )
+shader_param/numShockWaves = 0
+shader_param/maxShockwaveEnergy = 8.0
+shader_param/maxShockwaveFrequency = 8.0
+shader_param/waveSizeEasing = 0.5
+shader_param/chromaticAberration = false
+shader_param/chromaticCenterBias = SubResource( 3 )
+shader_param/chromaticGradient = SubResource( 5 )
+shader_param/chromaticPowerRange = SubResource( 7 )
+shader_param/shockwaves = ExtResource( 4 )
+
+[sub_resource type="ViewportTexture" id=9]
+viewport_path = NodePath("View")
+
+[sub_resource type="Shader" id=10]
+code = "shader_type canvas_item;
+
+uniform float slopeAngle : hint_range(-89.99, 89.99) = 0.0;
+uniform bool invert;
+
+varying vec2 v;
+
+void vertex() {
+	v = VERTEX;
+}
+
+void fragment() {
+	vec2 size = v / UV;
+	vec2 pos = v;
+	float slopeAngleRad = radians(slopeAngle);
+	float slope = tan(slopeAngleRad) * pos.y;
+	slope += size.y * -min(tan(slopeAngleRad), 0.0);
+	
+	if (invert) {
+		pos.x = size.x - pos.x;
+		slope = size.y * abs(tan(slopeAngleRad)) - slope;
+	}
+	
+	COLOR.a *= step(slope, pos.x);
+}
+
+
+
+
+
+
+
+
+
+"
+
+[sub_resource type="ShaderMaterial" id=11]
+shader = SubResource( 10 )
+shader_param/slopeAngle = -25.0
+shader_param/invert = true
+
+[sub_resource type="DynamicFont" id=12]
+size = 32
+outline_size = 2
+outline_color = Color( 0, 0, 0, 1 )
+use_filter = true
+font_data = ExtResource( 9 )
+
+[sub_resource type="DynamicFont" id=13]
+size = 32
+outline_size = 2
+outline_color = Color( 0, 0, 0, 1 )
+use_filter = true
+font_data = ExtResource( 9 )
+
+[sub_resource type="Shader" id=14]
+code = "shader_type canvas_item;
+
+uniform float slopeAngle : hint_range(-89.99, 89.99) = 0.0;
+uniform bool invert;
+uniform float frequency = 2.0;
+uniform vec4 secondColor : hint_color = vec4(1.0);
+
+varying vec2 v;
+
+void vertex() {
+	v = VERTEX;
+}
+
+void fragment() {
+	vec2 size = v / UV;
+	vec2 pos = v;
+	float slopeAngleRad = radians(slopeAngle);
+	float slope = tan(slopeAngleRad) * pos.y;
+	slope += size.y * -min(tan(slopeAngleRad), 0.0);
+	
+	if (invert) {
+		pos.x = size.x - pos.x;
+		slope = size.y * abs(tan(slopeAngleRad)) - slope;
+	}
+	
+	COLOR.a *= step(slope, pos.x);
+	COLOR *= texture(TEXTURE, UV);
+	COLOR = mix(COLOR, COLOR * secondColor, sin(TIME * frequency * radians(360.0)) * .5 + .5);
+}
+
+
+
+
+
+
+
+
+
+"
+
+[sub_resource type="ShaderMaterial" id=15]
+shader = SubResource( 14 )
+shader_param/slopeAngle = -25.0
+shader_param/invert = true
+shader_param/frequency = 4.0
+shader_param/secondColor = Color( 1, 0, 0, 1 )
+
+[sub_resource type="Animation" id=16]
+resource_name = "Anim"
+length = 0.25
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:margin_left")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.2 ),
+"transitions": PoolRealArray( -2, 1 ),
+"update": 0,
+"values": [ -43.0933, -15.0 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath(".:margin_right")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.2 ),
+"transitions": PoolRealArray( -2, 1 ),
+"update": 0,
+"values": [ -4.09326, 24.0 ]
+}
+
+[sub_resource type="DynamicFont" id=17]
+outline_size = 2
+outline_color = Color( 0, 0, 0, 1 )
+use_filter = true
+font_data = ExtResource( 9 )
+
+[sub_resource type="Shader" id=18]
+code = "shader_type canvas_item;
+
+void fragment() {
+	vec4 col = texture(SCREEN_TEXTURE, SCREEN_UV);
+	
+	float g = dot(col.rgb, vec3(0.3, 0.59, 0.11));
+	
+	col.rgb = vec3(g);
+	
+	COLOR = col;
+}"
+
+[sub_resource type="ShaderMaterial" id=19]
+shader = SubResource( 18 )
+
+[node name="Game" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+maxShockwaveEnergy = 512.0
+maxShockwaveFrequency = 512.0
+t = 0.15932
+
+[node name="View" type="Viewport" parent="."]
+size = Vector2( 960, 540 )
+own_world = true
+usage = 0
+
+[node name="World" parent="View" instance=ExtResource( 1 )]
+margin_right = 3264.0
+margin_bottom = 588.0
+
+[node name="ViewTex" type="TextureRect" parent="."]
+material = SubResource( 8 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = SubResource( 9 )
+expand = true
+stretch_mode = 1
+flip_v = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Camera" type="Camera2D" parent="."]
+current = true
+process_mode = 0
+limit_left = 0
+limit_top = 0
+limit_right = 1024
+limit_bottom = 600
+editor_draw_screen = false
+
+[node name="UI" type="CanvasLayer" parent="."]
+script = ExtResource( 3 )
+
+[node name="PlayerStats" type="Control" parent="UI"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 8.0
+margin_right = -8.0
+margin_bottom = -8.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Score" type="ColorRect" parent="UI/PlayerStats"]
+material = SubResource( 11 )
+margin_right = 256.0
+margin_bottom = 32.0
+color = Color( 1, 0.113725, 0.27451, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="DropShadow" type="ColorRect" parent="UI/PlayerStats/Score"]
+show_behind_parent = true
+material = SubResource( 11 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 4.0
+margin_right = 4.0
+margin_bottom = 4.0
+color = Color( 0.388235, 0.0862745, 0.141176, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HBox" type="HBoxContainer" parent="UI/PlayerStats/Score"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 6.0
+margin_right = -15.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TextLabel" type="Control" parent="UI/PlayerStats/Score/HBox"]
+margin_right = 80.0
+margin_bottom = 32.0
+rect_min_size = Vector2( 80, 0 )
+script = ExtResource( 8 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+text = "Score"
+font = SubResource( 12 )
+vAlign = 1
+
+[node name="ScoreTex" type="Control" parent="UI/PlayerStats/Score/HBox"]
+margin_left = 84.0
+margin_right = 235.0
+margin_bottom = 32.0
+size_flags_horizontal = 3
+script = ExtResource( 5 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+text = "999999"
+font = SubResource( 13 )
+magnitude = 8.0
+speed = 8.0
+
+[node name="Fuel" type="ColorRect" parent="UI/PlayerStats"]
+material = SubResource( 11 )
+margin_top = 40.0
+margin_right = 256.0
+margin_bottom = 72.0
+color = Color( 0.113725, 0.533333, 1, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="DropShadow" type="ColorRect" parent="UI/PlayerStats/Fuel"]
+show_behind_parent = true
+material = SubResource( 11 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 4.0
+margin_right = 4.0
+margin_bottom = 4.0
+color = Color( 0.0666667, 0.211765, 0.372549, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HBox" type="HBoxContainer" parent="UI/PlayerStats/Fuel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 6.0
+margin_right = -15.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TextLabel" type="Control" parent="UI/PlayerStats/Fuel/HBox"]
+margin_right = 80.0
+margin_bottom = 32.0
+rect_min_size = Vector2( 80, 0 )
+script = ExtResource( 8 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+text = "Fuel"
+font = SubResource( 12 )
+vAlign = 1
+
+[node name="FuelTex" type="Control" parent="UI/PlayerStats/Fuel/HBox"]
+margin_left = 84.0
+margin_right = 151.0
+margin_bottom = 32.0
+size_flags_horizontal = 3
+script = ExtResource( 5 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+text = "9999"
+font = SubResource( 13 )
+magnitude = 8.0
+speed = 8.0
+
+[node name="Text" type="Control" parent="UI/PlayerStats/Fuel/HBox"]
+margin_left = 155.0
+margin_right = 164.0
+margin_bottom = 32.0
+rect_min_size = Vector2( 9, 0 )
+script = ExtResource( 8 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+text = "/"
+font = SubResource( 12 )
+vAlign = 1
+
+[node name="MaxFuel" type="Control" parent="UI/PlayerStats/Fuel/HBox"]
+margin_left = 168.0
+margin_right = 235.0
+margin_bottom = 32.0
+size_flags_horizontal = 3
+script = ExtResource( 5 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+text = "9999"
+font = SubResource( 13 )
+magnitude = 8.0
+speed = 8.0
+
+[node name="Warning" type="ColorRect" parent="UI/PlayerStats/Fuel"]
+show_behind_parent = true
+material = SubResource( 15 )
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+margin_left = -43.0933
+margin_top = -16.0
+margin_right = -4.09326
+margin_bottom = 12.0
+color = Color( 0.945098, 1, 0, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TextLabel" type="Control" parent="UI/PlayerStats/Fuel/Warning"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_right = -15.0
+script = ExtResource( 8 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+text = "!"
+font = SubResource( 12 )
+hAlign = 2
+vAlign = 1
+
+[node name="Anim" type="AnimationPlayer" parent="UI/PlayerStats/Fuel/Warning"]
+anims/Anim = SubResource( 16 )
+
+[node name="DropShadow2" type="ColorRect" parent="UI/PlayerStats/Fuel"]
+show_behind_parent = true
+material = SubResource( 11 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_right = 3.0
+color = Color( 0.0666667, 0.211765, 0.372549, 0.490196 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Debug" type="RichTextLabel" parent="UI"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 90.0
+margin_right = -8.0
+margin_bottom = -8.0
+custom_fonts/normal_font = SubResource( 17 )
+bbcode_enabled = true
+text = "asdasdasafafasdasdasfasasasa"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TextureRect" type="ColorRect" parent="UI"]
+visible = false
+material = SubResource( 19 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}

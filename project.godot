@@ -8,16 +8,198 @@
 
 config_version=4
 
-_global_script_classes=[  ]
+_global_script_classes=[ {
+"base": "Control",
+"class": "GameWorld",
+"language": "GDScript",
+"path": "res://Scripts/GameWorld.gd"
+}, {
+"base": "Node2D",
+"class": "ParticleSystem2D",
+"language": "GDScript",
+"path": "res://Scripts/ParticleSystem.gd"
+}, {
+"base": "Node2D",
+"class": "PeakValleys",
+"language": "GDScript",
+"path": "res://Scripts/PeakValleys.gd"
+}, {
+"base": "Node",
+"class": "PlanetCollection",
+"language": "GDScript",
+"path": "res://Scripts/PlanetCollection.gd"
+}, {
+"base": "Node",
+"class": "PlanetSettings",
+"language": "GDScript",
+"path": "res://Scripts/PlanetSettings.gd"
+}, {
+"base": "Node2D",
+"class": "PlatformPlacer",
+"language": "GDScript",
+"path": "res://Scripts/PlatformPlacer.gd"
+}, {
+"base": "RigidBody2D",
+"class": "Player",
+"language": "GDScript",
+"path": "res://Scripts/Player/Player.gd"
+}, {
+"base": "State",
+"class": "PlayerDeadState",
+"language": "GDScript",
+"path": "res://Scripts/Player/DeadState.gd"
+}, {
+"base": "State",
+"class": "PlayerHoverState",
+"language": "GDScript",
+"path": "res://Scripts/Player/HoverState.gd"
+}, {
+"base": "State",
+"class": "PlayerLandedState",
+"language": "GDScript",
+"path": "res://Scripts/Player/LandedState.gd"
+}, {
+"base": "Reference",
+"class": "SignalWaiter",
+"language": "GDScript",
+"path": "res://Scripts/SignalWaiter.gd"
+}, {
+"base": "Node",
+"class": "State",
+"language": "GDScript",
+"path": "res://Scripts/State.gd"
+}, {
+"base": "Node",
+"class": "StateMachine",
+"language": "GDScript",
+"path": "res://Scripts/StateMachine.gd"
+}, {
+"base": "ColorRect",
+"class": "Terrain",
+"language": "GDScript",
+"path": "res://Scripts/Terrain.gd"
+}, {
+"base": "Control",
+"class": "TextLabel",
+"language": "GDScript",
+"path": "res://Scripts/TextLabel.gd"
+}, {
+"base": "Node2D",
+"class": "WaterPlacer",
+"language": "GDScript",
+"path": "res://Scripts/WaterPlacer.gd"
+}, {
+"base": "Camera2D",
+"class": "WorldCamera",
+"language": "GDScript",
+"path": "res://Scripts/WorldCamera.gd"
+} ]
 _global_script_class_icons={
-
+"GameWorld": "",
+"ParticleSystem2D": "",
+"PeakValleys": "",
+"PlanetCollection": "",
+"PlanetSettings": "",
+"PlatformPlacer": "",
+"Player": "",
+"PlayerDeadState": "",
+"PlayerHoverState": "",
+"PlayerLandedState": "",
+"SignalWaiter": "",
+"State": "",
+"StateMachine": "",
+"Terrain": "",
+"TextLabel": "",
+"WaterPlacer": "",
+"WorldCamera": ""
 }
 
 [application]
 
 config/name="Astronoma"
+run/main_scene="res://Scenes/Game.tscn"
 config/icon="res://icon.png"
+
+[autoload]
+
+PlayerSave="*res://Scripts/PlayerSave.gd"
+PlayerStats="*res://Scripts/PlayerStats.gd"
+Transition="*res://Scenes/Transition.tscn"
+
+[debug]
+
+gdscript/warnings/enable=false
+
+[display]
+
+window/size/width=960
+window/size/height=540
+window/stretch/mode="2d"
+window/stretch/aspect="keep"
+
+[importer_defaults]
+
+texture={
+"compress/bptc_ldr": 0,
+"compress/hdr_mode": 0,
+"compress/lossy_quality": 0.7,
+"compress/mode": 0,
+"compress/normal_map": 0,
+"detect_3d": false,
+"flags/anisotropic": false,
+"flags/filter": false,
+"flags/mipmaps": false,
+"flags/repeat": 1,
+"flags/srgb": 2,
+"process/HDR_as_SRGB": false,
+"process/fix_alpha_border": true,
+"process/invert_color": false,
+"process/premult_alpha": false,
+"size_limit": 0,
+"stream": false,
+"svg/scale": 1.0
+}
+
+[input]
+
+thruster_add={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":87,"unicode":0,"echo":false,"script":null)
+ ]
+}
+thruster_subtract={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":83,"unicode":0,"echo":false,"script":null)
+ ]
+}
+turn_left={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":65,"unicode":0,"echo":false,"script":null)
+ ]
+}
+turn_right={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":68,"unicode":0,"echo":false,"script":null)
+ ]
+}
+reset_level={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":82,"unicode":0,"echo":false,"script":null)
+ ]
+}
+next_level={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":32,"unicode":0,"echo":false,"script":null)
+ ]
+}
+slowmo={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":16777240,"unicode":0,"echo":false,"script":null)
+ ]
+}
 
 [rendering]
 
+quality/2d/use_pixel_snap=true
+environment/default_clear_color=Color( 0.13, 0.05, 0.18, 1 )
 environment/default_environment="res://default_env.tres"

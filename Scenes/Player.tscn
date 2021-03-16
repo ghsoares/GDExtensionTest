@@ -1,0 +1,306 @@
+[gd_scene load_steps=40 format=2]
+
+[ext_resource path="res://Textures/Ship.png" type="Texture" id=1]
+[ext_resource path="res://Scripts/Player/Player.gd" type="Script" id=2]
+[ext_resource path="res://Scripts/StateMachine.gd" type="Script" id=3]
+[ext_resource path="res://Scripts/Player/HoverState.gd" type="Script" id=4]
+[ext_resource path="res://Scripts/Player/DeadState.gd" type="Script" id=5]
+[ext_resource path="res://Scripts/Player/LandedState.gd" type="Script" id=6]
+[ext_resource path="res://Scripts/Player/RocketParticleSystem.gd" type="Script" id=7]
+[ext_resource path="res://Materials/Particle.tres" type="Material" id=8]
+[ext_resource path="res://Scripts/Player/ExplosionParticleSystem.gd" type="Script" id=9]
+[ext_resource path="res://Scripts/Player/ExplosionParticlesParticleSystem.gd" type="Script" id=10]
+[ext_resource path="res://Scripts/FireParticleSystem.gd" type="Script" id=11]
+[ext_resource path="res://Scripts/Player/ScoreParticleSystem.gd" type="Script" id=12]
+[ext_resource path="res://Fonts/m5x7.ttf" type="DynamicFontData" id=13]
+[ext_resource path="res://Scripts/Player/WindParticleSystem.gd" type="Script" id=14]
+
+[sub_resource type="Gradient" id=1]
+offsets = PoolRealArray( 0, 0.5, 1 )
+colors = PoolColorArray( 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1 )
+
+[sub_resource type="Shader" id=2]
+code = "shader_type canvas_item;
+
+void fragment() {
+	vec4 col = texture(TEXTURE, UV);
+	
+	COLOR.a = col.a;
+}"
+
+[sub_resource type="ShaderMaterial" id=3]
+shader = SubResource( 2 )
+
+[sub_resource type="QuadMesh" id=4]
+
+[sub_resource type="Curve" id=5]
+max_value = 8.0
+_data = [ Vector2( 0, 2.84663 ), 0.0, 6.22601, 0, 1, Vector2( 0.780418, 7.70552 ), 0.0, 0.0, 0, 0, Vector2( 1, 7.11656 ), 0.182906, 0.0, 0, 0 ]
+
+[sub_resource type="Gradient" id=6]
+offsets = PoolRealArray( 0, 0.390244, 0.776423, 1 )
+colors = PoolColorArray( 0, 0.0941176, 0.290196, 0, 0, 0.320313, 1, 1, 0, 0.929688, 1, 1, 1, 1, 1, 1 )
+
+[sub_resource type="QuadMesh" id=7]
+
+[sub_resource type="Curve" id=8]
+max_value = 40.0
+_data = [ Vector2( 0, 3.92638 ), 0.0, 11.0848, 0, 1, Vector2( 0.841255, 13.2515 ), 0.0, 0.0, 0, 0, Vector2( 1, 40 ), 59.9517, 0.0, 0, 0 ]
+
+[sub_resource type="Gradient" id=9]
+offsets = PoolRealArray( 0, 0.455285, 0.804878, 0.922764, 1 )
+colors = PoolColorArray( 0, 0, 0, 0, 1, 0, 0, 1, 1, 0.990234, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1 )
+
+[sub_resource type="Curve" id=10]
+max_value = 8.0
+_data = [ Vector2( 0.462912, 0 ), 0.0, 68.7308, 0, 1, Vector2( 0.561813, 6.79755 ), 0.0, 0.0, 0, 0, Vector2( 1, 8 ), 2.74416, 0.0, 1, 0 ]
+
+[sub_resource type="Curve" id=28]
+max_value = 2.0
+_data = [ Vector2( 0, 0 ), 0.0, 2.0, 0, 1, Vector2( 1, 2 ), 2.0, 0.0, 1, 0 ]
+
+[sub_resource type="QuadMesh" id=13]
+
+[sub_resource type="Curve" id=14]
+max_value = 4.0
+_data = [ Vector2( 0, 0 ), 0.0, 4.0, 0, 1, Vector2( 1, 4 ), 4.0, 0.0, 1, 0 ]
+
+[sub_resource type="Gradient" id=15]
+offsets = PoolRealArray( 0, 0.455285, 0.804878, 0.922764, 1 )
+colors = PoolColorArray( 0, 0, 0, 0, 1, 0, 0, 1, 1, 0.990234, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1 )
+
+[sub_resource type="DynamicFont" id=16]
+outline_size = 1
+outline_color = Color( 0, 0, 0, 1 )
+font_data = ExtResource( 13 )
+
+[sub_resource type="Curve" id=17]
+_data = [ Vector2( 0, 0 ), 0.0, 2.79045, 0, 1, Vector2( 0.358365, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 1 ), 0.0, 0.0, 1, 0 ]
+
+[sub_resource type="Gradient" id=18]
+offsets = PoolRealArray( 0, 0.5, 1 )
+colors = PoolColorArray( 0, 0.854902, 1, 1, 1, 1, 1, 1, 0, 0.854902, 1, 1 )
+
+[sub_resource type="Gradient" id=19]
+offsets = PoolRealArray( 0, 0.587879 )
+colors = PoolColorArray( 0, 0, 0, 0, 1, 1, 1, 1 )
+
+[sub_resource type="RectangleShape2D" id=20]
+extents = Vector2( 8, 8 )
+
+[sub_resource type="Shader" id=21]
+code = "shader_type canvas_item;
+
+uniform float borderSize = 4.0;
+uniform vec4 backgroundColor : hint_color = vec4(.75);
+uniform vec4 progressColor : hint_color = vec4(1.0);
+uniform sampler2D progressGradient;
+uniform float progress : hint_range(0.0, 1.0) = .5;
+uniform float dir : hint_range(-1.0, 1.0) = 1.0;
+uniform float pulseFrequency = 2.0;
+uniform float pulseMagnitude = 1.0;
+
+varying vec2 v;
+
+float Circle(vec2 center, float radius) {
+	return 1.0 - clamp(length(center - v) / radius, 0.0, 1.0);
+}
+
+float CircleBorder(vec2 center, float radius, float border) {
+	return clamp(1.0 - abs(border - Circle(center, radius) * radius) / border, 0.0, 1.0);
+}
+
+void vertex() {
+	v = VERTEX;
+}
+
+void fragment() {
+	vec2 size = v / UV;
+	float border = borderSize;
+	border += (sin(TIME * radians(360.0) * pulseFrequency) * .5 + .5) * pulseMagnitude;
+	float c = CircleBorder(size / 2.0, min(size.x, size.y) / 2.0, border);
+	
+	c = step(0.001, c);
+	
+	vec2 off = v - size * .5;
+	float t = atan(off.y, off.x) / radians(360.0);
+	t = fract(t * dir);
+	float prog = step(t, progress);
+	
+	COLOR = mix(backgroundColor, progressColor * texture(progressGradient, vec2(progress, 0.0)), prog);
+	COLOR.a *= c;
+}
+
+
+
+"
+
+[sub_resource type="Gradient" id=22]
+offsets = PoolRealArray( 0.164751, 0.165, 0.767, 0.767081, 1 )
+colors = PoolColorArray( 0.243137, 0.572549, 1, 1, 0.203922, 1, 0.576471, 1, 1, 0.827451, 0, 1, 1, 0.254883, 0.254883, 1, 1, 0, 0, 1 )
+
+[sub_resource type="GradientTexture" id=23]
+gradient = SubResource( 22 )
+
+[sub_resource type="ShaderMaterial" id=24]
+shader = SubResource( 21 )
+shader_param/borderSize = 1.0
+shader_param/backgroundColor = Color( 0.74902, 0.74902, 0.74902, 0 )
+shader_param/progressColor = Color( 1, 1, 1, 0.490196 )
+shader_param/progress = 1.0
+shader_param/dir = -1.0
+shader_param/pulseFrequency = 3.0
+shader_param/pulseMagnitude = 1.0
+shader_param/progressGradient = SubResource( 23 )
+
+[sub_resource type="Gradient" id=25]
+offsets = PoolRealArray( 0, 0.5, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1 )
+
+[sub_resource type="Gradient" id=26]
+offsets = PoolRealArray( 0, 0.5, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 1, 0.890625, 0, 1, 1, 1, 1, 1 )
+
+[node name="Player" type="RigidBody2D"]
+pause_mode = 1
+mass = 2.0
+gravity_scale = 0.0
+script = ExtResource( 2 )
+maxSafeAngle = 15.0
+shipFriction = 1.0
+debugScoreGradient = SubResource( 1 )
+
+[node name="Sprite" type="Sprite" parent="."]
+texture = ExtResource( 1 )
+
+[node name="ScoreColor" type="Sprite" parent="Sprite"]
+visible = false
+modulate = Color( 1, 1, 1, 0.784314 )
+material = SubResource( 3 )
+texture = ExtResource( 1 )
+
+[node name="ParticleSystems" type="Node2D" parent="."]
+show_behind_parent = true
+
+[node name="Rocket" type="Node2D" parent="ParticleSystems"]
+visible = false
+material = ExtResource( 8 )
+position = Vector2( 0, 6 )
+script = ExtResource( 7 )
+numParticles = 256
+gravity = Vector2( 0, -25 )
+timeScale = 1.5
+editorDrawFPS = 60.0
+mesh = SubResource( 4 )
+emitRate = 64.0
+velocityRange = Vector2( 50, 100 )
+velocityInheritScale = 1.0
+bounciness = 0.1
+sizeCurve = SubResource( 5 )
+gradient = SubResource( 6 )
+skipParticlesHeightmap = 1
+
+[node name="Explosion" type="Node2D" parent="ParticleSystems"]
+material = ExtResource( 8 )
+script = ExtResource( 9 )
+emitting = false
+numParticles = 64
+gravity = Vector2( 0, -50 )
+mesh = SubResource( 7 )
+velocityRange = Vector2( 64, 206 )
+sizeCurve = SubResource( 8 )
+gradient = SubResource( 9 )
+dragCurve = SubResource( 10 )
+
+[node name="ExplosionParticles" type="Node2D" parent="ParticleSystems"]
+material = ExtResource( 8 )
+script = ExtResource( 10 )
+emitting = false
+numParticles = 64
+lifetime = 2.0
+rate = 0.25
+coneAngle = 30.0
+numParticlesRange = Vector2( 3, 6 )
+velocityRange = Vector2( 64, 98 )
+sizeCurve = SubResource( 28 )
+
+[node name="FireParticles" type="Node2D" parent="ParticleSystems/ExplosionParticles"]
+material = ExtResource( 8 )
+script = ExtResource( 11 )
+emitting = false
+numParticles = 512
+lifetime = 0.5
+gravity = Vector2( 0, -30 )
+timeScale = 1.0
+mesh = SubResource( 13 )
+emitRate = 32.0
+velocityRange = Vector2( 1, 2 )
+sizeCurve = SubResource( 14 )
+gradient = SubResource( 15 )
+
+[node name="ScoreParticles" type="Node2D" parent="ParticleSystems"]
+script = ExtResource( 12 )
+emitting = false
+lifetime = 2.0
+editorDrawFPS = 60.0
+velocityRange = Vector2( 128, 128 )
+text = "+100"
+font = SubResource( 16 )
+sizeCurve = SubResource( 17 )
+gradient = SubResource( 18 )
+gradientFrequency = 8.0
+
+[node name="Wind" type="Node2D" parent="ParticleSystems"]
+script = ExtResource( 14 )
+emitting = false
+lifetime = 1.5
+gravity = Vector2( 0, 0 )
+timeScale = 2.0
+editorDrawFPS = 60.0
+windSpeed = Vector2( -16, 0 )
+rectSize = Vector2( 16, 16 )
+sizeRange = Vector2( 0.25, 0.5 )
+ratePerWindSpeed = 2.0
+waveFrequency = 1.0
+waveMagnitude = 1.0
+mass = 0.15
+gradient = SubResource( 19 )
+
+[node name="Col" type="CollisionShape2D" parent="."]
+shape = SubResource( 20 )
+
+[node name="Speed" type="Node2D" parent="."]
+
+[node name="Speed" type="ColorRect" parent="Speed"]
+material = SubResource( 24 )
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -32.0
+margin_top = -32.0
+margin_right = 32.0
+margin_bottom = 32.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource( 3 )
+
+[node name="Hover" type="Node" parent="StateMachine"]
+script = ExtResource( 4 )
+maxAngularVelocity = 10.0
+maxThrusterForce = 75.0
+thrusterAddSensitivity = 40.0
+angularAcceleration = 5.0
+velocityDrag = 0.5
+angularVelocityDrag = 4.0
+
+[node name="Dead" type="Node" parent="StateMachine"]
+script = ExtResource( 5 )
+scoreFuelGradient = SubResource( 25 )
+
+[node name="Landed" type="Node" parent="StateMachine"]
+script = ExtResource( 6 )
+scoreFuelGradient = SubResource( 26 )
