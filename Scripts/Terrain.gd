@@ -56,6 +56,7 @@ func SampleTerrainHeight(var x) -> float:
 
 func SampleCollisionHeight(var x):
 	var i = int(floor(x * COLLISION_RESOLUTION))
+	i = clamp(i, 0, collisionMap.size() - 2)
 	
 	var x1 = i / COLLISION_RESOLUTION
 	var x2 = x1 + 1.0 / COLLISION_RESOLUTION
@@ -118,6 +119,7 @@ func ApplyMaterial() -> void:
 	terrainMaterial.set_shader_param("heightMap", heightMap);
 	terrainMaterial.set_shader_param("resolution", planetSettings.terrainResolution);
 	terrainMaterial.set_shader_param("size", size);
+	terrainMaterial.set_shader_param("windSpeed", planetSettings.currentWindSpeed);
 
 	terrainMaterial.set_shader_param("text", planetSettings.terrainTexture);
 	terrainMaterial.set_shader_param("gradient", planetSettings.terrainGradient);
@@ -145,6 +147,7 @@ func ApplyExtraMaterials() -> void:
 		extraMaterial.set_shader_param("size", size)
 		extraMaterial.set_shader_param("text", planetSettings.terrainTexture)
 		extraMaterial.set_shader_param("terrainGradient", planetSettings.terrainGradient)
+		extraMaterial.set_shader_param("windSpeed", planetSettings.currentWindSpeed);
 		
 		add_child(layerHolder)
 		layerHolder.add_child(layer)

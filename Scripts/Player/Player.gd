@@ -8,6 +8,7 @@ var world
 var collisionPoints = []
 var collidedPoints = []
 var insideWater = null
+var sprNoiseOff := Vector2.ZERO
 
 export (float) var minPerfectSpeed = 4.0
 export (float) var minPerfectAngle = 1.0
@@ -22,7 +23,6 @@ const COLLISION_SAMPLE_RESOLUTION = 2
 
 onready var stateMachine = $StateMachine
 onready var spr : Sprite = $Sprite
-onready var scoreSpr : Sprite = $Sprite/ScoreColor
 onready var colShape : CollisionShape2D = $Col
 onready var rectShape : RectangleShape2D = $Col.shape
 
@@ -34,6 +34,7 @@ onready var windParticleSystem = $ParticleSystems/Wind
 
 onready var speedPivot = $Speed
 onready var speedMaterial = $Speed/Speed.material
+onready var sprMaterial = spr.material
 
 func SampleCheckPoints() -> void:
 	collisionPoints = []
@@ -96,21 +97,11 @@ func _physics_process(delta: float) -> void:
 	
 	linear_velocity = linear_velocity.clamped(maxVelocity)
 	
+	sprNoiseOff += linear_velocity * delta
+	
 	PlayerStats.fuel = clamp(PlayerStats.fuel, 0.0, PlayerStats.maxFuel)
 
 func _process(delta: float) -> void:
-	var speedScore = 1.0 - inverse_lerp(minPerfectSpeed, maxSafeSpeed, linear_velocity.length())
-	var angleScore = 1.0 - inverse_lerp(minPerfectAngle, maxSafeAngle, abs(rotation_degrees))
-	speedScore = clamp(speedScore, 0, 1)
-	angleScore = clamp(angleScore, 0, 1)
-	var totalScore = (speedScore + angleScore) / 2.0
-	
-	totalScore = floor(totalScore * 8.0) / 8.0
-	
-	var col = debugScoreGradient.interpolate(totalScore)
-	col.a = scoreSpr.modulate.a
-	scoreSpr.modulate = col
-	
 	stateMachine.process(delta)
 	update()
 	
@@ -121,6 +112,11 @@ func _process(delta: float) -> void:
 		speedMaterial.set_shader_param("pulseMagnitude", 1)
 	else:
 		speedMaterial.set_shader_param("pulseMagnitude", .0)
+	
+	sprMaterial.set_shader_param("speed", global_transform.basis_xform_inv(linear_velocity))
+	sprMaterial.set_shader_param("maxSafeSpeed", maxSafeSpeed)
+	sprMaterial.set_shader_param("maxSpeed", maxSafeSpeed + 16.0)
+	sprMaterial.set_shader_param("noiseOffset", sprNoiseOff)
 	
 	speedMaterial.set_shader_param("progress", speedProgress)
 	speedPivot.global_rotation = 0.0

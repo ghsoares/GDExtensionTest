@@ -4,6 +4,7 @@ uniform sampler2D heightMap;
 uniform sampler2D terrainGradient;
 uniform float resolution;
 uniform vec2 size;
+uniform float windSpeed;
 
 uniform sampler2D fogNoise;
 uniform float fogTiling = 512f;
@@ -77,7 +78,7 @@ void fragment() {
 	float freq = 1f;
 	float mult = 1f;
 	for (int i = 0; i < octaves; i++) {
-		vec2 off = motion * TIME / freq;
+		vec2 off = motion * TIME / freq + vec2(-windSpeed * TIME * 8.0, 0.0);
 		n = mix(n, 1f, clamp(get_fog(pos * freq + off) * mult, 0, 1));
 		freq *= lacunarity;
 		mult *= persistance;

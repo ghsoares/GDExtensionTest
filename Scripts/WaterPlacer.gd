@@ -47,3 +47,4 @@ func Generate() -> void:
 		add_child(water)
 		
 		water.material.set_shader_param("world_transform", water.get_global_transform())
+		water.material.set_shader_param("windSpeed", world.settings.currentWindSpeed)

@@ -14,7 +14,7 @@ script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
-drag = 4.0
+drag = 2.0
 
 [node name="Area" type="Area2D" parent="."]
 visible = false

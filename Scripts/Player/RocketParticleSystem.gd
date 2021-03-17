@@ -39,15 +39,15 @@ func UpdateParticle(particle: Particle, delta: float) -> void:
 	.UpdateParticle(particle, delta)
 	var lifeT = particle.life / particle.lifetime
 	
-	if world:
-		var terrainY = world.terrain.size.y - world.terrain.SampleCollisionHeight(particle.position.x)
-		var off = particle.position.y - terrainY
-		if off > 0.0:
-			var normal = world.terrain.SampleNormal(particle.position.x)
-			var velocitySlide = particle.velocity.slide(normal)
-			var velocityBounce = particle.velocity.bounce(normal)
-			particle.position.y -= off
-			particle.velocity = velocitySlide.linear_interpolate(velocityBounce, bounciness)
+#	if world:
+#		var terrainY = world.terrain.size.y - world.terrain.SampleCollisionHeight(particle.position.x)
+#		var off = particle.position.y - terrainY
+#		if off > 0.0:
+#			var normal = world.terrain.SampleNormal(particle.position.x)
+#			var velocitySlide = particle.velocity.slide(normal)
+#			var velocityBounce = particle.velocity.bounce(normal)
+#			particle.position.y -= off
+#			particle.velocity = velocitySlide.linear_interpolate(velocityBounce, bounciness)
 	
 	if sizeCurve:
 		var s = sizeCurve.interpolate(lifeT)

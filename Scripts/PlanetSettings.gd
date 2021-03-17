@@ -3,7 +3,7 @@ extends Node
 
 class_name PlanetSettings
 
-var currentWindSpeed := Vector2.RIGHT * 16.0
+var currentWindSpeed := 16.0
 
 export (float) var gravityScale = 98.0
 
@@ -22,6 +22,7 @@ export (Vector2) var terrainFadeRange = Vector2(32, 256)
 export (Vector3) var terrainFadeValues = Vector3(1, .5, 0)
 export (float, 0, 1) var waterBodiesRate = .5
 export (Vector2) var waterBodiesHeightRange = Vector2(32.0, 64.0)
+export (Vector2) var windSpeedRange = Vector2(-12, 12)
 export (ShaderMaterial) var waterBodiesMaterial
 export (ShaderMaterial) var baseMaterial
 export (Array, ShaderMaterial) var terrainExtraMaterials = []

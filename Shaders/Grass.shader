@@ -69,9 +69,9 @@ void fragment() {
 	float grassSize = vec2(textureSize(grassTexture, 0)).x;
 	float distortion = 0f;
 	
-	distortion += sin(TIME * windSpeed * 1f + pos.x * radians(360f) * windFrequency);
+	distortion += sin(TIME * -windSpeed * 1f + pos.x * radians(360f) * windFrequency);
 	distortion = distortion * .5f + .5f;
-	distortion *= (heightDiff / maxGrassHeight) * windSpeed * .5f;
+	distortion *= (heightDiff / maxGrassHeight) * -windSpeed * .5f;
 	
 	float grassX = floor(pos.x + distortion);
 	float grassUv = (pos.x + distortion) / grassSize;

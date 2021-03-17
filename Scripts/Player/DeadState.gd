@@ -23,7 +23,7 @@ func enter() -> void:
 	resetting = false
 	
 	root.world.camera.Shake(0.5, 48.0, 1000.0)
-	root.world.game.Explosion(root.global_position, 256.0, 20.0, 0.5, .5)
+	root.world.game.Explosion(root.global_position, 256.0, 20.0, 4, .5)
 	root.scoreParticlesParticleSystem.EmitParticle({
 		"text": "-50 Fuel",
 		"gradient": scoreFuelGradient

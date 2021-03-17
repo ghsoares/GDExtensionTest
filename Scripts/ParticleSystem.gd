@@ -11,13 +11,15 @@ class Particle:
 	var rotation: float
 	
 	var gravityScale: float
-	var startSize: Vector2
 	
 	var velocity: Vector2
 	var lifetime: float
 	var life: float
-	
 	var color: Color
+	
+	var startSize: Vector2
+	var startColor: Color
+	
 	var customData: Dictionary
 	
 	var alive: bool
@@ -52,6 +54,7 @@ export (UpdateMode) var updateMode = UpdateMode.PhysicsProcess
 export (float) var editorDrawFPS = 24.0
 export (Mesh) var mesh: Mesh
 export (Texture) var texture
+export (bool) var debug
 
 func ResetMultimesh() -> void:
 	if mesh == null:
@@ -84,11 +87,15 @@ func _ready() -> void:
 	ResetParticles()
 
 func _physics_process(delta: float) -> void:
+	var stopWatch = Stopwatch.new("Particles Physics Process")
 	if updateMode == UpdateMode.PhysicsProcess:
 		ResetIfNeeded()
 		UpdateSystem(delta * timeScale)
+	if debug:
+		stopWatch.Mark()
 
 func _process(delta: float) -> void:
+	var stopWatch = Stopwatch.new("Particles Process")
 	if updateMode == UpdateMode.Process:
 		ResetIfNeeded()
 		UpdateSystem(delta * timeScale)
@@ -101,6 +108,8 @@ func _process(delta: float) -> void:
 				currentDrawDelay = 0.0
 		else: update()
 	else: update()
+	if debug:
+		stopWatch.Mark()
 
 func EmitParticle(override = {}, force: bool = false):
 	if !emitting and !force: return
@@ -111,6 +120,7 @@ func EmitParticle(override = {}, force: bool = false):
 			InitParticle(particle, override)
 			particle.lifetime = particle.life
 			particle.startSize = particle.size
+			particle.startColor = particle.color
 			break
 
 func UpdateSystem(delta: float) -> void:
@@ -123,7 +133,7 @@ func UpdateSystem(delta: float) -> void:
 			UpdateParticle(particle, delta)
 
 func InitParticle(particle, override = {}) -> void:
-	particle.customData = {}
+	particle.customData.clear()
 	
 	particle.alive = true
 	particle.life = override.get("life", lifetime)
@@ -151,9 +161,12 @@ func DestroyParticle(particle) -> void:
 	particle.alive = false
 
 func _draw() -> void:
+	var stopWatch = Stopwatch.new("Draw Particles")
 	if visible:
 		draw_set_transform_matrix(global_transform.affine_inverse())
 		DrawParticles()
+	if debug:
+		stopWatch.Mark()
 
 func DrawParticles() -> void:
 	if multimesh:

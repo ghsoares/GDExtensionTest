@@ -13,19 +13,19 @@ export (Curve) var sizeCurve
 export (Gradient) var gradient
 
 func _ready() -> void:
-	emissionRate = 0.0
+	emissionRate = 1.0
 	emitting = true
 
 func UpdateSystem(delta: float) -> void:
 	.UpdateSystem(delta)
 	currentEmitRate += delta * emissionRate
 	while currentEmitRate >= 1.0:
-		Splash(global_position)
+		Splash({"position": global_position})
 		currentEmitRate -= 1.0
 
-func Splash(pos) -> void:
+func Splash(override = {}) -> void:
 	var numParticles = round(rand_range(numParticlesRange.x, numParticlesRange.y))
-	for i in range(numParticles): EmitParticle({"position": pos})
+	for i in range(numParticles): EmitParticle(override)
 
 func InitParticle(particle, override = {}) -> void:
 	if !particle: return
@@ -48,7 +48,7 @@ func UpdateParticle(particle, delta: float) -> void:
 		particle.size = particle.startSize * s
 	if gradient:
 		var col = gradient.interpolate(lifeT)
-		particle.color = col
+		particle.color = particle.startColor * col
 
 
 

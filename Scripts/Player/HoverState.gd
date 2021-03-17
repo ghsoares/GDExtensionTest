@@ -42,10 +42,10 @@ func physics_process() -> void:
 	
 	var thrusterPerc = currentThrusterForce / maxThrusterForce
 	root.rocketParticleSystem.emitRate = 64.0 * thrusterPerc
-	root.windParticleSystem.windSpeed = root.world.settings.currentWindSpeed
+	root.windParticleSystem.windSpeed = Vector2.RIGHT * root.world.settings.currentWindSpeed
 	
 	root.linear_velocity += Vector2.DOWN * root.world.settings.gravityScale * fixedDeltaTime
-	root.linear_velocity += root.world.settings.currentWindSpeed * fixedDeltaTime
+	root.linear_velocity += Vector2.RIGHT * root.world.settings.currentWindSpeed * fixedDeltaTime
 	
 	root.linear_velocity += -root.global_transform.y * currentThrusterForce * forceMultiply * fixedDeltaTime
 	root.angular_velocity += angAdd * angularAcceleration * fixedDeltaTime
@@ -56,9 +56,6 @@ func physics_process() -> void:
 	root.angular_velocity = clamp(root.angular_velocity, -maxAngularVelocity, maxAngularVelocity)
 	
 	PlayerStats.fuel -= currentThrusterForce * PlayerStats.fuelLoseRate * fixedDeltaTime
-	
-	thrusterAdd = 0.0
-	angAdd = 0.0
 	
 	if root.collidedPoints.size() > 0:
 		if !root.SafeLanding():

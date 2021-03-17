@@ -22,6 +22,7 @@ uniform float widthDistortionFrequency = 2f;
 uniform float widthDistortionSpacing = 2f;
 
 uniform sampler2D gradient;
+uniform float energy = 1.0;
 
 uniform float steps = 8f;
 
@@ -104,6 +105,7 @@ void fragment() {
 	n = clamp(n, 0, 1);
 	
 	vec4 col = texture(gradient, vec2(n));
+	col.rgb *= (1.0 + energy);
 	
 	COLOR = col;
 }

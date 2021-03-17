@@ -73,7 +73,7 @@ func RandomSettings():
 	var available = [0, 1, 2] + PlayerSave.unlockedPlanets
 	var idx = available[randi() % available.size()]
 	
-	while idx == prevSettingsIdx:
+	while idx == prevSettingsIdx and available.size() > 1:
 		idx = available[randi() % available.size()]
 	
 	prevSettingsIdx = idx
@@ -107,6 +107,7 @@ func Generate() -> void:
 	settings = planetCollection.settings[settingsIdx]
 	settings.heightMapNoise.seed = sed
 	settings.terrainTexture.noise.seed = sed
+	settings.currentWindSpeed = rand_range(settings.windSpeedRange.x, settings.windSpeedRange.y)
 	
 	if !Engine.editor_hint: 
 		yield(SignalWaiter.new([settings.terrainTexture], ["changed"]), "finished")
