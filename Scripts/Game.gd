@@ -14,6 +14,7 @@ onready var world = $View/World
 onready var view = $View
 onready var cam = $Camera
 onready var ui = $UI
+onready var viewTex = $ViewTex
 onready var viewTexMaterial = $ViewTex.material
 
 func _ready() -> void:
@@ -70,6 +71,9 @@ func UpdateViewMaterial(delta: float) -> void:
 	viewTexMaterial.set_shader_param("maxShockwaveEnergy", maxShockwaveEnergy)
 	viewTexMaterial.set_shader_param("maxShockwaveFrequency", maxShockwaveFrequency)
 	viewTexMaterial.set_shader_param("mapSize", world.terrain.size)
+	
+	viewTexMaterial.set_shader_param("bloom", GameSettings.bloom)
+	viewTexMaterial.set_shader_param("chromaticAberration", GameSettings.chromaticAberration)
 	
 	if explosions.size() == 0:
 		return

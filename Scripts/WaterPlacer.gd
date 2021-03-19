@@ -11,14 +11,14 @@ func Generate() -> void:
 	var settings = world.settings
 	for valley in world.peakValleys.valleys:
 		if valley.size.y < min(settings.waterBodiesHeightRange.x, settings.waterBodiesHeightRange.y): continue
-		var chances = randf()
+		var chances = world.rng.randf()
 		if chances > settings.waterBodiesRate or settings.waterBodiesRate == 0.0: continue
 		
 		var valleyRect = valley
-		var height = rand_range(settings.waterBodiesHeightRange.x, settings.waterBodiesHeightRange.y)
+		var height = world.rng.randf_range(settings.waterBodiesHeightRange.x, settings.waterBodiesHeightRange.y)
 		
 		while valleyRect.size.y < height:
-			height = rand_range(settings.waterBodiesHeightRange.x, settings.waterBodiesHeightRange.y)
+			height = world.rng.randf_range(settings.waterBodiesHeightRange.x, settings.waterBodiesHeightRange.y)
 		
 		var endY = valleyRect.end.y
 		valleyRect.position.y = endY - height

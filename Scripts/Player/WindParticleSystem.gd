@@ -14,9 +14,13 @@ export (float) var mass = .1
 export (Gradient) var gradient
 
 func UpdateSystem(delta: float) -> void:
+	global_rotation = 0.0
 	.UpdateSystem(delta)
+	var dot = max(currentVelocity.dot(windSpeed), 0.0)
 	var windSpeedLen = windSpeed.length()
-	currentRate += (windSpeedLen / ratePerWindSpeed) * delta
+	windSpeedLen -= dot
+	windSpeedLen = max(windSpeedLen, 0.0)
+	currentRate += (windSpeedLen * ratePerWindSpeed) * delta
 	while currentRate >= 1.0:
 		currentRate -= 1.0
 		EmitParticle()
@@ -26,8 +30,7 @@ func InitParticle(particle, override = {}) -> void:
 	var pos = Vector2(
 		rand_range(-rectSize.x, rectSize.x) / 2.0,
 		rand_range(-rectSize.y, rectSize.y) / 2.0
-	).rotated(global_rotation)
-	pos += global_position
+	)
 	
 	particle.position = pos
 	

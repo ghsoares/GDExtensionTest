@@ -4,6 +4,7 @@ class_name Player
 
 var startTransform
 
+var windSpeed
 var world
 var collisionPoints = []
 var collidedPoints = []
@@ -16,6 +17,7 @@ export (float) var maxSafeSpeed = 32.0
 export (float) var maxSafeAngle = 5.0
 export (float) var shipFriction = 4.0
 export (float) var maxVelocity = 200.0
+export (float) var minWindSpeed = 1.0
 
 export (Gradient) var debugScoreGradient
 
@@ -86,10 +88,26 @@ func _ready() -> void:
 	
 	rocketParticleSystem.world = world
 	explosionParticlesParticleSystem.world = world
+	
+	windSpeed = world.settings.currentWindSpeed
+	if abs(windSpeed) < minWindSpeed: windSpeed = 0.0
+
+func _enter_tree() -> void:
+	#InputRecorder.Resume()
+	pass
+
+func _exit_tree() -> void:
+	#InputRecorder.Pause()
+	pass
 
 func _physics_process(delta: float) -> void:
 	if insideWater:
 		linear_velocity -= linear_velocity * clamp(insideWater.drag * delta, 0, 1)
+	
+	rocketParticleSystem.AddForce(Vector2.RIGHT * windSpeed)
+	explosionParticleSystem.AddForce(Vector2.RIGHT * windSpeed)
+	explosionParticlesParticleSystem.AddForce(Vector2.RIGHT * windSpeed)
+	scoreParticlesParticleSystem.AddForce(Vector2.RIGHT * windSpeed)
 	
 	world.camera.desiredPosition = global_position
 	TerrainCollision(delta)
@@ -137,7 +155,7 @@ func TerrainCollision(var delta) -> void:
 		
 		var diff = worldP.y - hY
 		
-		if diff >= 0.0:
+		if diff >= 0.25:
 			var normal = terrain.SampleNormal(worldP.x)
 			var colDot = 1.0 - (linear_velocity.normalized().dot(normal) * .5 + .5)
 			collidedPoints.append(p)

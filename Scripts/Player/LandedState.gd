@@ -34,9 +34,10 @@ func calculate_score() -> void:
 	distanceScore = clamp(distanceScore, 0.0, 1.0) * distanceScoreAmount
 	
 	var totalScore = (angleScore + speedScore + distanceScore) * platform.scoreMultiplier
+	totalScore += abs(root.windSpeed) * 50
 	totalScore = int(stepify(totalScore, scoreRound))
 	
-	var perfect = totalScore == perfectScore
+	var perfect = totalScore >= perfectScore
 	
 	if perfect:
 		PlayerStats.perfects += 1
@@ -74,11 +75,12 @@ func calculate_score() -> void:
 	canContinue = true
 
 func process() -> void:
-	queryNext = Input.is_action_just_pressed("next_level")
+	#queryNext = 
+	pass
 
 func physics_process() -> void:
 	root.linear_velocity += Vector2.DOWN * root.world.settings.gravityScale * fixedDeltaTime
-	if queryNext and canContinue and !continuing:
+	if Input.is_action_just_pressed("next_level") and canContinue and !continuing:
 		Transition.Animate()
 		continuing = true
 	if continuing and !Transition.animating:

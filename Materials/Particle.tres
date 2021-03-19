@@ -18,7 +18,7 @@ void fragment() {
 	float d = distance(UV, vec2(.5f)) / .5f;
 	d *= roundness;
 	
-	vec2 ditheringSize = vec2(textureSize(ditheringMatrix, 0));
+	vec2 ditheringSize = vec2(textureSize(ditheringMatrix, 0)) * ditherScale;
 	vec2 scSize = 1f / SCREEN_PIXEL_SIZE;
 	
 	vec2 ratio = scSize / ditheringSize;
@@ -29,6 +29,8 @@ void fragment() {
 	
 	COLOR.a = b;
 	COLOR.a *= step(d, 1.0);
+	COLOR.a *= step(UV.x, 1.0);
+	COLOR.a *= step(0.0, UV.y);
 }"
 
 [resource]

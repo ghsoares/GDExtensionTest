@@ -96,6 +96,7 @@ shader_param/scoreGradient = SubResource( 6 )
 extents = Vector2( 24, 2 )
 
 [node name="Platform" type="StaticBody2D"]
+visible = false
 script = ExtResource( 1 )
 sizeRange = Vector2( 22, 48 )
 

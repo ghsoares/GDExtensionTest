@@ -44,14 +44,17 @@ var multimesh : MultiMesh
 var aliveParticles := 0
 var prevPos : Vector2
 var currentVelocity : Vector2
+var externalForces : Vector2
 
 export (bool) var emitting = true
+export (bool) var local = false
 export (int) var numParticles = 1024
 export (float) var lifetime = 1.0
+export (Color) var color = Color.white
 export (Vector2) var gravity = Vector2(0.0, 98.0)
 export (float) var timeScale = 1.0
 export (UpdateMode) var updateMode = UpdateMode.PhysicsProcess
-export (float) var editorDrawFPS = 24.0
+export (float) var editorDrawFPS : float = 24.0
 export (Mesh) var mesh: Mesh
 export (Texture) var texture
 export (bool) var debug
@@ -86,13 +89,13 @@ func ResetIfNeeded() -> void:
 func _ready() -> void:
 	ResetParticles()
 
+func AddForce(force: Vector2) -> void:
+	externalForces += force
+
 func _physics_process(delta: float) -> void:
-	var stopWatch = Stopwatch.new("Particles Physics Process")
 	if updateMode == UpdateMode.PhysicsProcess:
 		ResetIfNeeded()
 		UpdateSystem(delta * timeScale)
-	if debug:
-		stopWatch.Mark()
 
 func _process(delta: float) -> void:
 	var stopWatch = Stopwatch.new("Particles Process")
@@ -121,6 +124,7 @@ func EmitParticle(override = {}, force: bool = false):
 			particle.lifetime = particle.life
 			particle.startSize = particle.size
 			particle.startColor = particle.color
+			UpdateParticle(particle, 0.0)
 			break
 
 func UpdateSystem(delta: float) -> void:
@@ -131,6 +135,8 @@ func UpdateSystem(delta: float) -> void:
 		if !particle: continue
 		if particle.alive:
 			UpdateParticle(particle, delta)
+	
+	externalForces = Vector2.ZERO
 
 func InitParticle(particle, override = {}) -> void:
 	particle.customData.clear()
@@ -140,30 +146,36 @@ func InitParticle(particle, override = {}) -> void:
 	
 	particle.gravityScale = 1.0
 	
-	particle.position = override.get("position", global_position)
+	if local:
+		particle.position = override.get("position", Vector2.ZERO)
+	else:
+		particle.position = override.get("position", global_position)
+	
 	particle.size = override.get("size", Vector2.ONE)
 	particle.rotation = override.get("rotation", 0.0)
 	
 	particle.velocity = override.get("velocity", Vector2.ZERO)
 	
-	particle.color = override.get("color", Color.white)
+	particle.color = override.get("color", color)
 
 func UpdateParticle(particle, delta: float) -> void:
+	particle.velocity += externalForces * delta
 	particle.velocity += gravity * delta * particle.gravityScale
 	particle.position += particle.velocity * delta
 	particle.life -= delta
 	particle.life = clamp(particle.life, 0.0, particle.lifetime)
 	if particle.life <= 0.0:
 		DestroyParticle(particle)
+		aliveParticles -= 1
+		particle.alive = false
 
 func DestroyParticle(particle) -> void:
-	aliveParticles -= 1
-	particle.alive = false
+	pass
 
 func _draw() -> void:
 	var stopWatch = Stopwatch.new("Draw Particles")
 	if visible:
-		draw_set_transform_matrix(global_transform.affine_inverse())
+		if !local: draw_set_transform_matrix(global_transform.affine_inverse())
 		DrawParticles()
 	if debug:
 		stopWatch.Mark()

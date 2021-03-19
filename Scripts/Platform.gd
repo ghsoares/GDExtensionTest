@@ -5,6 +5,7 @@ var world
 var size = 32.0
 var height
 var scoreMultiplier = 1
+var updateHeight = 0.0
 
 export (Vector2) var sizeRange = Vector2(20, 48)
 
@@ -44,6 +45,8 @@ func _ready() -> void:
 	rectShape.extents = Vector2(size, base.rect_size.y) / 2.0
 	col.shape = rectShape
 	col.position.y = base.rect_size.y / 2.0
+	
+	updateHeight = 2.0
 
 func _process(delta: float) -> void:
 	if !world or !world.player: return
@@ -54,9 +57,11 @@ func _process(delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	if !world or !world.terrain or !world.terrain.planetSettings: return
 	
-	var h = world.terrain.SampleTerrainHeight(position.x)
-	global_position.y = world.terrain.size.y - h
-	global_position.y = floor(global_position.y)
+	if updateHeight > 0.0:
+		var h = world.terrain.SampleTerrainHeight(position.x)
+		global_position.y = world.terrain.size.y - h
+		global_position.y = floor(global_position.y)
+		updateHeight -= 1.0
 
 func DistX(var pX) -> float:
 	return max(abs(pX - position.x) - size / 2.0, 0.0)

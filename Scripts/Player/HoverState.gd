@@ -19,14 +19,22 @@ func enter() -> void:
 	root.windParticleSystem.emitting = true
 
 func process() -> void:
+#	thrusterAdd = Input.get_action_strength("thruster_add") - Input.get_action_strength("thruster_subtract")
+#	angAdd = Input.get_action_strength("turn_right") - Input.get_action_strength("turn_left")
+#	if Input.is_action_pressed("slowmo"):
+#		Engine.time_scale = lerp(Engine.time_scale, .25, min(deltaTime * 8.0, 1.0))
+#	else:
+#		Engine.time_scale = lerp(Engine.time_scale, 1.0, min(deltaTime * 8.0, 1.0))
+	pass
+
+func physics_process() -> void:
 	thrusterAdd = Input.get_action_strength("thruster_add") - Input.get_action_strength("thruster_subtract")
 	angAdd = Input.get_action_strength("turn_right") - Input.get_action_strength("turn_left")
 	if Input.is_action_pressed("slowmo"):
-		Engine.time_scale = lerp(Engine.time_scale, .25, min(deltaTime * 8.0, 1.0))
+		Engine.time_scale = lerp(Engine.time_scale, .25, min(fixedDeltaTime * 8.0, 1.0))
 	else:
-		Engine.time_scale = lerp(Engine.time_scale, 1.0, min(deltaTime * 8.0, 1.0))
-
-func physics_process() -> void:
+		Engine.time_scale = lerp(Engine.time_scale, 1.0, min(fixedDeltaTime * 8.0, 1.0))
+	
 	var forceMultiply = 1.0
 	if root.insideWater:
 		thrusterAdd *= .25
@@ -42,10 +50,10 @@ func physics_process() -> void:
 	
 	var thrusterPerc = currentThrusterForce / maxThrusterForce
 	root.rocketParticleSystem.emitRate = 64.0 * thrusterPerc
-	root.windParticleSystem.windSpeed = Vector2.RIGHT * root.world.settings.currentWindSpeed
+	root.windParticleSystem.windSpeed = Vector2.RIGHT * root.windSpeed
 	
 	root.linear_velocity += Vector2.DOWN * root.world.settings.gravityScale * fixedDeltaTime
-	root.linear_velocity += Vector2.RIGHT * root.world.settings.currentWindSpeed * fixedDeltaTime
+	root.linear_velocity += Vector2.RIGHT * root.windSpeed * fixedDeltaTime
 	
 	root.linear_velocity += -root.global_transform.y * currentThrusterForce * forceMultiply * fixedDeltaTime
 	root.angular_velocity += angAdd * angularAcceleration * fixedDeltaTime

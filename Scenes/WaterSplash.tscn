@@ -2,7 +2,7 @@
 
 [ext_resource path="res://Scripts/WaterSplashParticleSystem.gd" type="Script" id=1]
 
-[sub_resource type="Shader" id=4]
+[sub_resource type="Shader" id=1]
 code = "shader_type canvas_item;
 
 void fragment() {
@@ -17,26 +17,28 @@ void fragment() {
 	COLOR = scCol;
 }"
 
-[sub_resource type="ShaderMaterial" id=5]
-shader = SubResource( 4 )
+[sub_resource type="ShaderMaterial" id=2]
+shader = SubResource( 1 )
 
-[sub_resource type="QuadMesh" id=1]
+[sub_resource type="QuadMesh" id=3]
 
-[sub_resource type="Curve" id=2]
+[sub_resource type="Curve" id=4]
 _data = [ Vector2( 0, 0.48773 ), 0.0, 0.51227, 0, 1, Vector2( 1, 1 ), 0.448537, 0.0, 0, 0 ]
 
-[sub_resource type="Gradient" id=3]
+[sub_resource type="Gradient" id=5]
 offsets = PoolRealArray( 0, 0.678862, 1 )
 colors = PoolColorArray( 1, 1, 1, 0, 1, 1, 1, 0.490196, 1, 1, 1, 1 )
 
 [node name="WaterSplash" type="Node2D"]
-material = SubResource( 5 )
+material = SubResource( 2 )
 script = ExtResource( 1 )
+emitting = false
+numParticles = 32
 lifetime = 1.5
-mesh = SubResource( 1 )
+mesh = SubResource( 3 )
 coneAngle = 25.0
 numParticlesRange = Vector2( 8, 16 )
 velocityRange = Vector2( 32, 96 )
 sizeRange = Vector2( 8, 20 )
-sizeCurve = SubResource( 2 )
-gradient = SubResource( 3 )
+sizeCurve = SubResource( 4 )
+gradient = SubResource( 5 )

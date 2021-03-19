@@ -30,10 +30,11 @@ func enter() -> void:
 	})
 
 func process() -> void:
-	queryReset = Input.is_action_just_pressed("reset_level")
+	#queryReset = Input.is_action_just_pressed("reset_level")
+	pass
 
 func physics_process() -> void:
-	if queryReset and !resetting:
+	if Input.is_action_just_pressed("reset_level") and !resetting:
 		Transition.Animate()
 		resetting = true
 	if resetting and !Transition.animating:

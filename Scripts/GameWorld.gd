@@ -4,6 +4,9 @@ extends Control
 class_name GameWorld
 
 var game
+var rng: RandomNumberGenerator
+
+var root
 
 var editorGenerateTimer = 0.0
 var planetCollection
@@ -35,6 +38,7 @@ signal world_generated()
 
 func GetResources() -> void:
 	planetCollection = get_node_or_null("PlanetCollection")
+	root = get_node_or_null("Root")
 	if !terrainScene:
 		terrainScene = load("res://Scenes/Terrain.tscn")
 
@@ -55,6 +59,16 @@ func SetGenerate(var gen: bool) -> void:
 	Generate()
 
 func _ready() -> void:
+	randomize()
+	if Engine.editor_hint:
+		rng = RandomNumberGenerator.new()
+		rng.seed = randi()
+	else:
+		#var sed = InputRecorder.GetSessionData("GameSeed", randi())
+		var sed = randi()
+		rng = RandomNumberGenerator.new()
+		rng.seed = sed
+	
 	GetResources()
 	Generate()
 
@@ -70,17 +84,21 @@ func _process(delta: float) -> void:
 			editorGenerateTimer = 0.0
 
 func RandomSettings():
-	var available = [0, 1, 2] + PlayerSave.unlockedPlanets
-	var idx = available[randi() % available.size()]
+	var available = [0, 1, 2, 3, 4] + PlayerSave.unlockedPlanets
+	var idx = available[rng.randi() % available.size()]
 	
 	while idx == prevSettingsIdx and available.size() > 1:
-		idx = available[randi() % available.size()]
+		idx = available[rng.randi() % available.size()]
 	
 	prevSettingsIdx = idx
 	
 	return idx
 
 func Generate() -> void:
+	if !rng:
+		rng = RandomNumberGenerator.new()
+		rng.seed = randi()
+	
 	if !planetCollection or planetCollection.settings.size() == 0: return
 	if generating: return
 	
@@ -89,25 +107,27 @@ func Generate() -> void:
 	generating = true
 	
 	for c in get_children():
-		if c == planetCollection: continue
+		if c == planetCollection or c == root: continue
 		c.queue_free()
-	
-	randomize()
-	var sed = randi()
-	seed(sed)
 	
 	if !Engine.editor_hint:
 		settingsIdx = RandomSettings()
+	
+	settings = planetCollection.settings[settingsIdx]
+	
+	var windSpeed = rng.randf_range(settings.windSpeedRange.x, settings.windSpeedRange.y)
 	
 	var totalSize = worldSize + Vector2.ONE * margin * 2.0
 	
 	rect_position = Vector2.ZERO
 	rect_size = totalSize
 	
+	var sed = rng.randi()
+	
 	settings = planetCollection.settings[settingsIdx]
 	settings.heightMapNoise.seed = sed
 	settings.terrainTexture.noise.seed = sed
-	settings.currentWindSpeed = rand_range(settings.windSpeedRange.x, settings.windSpeedRange.y)
+	settings.currentWindSpeed = windSpeed
 	
 	if !Engine.editor_hint: 
 		yield(SignalWaiter.new([settings.terrainTexture], ["changed"]), "finished")

@@ -1,0 +1,234 @@
+[gd_resource type="ShaderMaterial" load_steps=9 format=2]
+
+[ext_resource path="res://Textures/ShockWaveTest.png" type="Texture" id=1]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform vec2 size = vec2(1024, 600);
+
+uniform float spacing : hint_range(.01f, 64f) = 1f;
+uniform float chromaticMagnitude = 4f;
+uniform sampler2D chromaticCenterBias;
+uniform sampler2D chromaticGradient;
+uniform sampler2D chromaticPowerRange;
+uniform float chromaticPowerRangeMultiply = 1f;
+uniform float chromaticGradientSteps = 32f;
+
+uniform float bloomRadius = 4.0;
+uniform float bloomThreshold = 1.0;
+uniform float bloomSpacing = 1.0;
+uniform float bloomStrength = 1.0;
+
+uniform mat4 cameraMat;
+uniform vec2 mapSize = vec2(1024, 600);
+
+uniform sampler2D shockwaves;
+uniform int numShockWaves = 1;
+uniform float maxShockwaveEnergy = 8.0;
+uniform float maxShockwaveFrequency = 8.0;
+uniform float waveSizeEasing = 1;
+
+uniform bool bloom;
+uniform bool chromaticAberration;
+
+varying vec2 world_v;
+
+float ease(float x, float c) {
+	if (x < 0f) x = 0f;
+	if (x > 1f) x = 1f;
+	
+	if (c > 0f) {
+		if (c < 1f) {
+			return 1f - pow(1f - x, 1f / c);
+		} else {
+			return pow(x, c);
+		}
+	} else if (c < 0f) {
+		if (x < 0.5f) {
+			return pow(x * 2f, -c) * .5f;
+		} else {
+			return (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;
+		}
+	}
+	
+	return 0f;
+}
+
+vec3 rgb_to_hsv(vec3 rgb) {
+	vec3 c = rgb;
+	vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+	vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+	vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+	float d = q.x - min(q.w, q.y);
+	float e = 1.0e-10;
+	return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+
+vec3 hsv_to_rgb(vec3 hsv) {
+	vec3 c = hsv;
+	vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+	vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+	return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+vec3 hsvShift(vec3 col, vec3 shift) {
+	return hsv_to_rgb(fract(rgb_to_hsv(col) + shift));
+}
+
+void get_shockwave_data(float idx, out vec2 pos, out float radius, out float energy, out float frequency, out float life) {
+	float tX = (idx + .5) / float(numShockWaves);
+	vec4 data1 = texture(shockwaves, vec2(tX, 0.0));
+	vec4 data2 = texture(shockwaves, vec2(tX, 0.75));
+	pos = data1.xy * mapSize;
+	radius = data1.z * max(mapSize.x, mapSize.y);
+	energy = data1.w * maxShockwaveEnergy;
+	frequency = data2.x * maxShockwaveFrequency;
+	life = data2.y;
+}
+
+vec2 shockwave_influence(float idx) {
+	vec2 influence = vec2(0.0);
+	
+	vec2 pos;
+	float radius, energy, frequency, life;
+	
+	get_shockwave_data(idx, pos, radius, energy, frequency, life);
+	
+	radius *= ease(1.0 - life, waveSizeEasing);
+	
+	vec2 off = (pos - world_v);
+	vec2 dir = normalize(off) * min(length(off), 1.0);
+	float dist = length(off);
+	float s = sin(dist * radians(360.0) * frequency * .01 + life * frequency * radians(360.0)) * .5 + .5;
+	s = mix(.5, 1.0, s);
+	
+	float t = 1.0 - clamp(dist / radius, 0.0, 1.0);
+	
+	dir.y = -dir.y;
+	influence = dir * t * energy * s * life;
+	//influence = dir;
+	
+	return influence;
+}
+
+vec2 shockwaves_distortion() {
+	vec2 dist = vec2(0.0);
+	
+	for (int i = 0; i < numShockWaves; i++) {
+		dist += shockwave_influence(float(i));
+	}
+	
+	return dist;
+}
+
+void chromatic_aberration(inout vec4 col, sampler2D tex, vec2 uv, vec2 scUv, vec2 texPixSize) {
+	vec2 off = (scUv - .5f);
+	//off.y *= -1f;
+	vec2 texSize = texPixSize;
+	float len = clamp(length(off) / .5f, 0f, 1f);
+	
+	float cBias = texture(chromaticCenterBias, vec2(len, 0f)).r;
+	
+	vec3 p = vec3(1f);
+	
+	for (float o = 0f; o < chromaticMagnitude; o += spacing) {
+		float t = o / chromaticMagnitude;
+		float power = texture(chromaticPowerRange, vec2(t, 0f)).r * cBias * chromaticPowerRangeMultiply;
+		vec2 chrUv = uv - off * chromaticMagnitude * t * texSize;
+		vec2 gradientUv = vec2(t, 0f);
+		gradientUv = floor(gradientUv * chromaticGradientSteps) / chromaticGradientSteps;
+		vec3 mask = texture(chromaticGradient, gradientUv).rgb;
+		col.rgb += texture(tex, chrUv).rgb * mask * power;
+		p += mask * power * 1f;
+	}
+	
+	col.rgb /= p;
+}
+
+void bloom_effect(inout vec4 col, sampler2D tex, vec2 uv, vec2 scUv, vec2 texPixSize) {
+	vec3 bloomCol = vec3(0.0);
+	
+	float div = 0.0;
+	
+	for (float x = -bloomRadius; x <= bloomRadius; x += bloomSpacing) {
+		for (float y = -bloomRadius; y <= bloomRadius; y += bloomSpacing) {
+			vec2 off = vec2(x, y);
+			float l = clamp(1.0 - length(off) / bloomRadius, 0.0, 1.0);
+			vec3 bC = texture(tex, uv + off * texPixSize).rgb;
+			
+			bC -= bloomThreshold;
+			bC *= (1.0 + bloomThreshold);
+			bC = clamp(bC, 0.0, 1.0);
+			bC *= l;
+			
+			bloomCol += bC * bloomStrength;
+			div += 1.0;
+		}
+	}
+	
+	col.rgb += bloomCol / max(div, 1.0);
+}
+
+void vertex() {
+	world_v = (cameraMat * vec4(VERTEX, 0.0, 1.0)).xy;
+}
+
+void fragment() {
+	vec2 uv = UV;
+	vec2 scUv = SCREEN_UV;
+	vec2 distortion = shockwaves_distortion();
+	
+	uv += distortion * TEXTURE_PIXEL_SIZE;
+	scUv += distortion * SCREEN_PIXEL_SIZE;
+	
+	vec4 col = texture(TEXTURE, uv);
+	
+	if (chromaticAberration) chromatic_aberration(col, TEXTURE, uv, scUv, TEXTURE_PIXEL_SIZE);
+	if (bloom) bloom_effect(col, TEXTURE, uv, scUv, TEXTURE_PIXEL_SIZE);
+	
+	COLOR = col;
+}"
+
+[sub_resource type="Curve" id=2]
+_data = [ Vector2( 0, 0 ), 0.0, 0.058944, 0, 0, Vector2( 1, 1 ), 3.43945, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=3]
+curve = SubResource( 2 )
+
+[sub_resource type="Gradient" id=4]
+offsets = PoolRealArray( 0, 0.508772, 1 )
+colors = PoolColorArray( 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1 )
+
+[sub_resource type="GradientTexture" id=5]
+gradient = SubResource( 4 )
+
+[sub_resource type="Curve" id=6]
+_data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 1, Vector2( 1, 1 ), 0.0, 0.0, 1, 0 ]
+
+[sub_resource type="CurveTexture" id=7]
+curve = SubResource( 6 )
+
+[resource]
+shader = SubResource( 1 )
+shader_param/size = Vector2( 960, 540 )
+shader_param/spacing = 4.0
+shader_param/chromaticMagnitude = 16.0
+shader_param/chromaticPowerRangeMultiply = 1.0
+shader_param/chromaticGradientSteps = 32.0
+shader_param/bloomRadius = 4.0
+shader_param/bloomThreshold = 1.0
+shader_param/bloomSpacing = 1.0
+shader_param/bloomStrength = 16.0
+shader_param/cameraMat = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+shader_param/mapSize = Vector2( 4096, 600 )
+shader_param/numShockWaves = 0
+shader_param/maxShockwaveEnergy = 16.0
+shader_param/maxShockwaveFrequency = 8.0
+shader_param/waveSizeEasing = -2.0
+shader_param/bloom = true
+shader_param/chromaticAberration = false
+shader_param/chromaticCenterBias = SubResource( 3 )
+shader_param/chromaticGradient = SubResource( 5 )
+shader_param/chromaticPowerRange = SubResource( 7 )
+shader_param/shockwaves = ExtResource( 1 )

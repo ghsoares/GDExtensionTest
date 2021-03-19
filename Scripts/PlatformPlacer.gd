@@ -18,7 +18,7 @@ func Generate() -> void:
 	if !platformScene: return
 	
 	var spacing = 0.0
-	spacing += rand_range(spacingRange.x, spacingRange.y)
+	spacing += world.rng.randf_range(spacingRange.x, spacingRange.y)
 	
 	for i in range(NUM_PLATFORMS):
 		var platform = platformScene.instance()
@@ -28,7 +28,7 @@ func Generate() -> void:
 		
 		platforms.append(platform)
 		
-		spacing += rand_range(spacingRange.x, spacingRange.y)
+		spacing += world.rng.randf_range(spacingRange.x, spacingRange.y)
 	
 	var scoreMultipliers = [2, 3, 4, 5]
 	
@@ -41,7 +41,7 @@ func Generate() -> void:
 			platforms[i].scoreMultiplier = 1
 			continue
 		
-		var idx = randi() % scoreMultipliers.size()
+		var idx = world.rng.randi() % scoreMultipliers.size()
 		var scoreM = scoreMultipliers[idx]
 		
 		platforms[i].scoreMultiplier = scoreM
