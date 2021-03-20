@@ -1,0 +1,19 @@
+[gd_resource type="ShaderMaterial" load_steps=5 format=2]
+
+[ext_resource path="res://Shaders/GrassShader.shader" type="Shader" id=1]
+[ext_resource path="res://Textures/Grass.png" type="Texture" id=2]
+
+[sub_resource type="Gradient" id=1]
+colors = PoolColorArray( 0.0483208, 0.16291, 0.233398, 1, 0, 1, 0.537109, 1 )
+
+[sub_resource type="GradientTexture" id=2]
+gradient = SubResource( 1 )
+
+[resource]
+shader = ExtResource( 1 )
+shader_param/terrainSize = null
+shader_param/terrainResolution = null
+shader_param/grassAmount = 1.0
+shader_param/grassHeight = 10.0
+shader_param/grassTexture = ExtResource( 2 )
+shader_param/grassGradient = SubResource( 2 )
