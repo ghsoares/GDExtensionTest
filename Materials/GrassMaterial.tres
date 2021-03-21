@@ -11,9 +11,11 @@ gradient = SubResource( 1 )
 
 [resource]
 shader = ExtResource( 1 )
-shader_param/terrainSize = null
+shader_param/terrainSize = Vector2( 960, 540 )
 shader_param/terrainResolution = null
-shader_param/grassAmount = 1.0
-shader_param/grassHeight = 10.0
+shader_param/grassAmount = 0.761
+shader_param/grassHeight = 8.0
+shader_param/windSpeed = 16.0
+shader_param/windFrequency = 1.0
 shader_param/grassTexture = ExtResource( 2 )
 shader_param/grassGradient = SubResource( 2 )

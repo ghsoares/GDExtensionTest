@@ -148,6 +148,15 @@ func GetValleyAndMountains() -> void:
 				endY - startY
 			))
 		dir = -dir
+	
+	for valley in valleys:
+		var c := ColorRect.new()
+		
+		c.rect_position = valley.position
+		c.rect_size = valley.size
+		c.color = Color(1.0, .25, .25, .5)
+		
+		#add_child(c)
 
 func PlaceExtraMaterial(material: ShaderMaterial, z_index: int = 0) -> ColorRect:
 	var c: ColorRect = ColorRect.new()

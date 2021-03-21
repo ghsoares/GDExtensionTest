@@ -26,6 +26,7 @@ func Place() -> void:
 			var endX = rect.end.x
 			
 			var middle = Vector2((posX + endX) / 2.0, rect.end.y - height)
+			
 			var castLeft = terrain.RayIntersect(middle, Vector2.LEFT)
 			var castRight = terrain.RayIntersect(middle, Vector2.RIGHT)
 			
@@ -33,6 +34,11 @@ func Place() -> void:
 				posX = castLeft.point.x
 			if castRight:
 				endX = castRight.point.x
+			
+			if posX > endX:
+				var temp = posX
+				posX = endX
+				endX = temp
 			
 			rect.position.x = posX
 			rect.size.x = (endX - posX)

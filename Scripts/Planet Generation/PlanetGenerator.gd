@@ -30,7 +30,7 @@ func MaterialSetNoiseSeed(material: ShaderMaterial, texName: String) -> void:
 	yield(noiseTex, "changed")
 	self.yields -= 1
 
-func PlaceLiquidBodies(liquidMaterial: ShaderMaterial, rate: float = .5) -> void:
+func PlaceLiquidBodies(liquidMaterial: ShaderMaterial, rate: float = .5, heightRange: Vector2 = Vector2(8.0, 256.0)) -> void:
 	if liquidPlacer:
 		liquidPlacer.queue_free()
 	liquidPlacer = LiquidPlacer.new()
@@ -38,6 +38,7 @@ func PlaceLiquidBodies(liquidMaterial: ShaderMaterial, rate: float = .5) -> void
 	liquidPlacer.rate = rate
 	liquidPlacer.material = liquidMaterial
 	liquidPlacer.terrain = planet.terrain
+	liquidPlacer.heightRange = heightRange
 	
 	add_child(liquidPlacer)
 	liquidPlacer.Place()
@@ -69,7 +70,7 @@ func Generate() -> void:
 	var grass = terrain.PlaceExtraMaterial(GameMaterials.GetMaterial("Grass"), -1)
 	grass.material.set_shader_param("grassAmount", .5)
 	
-	PlaceLiquidBodies(preload("res://Materials/WaterMaterial.tres"), 1.0)
+	PlaceLiquidBodies(preload("res://Materials/WaterMaterial.tres"), 1.0, Vector2(8.0, 256.0))
 	
 	terrain.raise()
 	platformsPlacer.raise()
