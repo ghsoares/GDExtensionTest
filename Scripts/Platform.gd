@@ -1,5 +1,7 @@
 extends Node2D
 
+class_name Platform
+
 var size: float = 8.0
 var scoreMultiplier: int = 1
 

@@ -7,8 +7,14 @@ func _ready() -> void:
 	InitFunctions()
 	
 	var materialsToCompile = {
-		"Grass": preload("res://Materials/GrassMaterial.tres"),
-		"Terrain": preload("res://Materials/TerrainMaterial.tres"),
+		"Default/Grass": preload("res://Materials/GrassMaterial.tres"),
+		"Default/Terrain": preload("res://Materials/TerrainMaterial.tres"),
+		"Default/Liquid": preload("res://Materials/LiquidMaterial.tres"),
+		"Default/Fog": preload("res://Materials/FogMaterial.tres"),
+		
+		"Earth/Grass": preload("res://Materials/Planets/Earth/GrassMaterial.tres"),
+		"Earth/Terrain": preload("res://Materials/Planets/Earth/TerrainMaterial.tres"),
+		"Earth/Water": preload("res://Materials/Planets/Earth/WaterMaterial.tres")
 	}
 	for materialName in materialsToCompile.keys():
 		var material = materialsToCompile[materialName]

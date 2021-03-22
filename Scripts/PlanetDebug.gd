@@ -9,7 +9,11 @@ var desiredCameraPos: Vector2
 var desiredCameraZoom: float
 var casterDirection: Vector2
 
+var debugging = false
+
 func _ready() -> void:
+	desiredCameraPos = Vector2(2048, 32.0)
+	
 	desiredCameraZoom = 1.0
 	casterDirection = Vector2(1.0, 1.0).normalized()
 	
@@ -35,8 +39,12 @@ func _input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if planet.generating: return
 	var camera = planet.camera
-	camera.desiredZoom = desiredCameraZoom
-	camera.desiredPosition = desiredCameraPos
+	if debugging:
+		camera.desiredZoom = desiredCameraZoom
+		camera.desiredPosition = desiredCameraPos
+	else:
+		desiredCameraZoom = camera.desiredZoom
+		desiredCameraPos = camera.desiredPosition
 
 func _process(delta: float) -> void:
 	var turn = Input.get_action_strength("rotate_right") - Input.get_action_strength("rotate_left")

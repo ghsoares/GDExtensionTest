@@ -1,0 +1,38 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=2]
+
+[ext_resource path="res://Textures/BayerMatrixDithering.png" type="Texture" id=1]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform sampler2D ditheringMatrix;
+uniform float ditherScale = 1f;
+uniform float roundness = 1f;
+
+void fragment() {
+	float d = distance(UV, vec2(.5f)) / .5f;
+	d *= roundness;
+	
+	vec2 ditheringSize = vec2(textureSize(ditheringMatrix, 0)) * ditherScale;
+	vec2 scSize = 1f / SCREEN_PIXEL_SIZE;
+	
+	vec2 ratio = scSize / ditheringSize;
+	vec2 ditheringUv = ratio * SCREEN_UV;
+	
+	float b = COLOR.a + texture(ditheringMatrix, ditheringUv).r;
+	b = step(1f, b);
+	
+	COLOR.a = b;
+	COLOR.a *= step(d, 1.0);
+	COLOR.a *= step(UV.x, 1.0);
+	COLOR.a *= step(0.0, UV.y);
+}
+
+
+"
+
+[resource]
+shader = SubResource( 1 )
+shader_param/ditherScale = 1.0
+shader_param/roundness = 1.0
+shader_param/ditheringMatrix = ExtResource( 1 )

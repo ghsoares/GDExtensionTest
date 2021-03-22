@@ -4,6 +4,7 @@
 [ext_resource path="res://Textures/Grass.png" type="Texture" id=2]
 
 [sub_resource type="Gradient" id=1]
+colors = PoolColorArray( 0.0483208, 0.16291, 0.233398, 1, 0, 1, 0.537109, 1 )
 
 [sub_resource type="GradientTexture" id=2]
 gradient = SubResource( 1 )

@@ -1,5 +1,8 @@
 shader_type canvas_item;
 
+uniform sampler2D ditheringTexture;
+uniform float ditheringInfluence = .1;
+
 uniform sampler2D terrainHeightMap;
 uniform vec2 terrainSize;
 uniform float terrainResolution;
@@ -48,7 +51,12 @@ void TerrainColor(inout vec4 col) {
 	
 	n = Ease(n, terrainTextureEaseCurve);
 	
-	n = round(n * terrainTextureSteps) / terrainTextureSteps;
+	vec2 ditherSize = vec2(textureSize(ditheringTexture, 0));
+	float d = texture(ditheringTexture, v / ditherSize).r * 2.0 - 1.0;
+	
+	n += d * ditheringInfluence;
+	
+	n = floor(n * terrainTextureSteps) / terrainTextureSteps;
 	n = clamp(n, 0.0, 1.0);
 	
 	col = texture(terrainGradient, vec2(n, 0.0));

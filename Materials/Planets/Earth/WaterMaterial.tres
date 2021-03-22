@@ -81,6 +81,8 @@ void fragment() {
 	borderTransition = clamp(borderTransition, 0.0, 1.0);
 	h *= borderTransition;
 	
+	scUv = round(scUv / SCREEN_PIXEL_SIZE) * SCREEN_PIXEL_SIZE;
+	
 	vec4 col = textureLod(SCREEN_TEXTURE, scUv, 0.0);
 	vec4 waterCol = mix(surfaceColor, mix(color, color2, t), step(h + surfaceSize, v.y));
 	
@@ -100,6 +102,7 @@ void fragment() {
 octaves = 2
 
 [sub_resource type="NoiseTexture" id=3]
+flags = 3
 width = 256
 height = 256
 seamless = true
@@ -110,8 +113,8 @@ noise = SubResource( 2 )
 [resource]
 shader = SubResource( 1 )
 shader_param/worldMatrix = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-shader_param/color = Color( 0.501961, 0.996078, 1, 0.12549 )
-shader_param/color2 = Color( 0.333333, 0.678431, 0.862745, 0.490196 )
+shader_param/color = Color( 0.501961, 0.996078, 1, 0.0941176 )
+shader_param/color2 = Color( 0.333333, 0.678431, 0.862745, 0.294118 )
 shader_param/surfaceColor = Color( 0.878431, 0.976471, 1, 0.968627 )
 shader_param/surfaceSize = 2.0
 shader_param/colorTransition = 32.0

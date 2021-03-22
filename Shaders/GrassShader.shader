@@ -38,7 +38,7 @@ void fragment() {
 	float uvY = terrainDiff / grassHeight;
 	
 	float wind = sin(uvX * windFrequency * two_pi + windSpeed * .1 * TIME * two_pi) * .5 + .5;
-	grassPosX += wind * uvY * windSpeed * .25;
+	grassPosX -= wind * uvY * windSpeed * .25;
 	
 	grassPosX = floor(grassPosX);
 	uvX = grassPosX / grassWidth;

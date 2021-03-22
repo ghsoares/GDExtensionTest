@@ -38,7 +38,18 @@ func Place() -> void:
 		
 		add_child(platform)
 
-
+func GetNearest(x: float):
+	var nearest = platforms[0]
+	var nearestDist = abs(nearest.position.x - x)
+	
+	for i in range(1, platforms.size()):
+		var plat = platforms[i]
+		var dst = abs(plat.position.x - x)
+		if dst <= nearestDist:
+			nearest = plat
+			nearestDist = dst
+	
+	return nearest
 
 
 

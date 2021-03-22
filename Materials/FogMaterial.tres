@@ -1,0 +1,123 @@
+[gd_resource type="ShaderMaterial" load_steps=9 format=2]
+
+[ext_resource path="res://Textures/BayerMatrixDithering.png" type="Texture" id=1]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform sampler2D ditheringTexture;
+uniform float ditheringInfluence = .1;
+
+uniform sampler2D fogNoise;
+uniform float fogTiling = 512.0;
+
+uniform vec2 fogMotion;
+uniform float windSpeed;
+
+uniform int fogOctaves = 2;
+uniform float fogLacunarity = 2.0;
+uniform float fogPersistance = .25;
+
+uniform sampler2D heightSubtractCurve;
+uniform float fogSteps = 8.0;
+
+uniform sampler2D fogGradient;
+
+varying vec2 v;
+varying float time;
+
+float Ease(float x, float c) {return x;}
+
+void vertex() {
+	v = VERTEX;
+	time = TIME;
+}
+
+float GetNoise() {
+	float n = 0.0;
+	
+	int oct = max(fogOctaves, 1);
+	
+	vec2 motion = fogMotion;
+	motion.x += windSpeed;
+	
+	float period = fogTiling;
+	float pers = 1.0;
+	
+	float total = 0.0;
+	
+	for (int i = 0; i < oct; i++) {
+		vec2 uv = v / period;
+		uv -= (motion / fogTiling) * time;
+		n += texture(fogNoise, uv).r * pers;
+		
+		total += pers;
+		
+		period /= fogLacunarity;
+		pers *= fogPersistance;
+	}
+	
+	return n / max(total, 1.0);
+}
+
+void fragment() {
+	float n = GetNoise();
+	n = Ease(n, -2.0);
+	
+	n -= texture(heightSubtractCurve, vec2(UV.y, 0.0)).r;
+	
+	vec2 ditherSize = vec2(textureSize(ditheringTexture, 0));
+	float d = texture(ditheringTexture, v / ditherSize).r * 2.0 - 1.0;
+	
+	n += d * ditheringInfluence;
+	
+	n = floor(n * fogSteps) / fogSteps;
+	n = clamp(n, 0.0, 1.0);
+	
+	vec4 col = texture(fogGradient, vec2(n, 0.0));
+	
+	COLOR = col;
+}
+
+
+
+
+
+
+
+"
+
+[sub_resource type="Gradient" id=2]
+colors = PoolColorArray( 1, 1, 1, 0, 1, 1, 1, 0.576471 )
+
+[sub_resource type="GradientTexture" id=3]
+gradient = SubResource( 2 )
+
+[sub_resource type="OpenSimplexNoise" id=4]
+octaves = 1
+
+[sub_resource type="NoiseTexture" id=5]
+seamless = true
+noise = SubResource( 4 )
+
+[sub_resource type="Curve" id=6]
+min_value = -1.0
+_data = [ Vector2( 0, 1 ), 0.0, -1.50567, 0, 1, Vector2( 0.729348, -0.0981594 ), -1.50567, 0.0, 1, 0, Vector2( 1, -0.533742 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=7]
+curve = SubResource( 6 )
+
+[resource]
+shader = SubResource( 1 )
+shader_param/ditheringInfluence = 0.05
+shader_param/fogTiling = 512.0
+shader_param/fogMotion = Vector2( 0, 16 )
+shader_param/windSpeed = null
+shader_param/fogOctaves = 3
+shader_param/fogLacunarity = 2.0
+shader_param/fogPersistance = 0.5
+shader_param/fogSteps = 8.0
+shader_param/ditheringTexture = ExtResource( 1 )
+shader_param/fogNoise = SubResource( 5 )
+shader_param/heightSubtractCurve = SubResource( 7 )
+shader_param/fogGradient = SubResource( 3 )

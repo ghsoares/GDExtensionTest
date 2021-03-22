@@ -2,7 +2,7 @@ extends ColorRect
 
 class_name Terrain
 
-const MAX_RAY_STEPS = 100
+const MAX_RAY_STEPS = 50
 const RAY_SURFACE_DIST = .1
 
 var platformsPlacer
@@ -40,27 +40,35 @@ func GetTerrainHeight(x: float) -> float:
 	
 	return clamp(h, 0.0, size.y)
 
+func GetTerrainNormal(x: float) -> Vector2:
+	var spacing = .1
+	var tang = (GetTerrainHeight(x) - GetTerrainHeight(x + spacing)) / spacing
+	return Vector2(tang, -1.0).normalized()
+
 func GetTerrainY(x: float) -> float:
 	return size.y - GetTerrainHeight(x)
 
-func RayIntersect(from: Vector2, direction: Vector2, maxDistance: float = -1, checkInside: bool = false):
+func RayIntersect(from: Vector2, direction: Vector2, maxDistance: float = -1, maxSteps = MAX_RAY_STEPS, checkInside: bool = false):
+	maxSteps = clamp(maxSteps, 0, MAX_RAY_STEPS)
+	
 	var dO = 0.0
 	var dir = 1
 	if checkInside:
 		dir = -1
-	for i in range(MAX_RAY_STEPS):
+	for i in range(maxSteps):
 		var p = from + direction * dO
 		
 		var tY = GetTerrainY(p.x)
 		var diff = tY - p.y
 		if abs(diff) > RAY_SURFACE_DIST:
 			dO += diff * dir
-		else:
+		if abs(diff) <= RAY_SURFACE_DIST:
 			return {
 				"point": p,
-				"distance": dO
+				"distance": dO,
+				"normal": GetTerrainNormal(p.x)
 			}
-			break
+		if dO >= maxDistance: break
 	return null
 
 #This function generates a ImageTexture that can be passed to the material to render the terrain
@@ -158,7 +166,7 @@ func GetValleyAndMountains() -> void:
 		
 		#add_child(c)
 
-func PlaceExtraMaterial(material: ShaderMaterial, z_index: int = 0) -> ColorRect:
+func PlaceExtraMaterial(material: ShaderMaterial, z_index: int = 0) -> void:
 	var c: ColorRect = ColorRect.new()
 	var n: Node2D = Node2D.new()
 	
@@ -173,8 +181,6 @@ func PlaceExtraMaterial(material: ShaderMaterial, z_index: int = 0) -> ColorRect
 	n.add_child(c)
 	
 	n.z_index = z_index
-	
-	return c
 
 func Generate() -> void:
 	rect_size = size

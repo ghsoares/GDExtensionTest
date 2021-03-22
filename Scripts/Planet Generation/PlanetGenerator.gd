@@ -4,6 +4,8 @@ class_name PlanetGenerator
 
 signal finished_generation
 
+var windSpeedRange = Vector2(4, 32)
+
 var planet
 var terrainMaterial: ShaderMaterial
 var noise: OpenSimplexNoise
@@ -12,9 +14,9 @@ var liquidPlacer
 var yields: int = 0 setget SetYields
 
 func _ready() -> void:
-	terrainMaterial = GameMaterials.GetMaterial("Terrain")
+	terrainMaterial = GameMaterials.GetMaterial("Default/Terrain")
 	noise = OpenSimplexNoise.new()
-	noise.period = 200.0
+	noise.period = 256.0
 
 func SetYields(newYields: int) -> void:
 	if yields != newYields:
@@ -30,6 +32,9 @@ func MaterialSetNoiseSeed(material: ShaderMaterial, texName: String) -> void:
 	yield(noiseTex, "changed")
 	self.yields -= 1
 
+func ApplyWindToMaterial(material: ShaderMaterial) -> void:
+	material.set_shader_param("windSpeed", planet.windSpeed)
+
 func PlaceLiquidBodies(liquidMaterial: ShaderMaterial, rate: float = .5, heightRange: Vector2 = Vector2(8.0, 256.0)) -> void:
 	if liquidPlacer:
 		liquidPlacer.queue_free()
@@ -44,6 +49,8 @@ func PlaceLiquidBodies(liquidMaterial: ShaderMaterial, rate: float = .5, heightR
 	liquidPlacer.Place()
 
 func Generate() -> void:
+	planet.windSpeed = rand_range(windSpeedRange.x, windSpeedRange.y) * sign(randf() * 2.0 - 1.0)
+	
 	var terrain = Terrain.new()
 	var platformsPlacer = PlatformsPlacer.new()
 	
@@ -66,14 +73,6 @@ func Generate() -> void:
 	
 	platformsPlacer.Place()
 	terrain.Generate()
-	
-	var grass = terrain.PlaceExtraMaterial(GameMaterials.GetMaterial("Grass"), -1)
-	grass.material.set_shader_param("grassAmount", .5)
-	
-	PlaceLiquidBodies(preload("res://Materials/WaterMaterial.tres"), 1.0, Vector2(8.0, 256.0))
-	
-	terrain.raise()
-	platformsPlacer.raise()
 	
 	if yields == 0:
 		emit_signal("finished_generation")
