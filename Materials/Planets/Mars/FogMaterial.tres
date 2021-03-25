@@ -39,7 +39,7 @@ float GetNoise() {
 	int oct = max(fogOctaves, 1);
 	
 	vec2 motion = fogMotion;
-	motion.x += windSpeed;
+	motion.x += windSpeed * 4.0;
 	
 	float period = fogTiling;
 	float pers = 1.0;
@@ -88,7 +88,7 @@ void fragment() {
 "
 
 [sub_resource type="Gradient" id=2]
-colors = PoolColorArray( 1, 1, 1, 0, 1, 1, 1, 0.576471 )
+colors = PoolColorArray( 1, 0.655731, 0.546875, 0, 1, 0.367805, 0.0507813, 0.654902 )
 
 [sub_resource type="GradientTexture" id=3]
 gradient = SubResource( 2 )
@@ -102,19 +102,19 @@ noise = SubResource( 4 )
 
 [sub_resource type="Curve" id=6]
 min_value = -1.0
-_data = [ Vector2( 0, 1 ), 0.0, -1.50567, 0, 1, Vector2( 0.729348, -0.0981594 ), -1.50567, 0.0, 1, 0, Vector2( 1, -0.533742 ), 0.0, 0.0, 0, 0 ]
+_data = [ Vector2( 0.303488, 1 ), 0.0, -2.29892, 0, 1, Vector2( 1, -0.601227 ), -2.29892, 0.0, 1, 0 ]
 
 [sub_resource type="CurveTexture" id=7]
 curve = SubResource( 6 )
 
 [resource]
 shader = SubResource( 1 )
-shader_param/ditheringInfluence = 0.05
+shader_param/ditheringInfluence = 0.047
 shader_param/fogTiling = 512.0
 shader_param/fogMotion = Vector2( 0, 16 )
-shader_param/windSpeed = null
+shader_param/windSpeed = 32.0
 shader_param/fogOctaves = 3
-shader_param/fogLacunarity = 2.0
+shader_param/fogLacunarity = 3.0
 shader_param/fogPersistance = 0.5
 shader_param/fogSteps = 8.0
 shader_param/ditheringTexture = ExtResource( 1 )

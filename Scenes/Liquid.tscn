@@ -1,0 +1,71 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://Scripts/Liquid.gd" type="Script" id=1]
+[ext_resource path="res://Scripts/ParticleSystems/LiquidSplashParticleSystem.gd" type="Script" id=2]
+[ext_resource path="res://Materials/Planets/Default/LiquidMaterial.tres" type="Material" id=3]
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 20, 20 )
+
+[sub_resource type="Shader" id=2]
+code = "shader_type canvas_item;
+
+uniform float roundness = 1f;
+
+void fragment() {
+	float d = distance(UV, vec2(.5f)) / .5f;
+	d *= roundness;
+	
+	vec4 col = texture(SCREEN_TEXTURE, SCREEN_UV);
+	
+	col.rgb = mix(col.rgb, COLOR.rgb, COLOR.a);
+	
+	COLOR = col;
+	COLOR.a *= step(d, 1.0);
+}
+
+
+"
+
+[sub_resource type="ShaderMaterial" id=3]
+shader = SubResource( 2 )
+shader_param/roundness = 1.0
+
+[sub_resource type="QuadMesh" id=4]
+
+[sub_resource type="Curve" id=5]
+_data = [ Vector2( 0, 0 ), 0.0, 1.15879, 0, 1, Vector2( 0.862971, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), -7.29771, 0.0, 1, 0 ]
+
+[node name="Liquid" type="Control"]
+material = ExtResource( 3 )
+margin_right = 40.0
+margin_bottom = 40.0
+script = ExtResource( 1 )
+drag = 0.5
+splashRatePerVelocity = 0.25
+
+[node name="Area" type="Area2D" parent="."]
+
+[node name="Col" type="CollisionShape2D" parent="Area"]
+visible = false
+position = Vector2( 20, 20 )
+shape = SubResource( 1 )
+
+[node name="Splash" type="Node2D" parent="."]
+material = SubResource( 3 )
+script = ExtResource( 2 )
+local = true
+numParticles = 32
+color = Color( 0.333333, 0.678431, 0.862745, 0.313726 )
+mesh = SubResource( 4 )
+spread = 8.0
+sizeRange = Vector2( 8, 12 )
+sizeCurve = SubResource( 5 )
+
+[node name="Body" type="ColorRect" parent="."]
+use_parent_material = true
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}

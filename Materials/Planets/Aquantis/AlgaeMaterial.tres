@@ -1,4 +1,9 @@
-shader_type canvas_item;
+[gd_resource type="ShaderMaterial" load_steps=7 format=2]
+
+[ext_resource path="res://Textures/Grass.png" type="Texture" id=2]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
 
 uniform sampler2D terrainHeightMap;
 uniform vec2 terrainSize;
@@ -11,6 +16,8 @@ uniform sampler2D grassGradient;
 
 uniform float windSpeed = 16.0;
 uniform float windFrequency = 4.0;
+uniform float verticalFrequency = 4.0;
+uniform float verticalMagnitude = 4.0;
 
 uniform mat4 playerTransform;
 uniform float playerDistortionDistance = 16.0;
@@ -58,8 +65,8 @@ void fragment() {
 	float uvX = grassPosX / grassWidth;
 	float uvY = terrainDiff / grassHeight;
 	
-	float wind = sin(uvX * windFrequency * two_pi + windSpeed * .1 * TIME * two_pi) * .5 + .5;
-	grassPosX -= wind * uvY * windSpeed * .25;
+	float wind = sin(uvY * verticalFrequency * two_pi + uvX * two_pi + abs(windSpeed) * .1 * TIME * two_pi);
+	grassPosX -= wind * uvY * verticalMagnitude;
 	
 	grassPosX = floor(grassPosX);
 	uvX = grassPosX / grassWidth;
@@ -94,3 +101,33 @@ void fragment() {
 
 
 
+"
+
+[sub_resource type="Gradient" id=2]
+colors = PoolColorArray( 0.0483208, 0.16291, 0.233398, 1, 0, 1, 0.537109, 1 )
+
+[sub_resource type="GradientTexture" id=3]
+gradient = SubResource( 2 )
+
+[sub_resource type="Curve" id=4]
+_data = [ Vector2( 0, 0 ), 0.0, 1.0, 0, 1, Vector2( 1, 1 ), 1.0, 0.0, 1, 0 ]
+
+[sub_resource type="CurveTexture" id=5]
+curve = SubResource( 4 )
+
+[resource]
+shader = SubResource( 1 )
+shader_param/terrainSize = Vector2( 960, 540 )
+shader_param/terrainResolution = null
+shader_param/grassAmount = 0.25
+shader_param/grassHeight = 64.0
+shader_param/windSpeed = -16.0
+shader_param/windFrequency = 1.0
+shader_param/verticalFrequency = 4.0
+shader_param/verticalMagnitude = 4.0
+shader_param/playerTransform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 480, 262, 0 )
+shader_param/playerDistortionDistance = 16.0
+shader_param/playerDistortionMagnitude = 1.0
+shader_param/grassTexture = ExtResource( 2 )
+shader_param/grassGradient = SubResource( 3 )
+shader_param/playerDistortionCurve = SubResource( 5 )

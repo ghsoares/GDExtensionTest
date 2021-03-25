@@ -1,9 +1,9 @@
-[gd_resource type="ShaderMaterial" load_steps=4 format=2]
-
-[sub_resource type="Shader" id=1]
-code = "shader_type canvas_item;
+shader_type canvas_item;
 
 uniform mat4 worldMatrix;
+
+uniform sampler2D ditheringTexture;
+uniform float ditheringInfluence = .1;
 
 uniform vec4 color: hint_color = vec4(.5, .9, 1.0, .5);
 uniform vec4 color2: hint_color = vec4(.5, .9, 1.0, .5);
@@ -24,6 +24,7 @@ uniform float wavePeriod = 64;
 uniform float waveLacunarity = 2.0;
 uniform float wavePersistance = .25;
 
+uniform float maxMagnitude = 32.0;
 uniform float limitTransition = 32.0;
 
 varying vec2 v;
@@ -31,6 +32,7 @@ varying vec2 worldV;
 varying float time;
 
 void vertex() {
+	VERTEX.y -= (1.0 - UV.y) * maxMagnitude;
 	v = VERTEX;
 	time = TIME;
 	worldV = (worldMatrix * vec4(VERTEX, 0.0, 1.0)).rg;
@@ -45,16 +47,16 @@ float GetWaveHeight() {
 	float period = wavePeriod;
 	float pers = 1.0;
 	for (int i = 0; i < oct; i++) {
-		float s = sin((worldV.x / period) * pi - windSpeed * time * .5) * .5 + .5;
+		float s = sin((worldV.x / period) * pi - (windSpeed / wavePeriod) * time * 64.0) * .5 + .5;
 		h += s * pers;
 		
 		period /= waveLacunarity;
 		pers *= wavePersistance;
 	}
 	
-	h *= abs(windSpeed / 4.0);
+	h *= abs(windSpeed / 8.0);
 	
-	return h / float(oct);
+	return clamp(h / float(oct), -maxMagnitude, maxMagnitude);
 }
 
 void fragment() {
@@ -68,11 +70,18 @@ void fragment() {
 	vec2 refr = texture(refractionTexture, (worldV + motion * TIME) / refractionTiling).rg * 2.0 - 1.0;
 	scUv += refr * refractionPower * SCREEN_PIXEL_SIZE;
 	
-	float h = GetWaveHeight();
+	float h = -GetWaveHeight();
 	
 	float diff = v.y - h;
-	float t = clamp(diff / colorTransition, 0.0, 1.0);
+	float t = diff / colorTransition;
+	
+	vec2 ditherSize = vec2(textureSize(ditheringTexture, 0));
+	float d = texture(ditheringTexture, v / ditherSize).r * 2.0 - 1.0;
+	
+	t -= d * ditheringInfluence;
+	
 	t = floor(t * colorTransitionSteps) / colorTransitionSteps;
+	t = clamp(t, 0.0, 1.0);
 	
 	float borderTransition = v.x / limitTransition;
 	borderTransition = min(borderTransition,
@@ -94,35 +103,3 @@ void fragment() {
 
 
 
-"
-
-[sub_resource type="OpenSimplexNoise" id=2]
-octaves = 2
-
-[sub_resource type="NoiseTexture" id=3]
-width = 256
-height = 256
-seamless = true
-as_normalmap = true
-bump_strength = 32.0
-noise = SubResource( 2 )
-
-[resource]
-shader = SubResource( 1 )
-shader_param/worldMatrix = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-shader_param/color = Color( 1, 1, 1, 0.12549 )
-shader_param/color2 = Color( 1, 1, 1, 0.490196 )
-shader_param/surfaceColor = Color( 1, 1, 1, 0.968627 )
-shader_param/surfaceSize = 2.0
-shader_param/colorTransition = 32.0
-shader_param/colorTransitionSteps = 8.0
-shader_param/windSpeed = 32.0
-shader_param/refractionMotion = Vector2( 0, -16 )
-shader_param/refractionTiling = 64.0
-shader_param/refractionPower = 8.0
-shader_param/waveOctaves = 3
-shader_param/wavePeriod = 64.0
-shader_param/waveLacunarity = 2.384
-shader_param/wavePersistance = 0.5
-shader_param/limitTransition = 32.0
-shader_param/refractionTexture = SubResource( 3 )

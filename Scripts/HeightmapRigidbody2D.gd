@@ -7,6 +7,7 @@ export var bodyAngFriction := 0.5
 
 var planet
 var rectShape: RectangleShape2D
+var insideWater: bool = false
 
 var collisionPoints = []
 var collidedPoints = []
@@ -37,7 +38,7 @@ func SampleCheckPoints() -> void:
 		p1.y = sign(p1.y) * rectShape.extents.y
 
 func _physics_process(delta: float) -> void:
-	linear_velocity += planet.gravity * delta
+	linear_velocity += planet.gravity * delta / (1.0 + mass)
 	GetCollision(delta)
 
 func _process(delta: float) -> void:

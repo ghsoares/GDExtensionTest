@@ -8,7 +8,7 @@ onready var zoomCamera := $ZoomCamera
 func _ready() -> void:
 	connect("resized", self, "UpdateViewport")
 	UpdateViewport()
-	CompileShader()
+	#CompileShader()
 
 func _process(delta: float) -> void:
 	if planet.generating: return
@@ -42,13 +42,15 @@ func CompileShader() -> void:
 		
 		if line.begins_with("vec3 GetBloom"):
 			var sizeExpr = RegEx.new()
-			sizeExpr.compile("Kernel=(\\d)")
+			sizeExpr.compile("Kernel=(\\d+)")
 			var result = sizeExpr.search(line)
 			if result:
-				#line = CreateKernelFunction(float(result.get_string(1)))
+				line = CreateKernelFunction(float(result.get_string(1)))
 				pass
 		
 		lines[i] = line
+	
+	print(lines.join("\n"))
 	
 	shader.code = lines.join("\n")
 
@@ -56,14 +58,14 @@ func CreateKernelFunction(size: float = 3):
 	var lines = PoolStringArray()
 	size = floor(size / 2.0)
 	lines.append("vec3 GetBloom(sampler2D tex, vec2 uv, vec2 texPixelSize) {")
-	lines.append("vec3 bloom = vec3(0.0);")
-	lines.append("vec2 off = vec2(" + str(size) + ") * texPixelSize;")
+	lines.append("\tvec3 bloom = vec3(0.0);")
+	lines.append("\tvec2 off = vec2(" + str(size) + ") * texPixelSize * bloomRadius;")
 	var total = 0.0
 	for x in range(-size, size+1):
 		for y in range(-size, size+1):
 			var off = Vector2(x, y)
 			var dst = off.length()
-			var t = 1.0 - clamp(dst / size, 0.0, 1.0)
+			var t = 1.0 - clamp(dst / (size + 1.0), 0.0, 1.0)
 			total += t
 			if t == 1.0:
 				t = "1.0"
@@ -71,11 +73,10 @@ func CreateKernelFunction(size: float = 3):
 				t = "0.0"
 			else:
 				t = str(t)
-			lines.append("bloom += GetBloomPixel(tex, uv + off * vec2" + str(off) + ") * " + t + ";")
-	lines.append("bloom /= " + str(total) + ";")
-	lines.append("return bloom;")
+			lines.append("\tbloom += GetBloomPixel(tex, uv + off * vec2" + str(off) + ", texPixelSize * bloomRadius) * " + t + ";")
+	lines.append("\tbloom /= " + str(total) + "f;")
+	lines.append("\treturn bloom;")
 	lines.append("}")
-	print(lines.size())
 	return lines.join("\n")
 
 

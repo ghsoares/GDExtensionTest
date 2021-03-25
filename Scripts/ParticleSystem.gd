@@ -15,6 +15,7 @@ class Particle:
 	var lifetime: float
 	var life: float
 	var color: Color
+	var persistent: bool
 	
 	var startSize: Vector2
 	var startColor: Color
@@ -36,6 +37,8 @@ enum UpdateMode {
 	Process,
 	PhysicsProcess
 }
+
+var rigidbody: RigidBody2D
 
 var particles := []
 var currentDrawDelay := 0.0
@@ -66,6 +69,7 @@ func ResetMultimesh() -> void:
 	multimesh = MultiMesh.new()
 	multimesh.transform_format = MultiMesh.TRANSFORM_2D
 	multimesh.color_format = MultiMesh.COLOR_FLOAT
+	multimesh.custom_data_format = MultiMesh.CUSTOM_DATA_FLOAT
 	multimesh.mesh = mesh
 	multimesh.instance_count = numParticles
 
@@ -86,6 +90,12 @@ func ResetIfNeeded() -> void:
 		ResetMultimesh()
 
 func _ready() -> void:
+	var parent = get_parent()
+	while parent != null and !(parent is RigidBody2D):
+		parent = parent.get_parent()
+	if parent != null:
+		rigidbody = parent
+		
 	ResetParticles()
 	ResetMultimesh()
 
@@ -118,9 +128,12 @@ func EmitParticle(override = {}, force: bool = false):
 			break
 
 func UpdateSystem(delta: float) -> void:
-	currentVelocity = (global_position - prevPos) / delta
-	prevPos = global_position
+	if rigidbody != null:
+		currentVelocity = rigidbody.linear_velocity
+	else:
+		currentVelocity = (global_position - prevPos) / delta
 	
+	prevPos = global_position
 	for particle in particles:
 		if !particle: continue
 		if particle.alive:
@@ -128,11 +141,12 @@ func UpdateSystem(delta: float) -> void:
 	
 	externalForces = Vector2.ZERO
 
-func InitParticle(particle, override = {}) -> void:
+func InitParticle(particle: Particle, override = {}) -> void:
 	particle.customData.clear()
 	
 	particle.alive = true
 	particle.life = override.get("life", lifetime)
+	particle.persistent = false
 	
 	particle.gravityScale = 1.0
 	
@@ -148,18 +162,19 @@ func InitParticle(particle, override = {}) -> void:
 	
 	particle.color = override.get("color", color)
 
-func UpdateParticle(particle, delta: float) -> void:
+func UpdateParticle(particle: Particle, delta: float) -> void:
 	particle.velocity += externalForces * delta
 	particle.velocity += gravity * delta * particle.gravityScale
 	particle.position += particle.velocity * delta
-	particle.life -= delta
-	particle.life = clamp(particle.life, 0.0, particle.lifetime)
-	if particle.life <= 0.0:
+	if !particle.persistent:
+		particle.life -= delta
+		particle.life = clamp(particle.life, 0.0, particle.lifetime)
+	if particle.life <= 0.0 or !particle.alive:
 		DestroyParticle(particle)
 		aliveParticles -= 1
 		particle.alive = false
 
-func DestroyParticle(particle) -> void:
+func DestroyParticle(particle: Particle) -> void:
 	pass
 
 func _draw() -> void:
@@ -173,10 +188,16 @@ func DrawParticles() -> void:
 		var visibleParticles = 0
 		for part in particles:
 			if part.alive:
-				var t = part.GetTransform()
+				var t :Transform2D= part.GetTransform()
+				
+				t.y = -t.y
 				
 				multimesh.set_instance_transform_2d(visibleParticles, t)
 				multimesh.set_instance_color(visibleParticles, part.color)
+				multimesh.set_instance_custom_data(visibleParticles, Color(
+						float(part.idx) / numParticles, 0.0, 0.0
+					)
+				)
 				visibleParticles += 1
 		
 		multimesh.visible_instance_count = visibleParticles

@@ -11,7 +11,7 @@ func _ready() -> void:
 	process_mode = Camera2D.CAMERA2D_PROCESS_PHYSICS
 	current = true
 	
-	desiredZoom = .5
+	desiredZoom = 1.0
 	desiredPosition = global_position
 	
 	currentZoom = desiredZoom

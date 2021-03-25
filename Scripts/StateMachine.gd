@@ -18,6 +18,10 @@ func _ready() -> void:
 func start() -> void:
 	changeState(states.values()[0])
 
+func stop() -> void:
+	currState = null
+	querriedState = null
+
 func queryState(var stateName: String):
 	querriedState = states[stateName]
 	return querriedState

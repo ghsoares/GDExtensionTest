@@ -7,16 +7,24 @@ signal finished_generation
 var windSpeedRange = Vector2(4, 32)
 
 var planet
+var terrain
 var terrainMaterial: ShaderMaterial
 var noise: OpenSimplexNoise
-var liquidPlacer
+var liquidPlacer: LiquidPlacer
 
 var yields: int = 0 setget SetYields
 
 func _ready() -> void:
-	terrainMaterial = GameMaterials.GetMaterial("Default/Terrain")
+	terrainMaterial = GameMaterials.GetMaterial("Planets/Default/Terrain")
 	noise = OpenSimplexNoise.new()
 	noise.period = 256.0
+	
+	terrain = Terrain.new()
+	liquidPlacer = LiquidPlacer.new()
+	liquidPlacer.terrain = terrain
+	planet.terrain = terrain
+	
+	add_child(liquidPlacer)
 
 func SetYields(newYields: int) -> void:
 	if yields != newYields:
@@ -35,23 +43,15 @@ func MaterialSetNoiseSeed(material: ShaderMaterial, texName: String) -> void:
 func ApplyWindToMaterial(material: ShaderMaterial) -> void:
 	material.set_shader_param("windSpeed", planet.windSpeed)
 
-func PlaceLiquidBodies(liquidMaterial: ShaderMaterial, rate: float = .5, heightRange: Vector2 = Vector2(8.0, 256.0)) -> void:
-	if liquidPlacer:
-		liquidPlacer.queue_free()
-	liquidPlacer = LiquidPlacer.new()
-	
+func PlaceLiquidBodies(liquidMaterial: ShaderMaterial, rate: float = .5, heightRange: Vector2 = Vector2(32.0, 256.0)) -> Array:
 	liquidPlacer.rate = rate
 	liquidPlacer.material = liquidMaterial
-	liquidPlacer.terrain = planet.terrain
 	liquidPlacer.heightRange = heightRange
-	
-	add_child(liquidPlacer)
-	liquidPlacer.Place()
+	return liquidPlacer.Place()
 
 func Generate() -> void:
-	planet.windSpeed = rand_range(windSpeedRange.x, windSpeedRange.y) * sign(randf() * 2.0 - 1.0)
+	planet.windSpeed = floor(rand_range(windSpeedRange.x, windSpeedRange.y + 1.0)) * sign(randf() * 2.0 - 1.0)
 	
-	var terrain = Terrain.new()
 	var platformsPlacer = PlatformsPlacer.new()
 	
 	noise.seed = randi()
@@ -63,8 +63,6 @@ func Generate() -> void:
 	
 	platformsPlacer.size = planet.size
 	platformsPlacer.terrain = terrain
-	
-	planet.terrain = terrain
 	
 	MaterialSetNoiseSeed(terrainMaterial, "terrainTexture")
 	

@@ -32,7 +32,7 @@ func Place() -> void:
 		platform.position.y = terrain.GetTerrainY(platform.position.x)
 		
 		platform.scoreMultiplier = scoreMultipliers[randi() % scoreMultipliers.size()]
-		platform.size = 20 + (platform.scoreMultiplier - 1) * 8
+		platform.size = 20 + (5 - (platform.scoreMultiplier - 1)) * 8
 		
 		scoreMultipliers.erase(platform.scoreMultiplier)
 		

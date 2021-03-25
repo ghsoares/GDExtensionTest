@@ -5,22 +5,6 @@ var compiledMaterials = {}
 
 func _ready() -> void:
 	InitFunctions()
-	
-	var materialsToCompile = {
-		"Default/Grass": preload("res://Materials/GrassMaterial.tres"),
-		"Default/Terrain": preload("res://Materials/TerrainMaterial.tres"),
-		"Default/Liquid": preload("res://Materials/LiquidMaterial.tres"),
-		"Default/Fog": preload("res://Materials/FogMaterial.tres"),
-		
-		"Earth/Grass": preload("res://Materials/Planets/Earth/GrassMaterial.tres"),
-		"Earth/Terrain": preload("res://Materials/Planets/Earth/TerrainMaterial.tres"),
-		"Earth/Water": preload("res://Materials/Planets/Earth/WaterMaterial.tres")
-	}
-	for materialName in materialsToCompile.keys():
-		var material = materialsToCompile[materialName]
-		var shader = material.shader
-		CompileShader(shader)
-		compiledMaterials[materialName] = material
 
 func InitFunctions() -> void:
 	functions["float Ease(float x, float c)"] = "float Ease(float x, float c) {if (x < 0f) x = 0f;if (x > 1f) x = 1f;if (c > 0f) {if (c < 1f) {return 1f - pow(1f - x, 1f / c);} else {return pow(x, c);}} else if (c < 0f) {if (x < 0.5f) {return pow(x * 2f, -c) * .5f;} else {return (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;}}return 0f;}"
@@ -44,6 +28,16 @@ func CompileShader(shader: Shader) -> void:
 	shader.code = shaderCode
 
 func GetMaterial(name: String) -> ShaderMaterial:
+	if !compiledMaterials.has(name):
+		print("Compiling material " + name)
+		var material = load("res://Materials/" + name + "Material.tres") as ShaderMaterial
+		if !material:
+			push_error("Couldn't find material with name " + name)
+			return null
+		var shader = material.shader
+		CompileShader(shader)
+		compiledMaterials[name] = material
+		print("Material compiled!")
 	return compiledMaterials[name]
 
 

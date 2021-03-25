@@ -46,7 +46,9 @@ func GetTerrainNormal(x: float) -> Vector2:
 	return Vector2(tang, -1.0).normalized()
 
 func GetTerrainY(x: float) -> float:
-	return size.y - GetTerrainHeight(x)
+	var h = GetTerrainHeight(x)
+	h -= rect_global_position.y
+	return size.y - h
 
 func RayIntersect(from: Vector2, direction: Vector2, maxDistance: float = -1, maxSteps = MAX_RAY_STEPS, checkInside: bool = false):
 	maxSteps = clamp(maxSteps, 0, MAX_RAY_STEPS)
@@ -166,7 +168,7 @@ func GetValleyAndMountains() -> void:
 		
 		#add_child(c)
 
-func PlaceExtraMaterial(material: ShaderMaterial, z_index: int = 0) -> void:
+func PlaceExtraMaterial(material: ShaderMaterial, z_index: int = 0) -> ShaderMaterial:
 	var c: ColorRect = ColorRect.new()
 	var n: Node2D = Node2D.new()
 	
@@ -181,6 +183,8 @@ func PlaceExtraMaterial(material: ShaderMaterial, z_index: int = 0) -> void:
 	n.add_child(c)
 	
 	n.z_index = z_index
+	
+	return c.material as ShaderMaterial
 
 func Generate() -> void:
 	rect_size = size

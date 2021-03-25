@@ -1,34 +1,33 @@
 [gd_resource type="ShaderMaterial" load_steps=7 format=2]
 
-[ext_resource path="res://Shaders/TerrainShader.shader" type="Shader" id=1]
-[ext_resource path="res://Textures/BayerMatrixDithering.png" type="Texture" id=2]
+[ext_resource path="res://Textures/BayerMatrixDithering.png" type="Texture" id=1]
+[ext_resource path="res://Shaders/TerrainShader.shader" type="Shader" id=2]
 
 [sub_resource type="Gradient" id=1]
-colors = PoolColorArray( 0.0483208, 0.16291, 0.233398, 1, 0, 1, 0.537109, 1 )
+colors = PoolColorArray( 0.0569344, 0.194336, 0.101751, 1, 0.367188, 1, 0.618088, 1 )
 
 [sub_resource type="GradientTexture" id=2]
 gradient = SubResource( 1 )
 
 [sub_resource type="OpenSimplexNoise" id=3]
-octaves = 2
 
 [sub_resource type="NoiseTexture" id=4]
 seamless = true
 noise = SubResource( 3 )
 
 [resource]
-shader = ExtResource( 1 )
-shader_param/ditheringInfluence = 0.025
+shader = ExtResource( 2 )
+shader_param/ditheringInfluence = 0.05
 shader_param/terrainSize = Vector2( 960, 540 )
-shader_param/terrainResolution = null
+shader_param/terrainResolution = 0.0
 shader_param/terrainTextureTiling = 256.0
-shader_param/terrainTextureDisplacementTiling = 333.0
-shader_param/terrainTextureDisplacement = 100.0
+shader_param/terrainTextureDisplacementTiling = 457.0
+shader_param/terrainTextureDisplacement = 75.0
 shader_param/terrainTextureEaseCurve = -2.0
-shader_param/terrainTextureAdd = -0.063
+shader_param/terrainTextureAdd = -0.131
 shader_param/terrainTextureSteps = 8.0
 shader_param/terrainFadeRange = Vector2( 64, 256 )
-shader_param/terrainFadeAmount = Vector3( -0.588, 0.02, 0.242 )
-shader_param/ditheringTexture = ExtResource( 2 )
+shader_param/terrainFadeAmount = Vector3( -0.991, -0.085, 0.531 )
+shader_param/ditheringTexture = ExtResource( 1 )
 shader_param/terrainTexture = SubResource( 4 )
 shader_param/terrainGradient = SubResource( 2 )

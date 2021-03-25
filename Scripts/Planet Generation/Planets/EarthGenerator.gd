@@ -2,20 +2,26 @@ extends PlanetGenerator
 
 func _ready() -> void:
 	._ready()
-	terrainMaterial = GameMaterials.GetMaterial("Earth/Terrain")
+	terrainMaterial = GameMaterials.GetMaterial("Planets/Earth/Terrain")
 
 func Generate() -> void:
 	.Generate()
 	
-	var grassMaterial = GameMaterials.GetMaterial("Earth/Grass")
-	var waterMaterial = GameMaterials.GetMaterial("Earth/Water")
+	planet.gravity = Vector2.DOWN * 98.0
+	
+	var grassMaterial = GameMaterials.GetMaterial("Planets/Earth/Grass")
+	var waterMaterial = GameMaterials.GetMaterial("Planets/Earth/Water")
 	
 	ApplyWindToMaterial(grassMaterial)
 	ApplyWindToMaterial(waterMaterial)
 	
-	planet.terrain.PlaceExtraMaterial(grassMaterial, -1)
+	grassMaterial = planet.terrain.PlaceExtraMaterial(grassMaterial, -1)
 	
-	PlaceLiquidBodies(waterMaterial)
+	var materials = PlaceLiquidBodies(waterMaterial, 1.0)
+	materials.append(grassMaterial)
+	
+	for mat in materials:
+		planet.AddMaterialToUpdate(mat as ShaderMaterial)
 	
 	planet.terrain.raise()
 

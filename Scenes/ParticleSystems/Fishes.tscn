@@ -1,0 +1,28 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://Scripts/ParticleSystems/FishesParticleSystem.gd" type="Script" id=1]
+[ext_resource path="res://Textures/Fish.png" type="Texture" id=2]
+[ext_resource path="res://Materials/FishMaterial.tres" type="Material" id=3]
+
+[sub_resource type="QuadMesh" id=1]
+
+[sub_resource type="OpenSimplexNoise" id=2]
+period = 32.0
+
+[node name="Fishes" type="Node2D"]
+material = ExtResource( 3 )
+script = ExtResource( 1 )
+numParticles = 16
+gravity = Vector2( 0, 0 )
+mesh = SubResource( 1 )
+texture = ExtResource( 2 )
+fishSize = 9.0
+avoidCollisionLength = 64.0
+avoidCollisionForce = 64.0
+movementNoise = SubResource( 2 )
+movementMagnitude = 16.0
+
+[node name="Sprite" type="Sprite" parent="."]
+visible = false
+use_parent_material = true
+texture = ExtResource( 2 )
