@@ -1,61 +1,16 @@
-[gd_scene load_steps=14 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://Scenes/Planet.tscn" type="PackedScene" id=1]
 [ext_resource path="res://icon.png" type="Texture" id=2]
 [ext_resource path="res://Scripts/Game.gd" type="Script" id=3]
-[ext_resource path="res://Materials/Planets/Aquantis/WaterMaterial.tres" type="Material" id=4]
+[ext_resource path="res://Scripts/Planet Generation/Planets/EarthGenerator.gd" type="Script" id=4]
 [ext_resource path="res://Scripts/Planet Generation/Planets/AquantisGenerator.gd" type="Script" id=5]
 [ext_resource path="res://Materials/PostProcessing.tres" type="Material" id=6]
 [ext_resource path="res://Scripts/UI.gd" type="Script" id=7]
-[ext_resource path="res://Materials/Planets/Aquantis/TerrainMaterial.tres" type="Material" id=8]
-[ext_resource path="res://Materials/Planets/Aquantis/AlgaeMaterial.tres" type="Material" id=9]
-[ext_resource path="res://Textures/Test.png" type="Texture" id=10]
+[ext_resource path="res://Scripts/Planet Generation/Planets/MarsGenerator.gd" type="Script" id=8]
 
 [sub_resource type="ViewportTexture" id=1]
 viewport_path = NodePath("View")
-
-[sub_resource type="Shader" id=2]
-code = "shader_type canvas_item;
-render_mode unshaded;
-
-uniform bool Smooth = false;
-uniform float width : hint_range(0.0, 16) = 1.0;
-uniform vec4 outline_color : hint_color = vec4(0.0, 0.0, 0.0, 1.0);
-uniform int pixel_size : hint_range(1, 10) = 4;
-uniform float alphaThreshold = .5; 
-
-void fragment()
-{
-	vec2 unit = (1.0/float(pixel_size) ) / vec2(textureSize(TEXTURE, 0));
-	vec4 pixel_color = texture(TEXTURE, UV);
-	vec4 out_color = vec4(0.0);
-	if (pixel_color.a <= alphaThreshold) {
-		for (float x = -ceil(width); x <= ceil(width); x++) {
-			for (float y = -ceil(width); y <= ceil(width); y++) {
-				if (texture(TEXTURE, UV + vec2(x*unit.x, y*unit.y)).a <= alphaThreshold || (x==0.0 && y==0.0)) {
-					continue;
-				}
-				out_color = outline_color;
-				if (Smooth) {
-					pixel_color.a += outline_color.a / (pow(x,2)+pow(y,2)) * (1.0-pow(2.0, -width));
-					if (pixel_color.a > 1.0) {
-						pixel_color.a = 1.0;
-					}
-				}
-			}
-		}
-	}
-	pixel_color = mix(pixel_color, out_color, out_color.a);
-	COLOR = pixel_color;
-}"
-
-[sub_resource type="ShaderMaterial" id=3]
-shader = SubResource( 2 )
-shader_param/Smooth = false
-shader_param/width = 1.0
-shader_param/outline_color = Color( 1, 1, 1, 1 )
-shader_param/pixel_size = 1
-shader_param/alphaThreshold = 0.51
 
 [node name="Game" type="Control"]
 anchor_right = 1.0
@@ -73,26 +28,7 @@ render_target_v_flip = true
 render_target_update_mode = 3
 
 [node name="Planet" parent="View" instance=ExtResource( 1 )]
-planetGenerator = ExtResource( 5 )
-
-[node name="ColorRect3" type="ColorRect" parent="View"]
-visible = false
-material = ExtResource( 9 )
-anchor_right = 1.0
-anchor_bottom = 1.0
-
-[node name="ColorRect" type="ColorRect" parent="View"]
-visible = false
-material = ExtResource( 8 )
-anchor_right = 1.0
-anchor_bottom = 1.0
-
-[node name="ColorRect2" type="ColorRect" parent="View"]
-visible = false
-material = ExtResource( 4 )
-anchor_right = 1.0
-anchor_bottom = 1.0
-margin_top = 32.0
+planetGenerators = [ ExtResource( 4 ), ExtResource( 8 ), ExtResource( 5 ) ]
 
 [node name="Screen" type="TextureRect" parent="."]
 material = ExtResource( 6 )
@@ -140,12 +76,3 @@ text = "Fuel: 500/500"
 __meta__ = {
 "_edit_use_anchors_": false
 }
-
-[node name="Sprite" type="Sprite" parent="."]
-visible = false
-texture = ExtResource( 2 )
-
-[node name="Sprite2" type="Sprite" parent="."]
-visible = false
-material = SubResource( 3 )
-texture = ExtResource( 10 )

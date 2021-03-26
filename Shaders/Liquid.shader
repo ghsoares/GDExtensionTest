@@ -70,6 +70,9 @@ void fragment() {
 	vec2 refr = texture(refractionTexture, (worldV + motion * TIME) / refractionTiling).rg * 2.0 - 1.0;
 	scUv += refr * refractionPower * SCREEN_PIXEL_SIZE;
 	
+	scUv = floor(scUv / SCREEN_PIXEL_SIZE) * SCREEN_PIXEL_SIZE;
+	scUv += SCREEN_PIXEL_SIZE * .5;
+	
 	float h = -GetWaveHeight();
 	
 	float diff = v.y - h;

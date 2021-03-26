@@ -65,6 +65,7 @@ func OnBodyEntered(body) -> void:
 func OnBodyExited(body) -> void:
 	if body is RigidBody2D:
 		if !body.is_inside_tree(): return
+		if !splashParticle.is_inside_tree(): return
 		bodies.erase(body)
 		body.set("insideWater", false)
 		if body.linear_velocity.length_squared() > 0.25:

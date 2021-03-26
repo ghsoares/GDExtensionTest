@@ -12,6 +12,7 @@ export (float) var waveMagnitude = 2.0
 export (Vector2) var rectSize = Vector2(16.0, 16.0)
 export (Vector2) var sizeRange = Vector2(2.0, 4.0)
 export (Curve) var sizeCurve
+export (float) var speed = 32.0
 
 func UpdateSystem(delta: float) -> void:
 	.UpdateSystem(delta)
@@ -37,6 +38,7 @@ func InitParticle(particle: Particle, override = {}) -> void:
 	)
 	particle.position = pos
 	particle.size = Vector2.ONE * rand_range(sizeRange.x, sizeRange.y)
+	particle.velocity = Vector2.RIGHT * sign(windSpeed) * speed
 	
 	var points = []
 	for i in range(numPoints):
@@ -48,8 +50,7 @@ func UpdateParticle(particle: Particle, delta: float) -> void:
 	var lifeT = particle.life / particle.lifetime
 	
 	particle.position += Vector2.UP * sin((particle.life + particle.idx * .1) * PI * 2.0 * waveFrequency) * waveMagnitude * waveFrequency * delta
-	
-	particle.velocity += Vector2.RIGHT * windSpeed * delta / mass
+
 	if sizeCurve:
 		var s = sizeCurve.interpolate(lifeT)
 		particle.size = particle.startSize * s

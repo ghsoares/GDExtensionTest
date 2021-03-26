@@ -5,6 +5,7 @@ var startPos: Vector2
 var finalPos: Vector2
 var rate = 0.0
 var currTransitionTime = 0.0
+var transiting := false
 
 export (float) var maxThrusterRate = 64.0
 export (float) var acceleration = 64.0
@@ -17,6 +18,7 @@ func enter() -> void:
 	finalPos = Vector2(startPos.x, -128.0)
 	rate = 0.0
 	currTransitionTime = 0.0
+	transiting = false
 	root.mode = RigidBody2D.MODE_KINEMATIC
 
 func physics_process() -> void:
@@ -51,11 +53,18 @@ func physics_process() -> void:
 		root.global_position = startPos.linear_interpolate(finalPos, t)
 		
 		if t >= 1.0:
-			root.planet.Generate()
+			Transition()
 	
 	root.linear_velocity = (root.global_position - prevPos) / fixedDeltaTime
 	
 	prevPos = root.global_position
+
+func Transition() -> void:
+	if transiting: return
+	transiting = true
+	Transition.FadeIn()
+	yield(Transition, "FadeFinished")
+	root.planet.Generate()
 
 func exit() -> void:
 	root.mode = RigidBody2D.MODE_RIGID

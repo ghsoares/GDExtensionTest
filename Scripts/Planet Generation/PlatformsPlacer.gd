@@ -7,6 +7,7 @@ var size: Vector2
 var spacingRange := Vector2(64.0, 64.0)
 
 var platforms = []
+var planet
 var terrain
 
 onready var platformScene := preload("res://Scenes/Platform.tscn")
@@ -16,6 +17,7 @@ func Place() -> void:
 	
 	for i in range(5):
 		var platform = platformScene.instance()
+		platform.planet = planet
 		
 		platform.position.x = spacing
 		

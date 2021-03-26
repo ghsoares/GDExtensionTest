@@ -62,7 +62,7 @@ void fragment() {
 shader = SubResource( 1 )
 shader_param/baseColor = Color( 0.490196, 0.490196, 0.490196, 1 )
 shader_param/startColor = Color( 1, 0.254902, 0.254902, 1 )
-shader_param/hueDifference = 0.65
-shader_param/waveSpeed = 8.0
-shader_param/waveMagnitude = 0.08
-shader_param/waveFrequency = 1.211
+shader_param/hueDifference = 0.618
+shader_param/waveSpeed = 16.0
+shader_param/waveMagnitude = 0.11
+shader_param/waveFrequency = 1.25

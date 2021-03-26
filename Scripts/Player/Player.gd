@@ -39,6 +39,14 @@ func _ready() -> void:
 	stateMachine.root = self
 	stateMachine.start()
 
+func _enter_tree() -> void:
+	InputRecorder.Resume()
+	pass
+
+func _exit_tree() -> void:
+	InputRecorder.Pause()
+	pass
+
 func _physics_process(delta: float) -> void:
 	var camera: GameCamera = planet.camera
 	camera.desiredPosition = global_position

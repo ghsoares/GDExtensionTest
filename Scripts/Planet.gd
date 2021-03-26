@@ -19,8 +19,10 @@ var windSpeed := 0.0
 var materialsToUpdate = []
 
 # Script to generate the world, must derive from PlanetGenerator as base
-export (Script) var planetGenerator
 export (Vector2) var size := Vector2(4096, 1024)
+export (Array, Script) var planetGenerators
+
+var currPlanet = 0
 
 onready var playerScene := preload("res://Scenes/Player.tscn")
 
@@ -52,13 +54,12 @@ func AddMaterialToUpdate(mat: ShaderMaterial) -> void:
 
 # Instantiate the PlanetGenerator and calls the generator Generate function
 func Generate() -> void:
-	if !planetGenerator:
-		push_error("No world generator is assigned!")
-		return
+	var planetGenerator = planetGenerators[currPlanet]
+	
+	currPlanet += 1
+	currPlanet = currPlanet % planetGenerators.size()
 	
 	materialsToUpdate = []
-	
-	randomize()
 	
 	if generating: return
 	generating = true
@@ -67,15 +68,12 @@ func Generate() -> void:
 	if generator:
 		generator.queue_free()
 	if player:
+		remove_child(player)
 		player.queue_free()
 	
 	rect_size = size
 	
 	generator = planetGenerator.new()
-	player = playerScene.instance()
-	
-	player.position = Vector2(size.x / 2.0, -128.0)
-	player.planet = self
 	
 	camera.limit_left = 0.0
 	camera.limit_right = size.x
@@ -84,14 +82,20 @@ func Generate() -> void:
 	
 	generator.planet = self
 	
-	add_child(player)
-	
 	add_child(generator)
 	
 	generator.Generate()
 	
 	yield(generator, "finished_generation")
 	
+	player = playerScene.instance()
+	
+	player.position = Vector2(size.x / 2.0, -128.0)
+	player.planet = self
+	
+	add_child(player)
+	
 	generating = false
 	show()
+	Transition.FadeOut()
 

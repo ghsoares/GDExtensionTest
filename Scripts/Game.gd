@@ -8,6 +8,8 @@ onready var zoomCamera := $ZoomCamera
 func _ready() -> void:
 	connect("resized", self, "UpdateViewport")
 	UpdateViewport()
+	randomize()
+	seed(InputRecorder.GetSessionData("seed", randi()))
 	#CompileShader()
 
 func _process(delta: float) -> void:

@@ -1,0 +1,156 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://Textures/BayerMatrixDithering.png" type="Texture" id=1]
+[ext_resource path="res://Scripts/Transition.gd" type="Script" id=2]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform float triangles = 3;
+uniform float transition : hint_range(0.0, 1.0) = 0.0;
+uniform float timeOffset : hint_range(0, .5f) = .05f;
+uniform float transitionCurve = 1f;
+uniform float fadeLength = 128.0;
+uniform float pixelSize = 2.0;
+uniform float transitionStep = 2.0;
+
+uniform sampler2D ditheringTex;
+uniform float ditheringScale;
+
+uniform sampler2D gradient;
+uniform float gradientSpeed = 2.0;
+
+varying vec2 v;
+
+float remap(float value, float start1, float stop1, float start2, float stop2) {
+	return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
+}
+
+float ease(float x, float c) {
+	if (x < 0f) x = 0f;
+	if (x > 1f) x = 1f;
+	
+	if (c > 0f) {
+		if (c < 1f) {
+			return 1f - pow(1f - x, 1f / c);
+		} else {
+			return pow(x, c);
+		}
+	} else if (c < 0f) {
+		if (x < 0.5f) {
+			return pow(x * 2f, -c) * .5f;
+		} else {
+			return (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;
+		}
+	}
+	
+	return 0f;
+}
+
+
+void vertex() {v = VERTEX;}
+
+void fragment() {
+	vec2 size = v / UV;
+	vec2 pixPos = UV * size;
+	
+	pixPos = floor(pixPos / pixelSize) * pixelSize;
+	
+	float triSizeY = size.y / triangles;
+	
+	vec2 uv = pixPos / size;
+	float triIdx = floor(uv.y * triangles);
+	float triUvY = fract(uv.y * triangles);
+	
+	float cutoffX = triUvY * triSizeY;
+	
+	float t = transition;
+	
+	float between = 1.0 - timeOffset * 2.0;
+	float o = timeOffset / triangles;
+	t = remap(
+		t, triIdx * o * 1.0, between + triIdx * o * 2.0, 0, 1 
+	);
+	t = clamp(t, 0, 1);
+	t = ease(t, transitionCurve);
+	
+	float tCutoff = (size.x + triSizeY * 2.0 + fadeLength) * t;
+	tCutoff = floor(tCutoff / transitionStep) * transitionStep;
+	
+	cutoffX -= triSizeY;
+	cutoffX += tCutoff;
+	cutoffX = floor(cutoffX / pixelSize) * pixelSize;
+	
+	t = clamp((cutoffX - pixPos.x) / fadeLength, 0.0, 1.0);
+	
+	vec2 ditherSize = vec2(textureSize(ditheringTex, 0));
+	vec2 ditherUv = (UV * size) / (ditherSize / ditheringScale);
+	
+	float d = texture(ditheringTex, ditherUv).r;
+	
+	d += t;
+	
+	d = step(1.0, d);
+	
+	COLOR.a = d;
+	
+	float gradUv = triIdx / triangles;
+	gradUv += gradientSpeed * TIME;
+	gradUv = fract(gradUv);
+	
+	COLOR *= texture(gradient, vec2(gradUv));
+}
+
+"
+
+[sub_resource type="Gradient" id=2]
+offsets = PoolRealArray( 0, 0.5, 1 )
+colors = PoolColorArray( 1, 0, 0.509804, 1, 0.1, 0.45, 1, 1, 1, 0, 0.509804, 1 )
+
+[sub_resource type="GradientTexture" id=3]
+gradient = SubResource( 2 )
+
+[sub_resource type="ShaderMaterial" id=4]
+shader = SubResource( 1 )
+shader_param/triangles = 8.0
+shader_param/transition = 0.0
+shader_param/timeOffset = 0.25
+shader_param/transitionCurve = -4.0
+shader_param/fadeLength = 128.0
+shader_param/pixelSize = 4.0
+shader_param/transitionStep = 64.0
+shader_param/ditheringScale = 0.25
+shader_param/gradientSpeed = 0.5
+shader_param/ditheringTex = ExtResource( 1 )
+shader_param/gradient = SubResource( 3 )
+
+[sub_resource type="Animation" id=5]
+tracks/0/type = "value"
+tracks/0/path = NodePath("Layer:material:shader_param/transition")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 1 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ 0.0, 1.0 ]
+}
+
+[node name="Transition" type="CanvasLayer"]
+layer = 3
+script = ExtResource( 2 )
+
+[node name="Layer" type="ColorRect" parent="."]
+material = SubResource( 4 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Anim" type="AnimationPlayer" parent="."]
+playback_process_mode = 0
+anims/Fade = SubResource( 5 )

@@ -62,6 +62,7 @@ func Generate() -> void:
 	terrain.platformsPlacer = platformsPlacer
 	
 	platformsPlacer.size = planet.size
+	platformsPlacer.planet = planet
 	platformsPlacer.terrain = terrain
 	
 	MaterialSetNoiseSeed(terrainMaterial, "terrainTexture")
