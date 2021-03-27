@@ -5,6 +5,7 @@ onready var col := $Col
 onready var stateMachine := $StateMachine
 
 onready var thrusterParticleSystem := $Particles/Thruster
+onready var thrusterExplosionParticleSystem := $Particles/ThrusterExplosion
 onready var waterThrusterParticleSystem := $Particles/WaterThruster
 onready var groundParticleSystem := $Particles/GroundThruster
 onready var waterGroundParticleSystem := $Particles/WaterGroundThruster

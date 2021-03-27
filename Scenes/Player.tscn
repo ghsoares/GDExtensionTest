@@ -1,4 +1,4 @@
-[gd_scene load_steps=37 format=2]
+[gd_scene load_steps=39 format=2]
 
 [ext_resource path="res://Textures/Ship.png" type="Texture" id=1]
 [ext_resource path="res://Scripts/Player/Player.gd" type="Script" id=2]
@@ -14,8 +14,9 @@
 [ext_resource path="res://Textures/BayerMatrixDithering.png" type="Texture" id=12]
 [ext_resource path="res://Scripts/Player/PlayerTakeOffState.gd" type="Script" id=13]
 [ext_resource path="res://icon.png" type="Texture" id=14]
+[ext_resource path="res://Scripts/Player/ThrusterExplosionParticleSystem.gd" type="Script" id=15]
 
-[sub_resource type="Shader" id=4]
+[sub_resource type="Shader" id=1]
 code = "shader_type canvas_item;
 render_mode blend_add;
 
@@ -47,22 +48,24 @@ void fragment() {
 
 "
 
-[sub_resource type="ShaderMaterial" id=5]
-shader = SubResource( 4 )
+[sub_resource type="ShaderMaterial" id=2]
+shader = SubResource( 1 )
 shader_param/ditherScale = 1.0
 shader_param/roundness = 1.0
 shader_param/ditheringMatrix = ExtResource( 12 )
 
-[sub_resource type="QuadMesh" id=6]
+[sub_resource type="QuadMesh" id=3]
 
-[sub_resource type="Curve" id=7]
+[sub_resource type="Curve" id=4]
 _data = [ Vector2( 0, 0.5 ), 0.0, 0.5, 0, 1, Vector2( 1, 1 ), 0.5, 0.0, 1, 0 ]
 
-[sub_resource type="Gradient" id=8]
+[sub_resource type="Gradient" id=5]
 offsets = PoolRealArray( 0, 0.238739, 0.662162, 1 )
 colors = PoolColorArray( 0, 0.364706, 0.8, 0, 0, 0.460938, 1, 1, 0, 1.5, 1.5, 1, 1, 1.75, 1.75, 1 )
 
-[sub_resource type="Shader" id=2]
+[sub_resource type="QuadMesh" id=23]
+
+[sub_resource type="Shader" id=6]
 code = "shader_type canvas_item;
 
 uniform float outlineSize = 1.0;
@@ -74,24 +77,24 @@ void fragment() {
 	COLOR.a *= step(d, 1.0);
 }"
 
-[sub_resource type="ShaderMaterial" id=3]
-shader = SubResource( 2 )
+[sub_resource type="ShaderMaterial" id=7]
+shader = SubResource( 6 )
 shader_param/outlineSize = 0.233
 
-[sub_resource type="Gradient" id=9]
+[sub_resource type="Gradient" id=8]
 offsets = PoolRealArray( 0, 0.5, 1 )
 colors = PoolColorArray( 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1 )
 
-[sub_resource type="QuadMesh" id=10]
+[sub_resource type="QuadMesh" id=9]
 
-[sub_resource type="Curve" id=11]
+[sub_resource type="Curve" id=10]
 _data = [ Vector2( 0, 0.506135 ), 0.0, 0.580732, 0, 1, Vector2( 0.850418, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), -6.68531, 0.0, 1, 0 ]
 
-[sub_resource type="Gradient" id=12]
+[sub_resource type="Gradient" id=11]
 offsets = PoolRealArray( 0, 0.238739, 0.662162, 1 )
 colors = PoolColorArray( 0, 0.364706, 0.8, 0, 0, 0.460938, 1, 1, 0, 1, 1, 1, 1.5, 1.5, 1.5, 1 )
 
-[sub_resource type="Shader" id=13]
+[sub_resource type="Shader" id=12]
 code = "shader_type canvas_item;
 render_mode blend_add;
 
@@ -123,29 +126,29 @@ void fragment() {
 
 "
 
-[sub_resource type="ShaderMaterial" id=14]
-shader = SubResource( 13 )
+[sub_resource type="ShaderMaterial" id=13]
+shader = SubResource( 12 )
 shader_param/ditherScale = 1.0
 shader_param/roundness = 1.0
 shader_param/ditheringMatrix = ExtResource( 12 )
 
-[sub_resource type="QuadMesh" id=15]
+[sub_resource type="QuadMesh" id=14]
 
-[sub_resource type="Curve" id=16]
+[sub_resource type="Curve" id=15]
 _data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 1, Vector2( 1, 1 ), 0.0, 0.0, 1, 0 ]
 
-[sub_resource type="Curve" id=17]
+[sub_resource type="Curve" id=16]
 _data = [ Vector2( 0, 0 ), 0.0, 0.0, 0, 1, Vector2( 0.495513, 0 ), -0.0875358, -0.0875358, 0, 0, Vector2( 0.746795, 0.981595 ), 0.125561, 0.0, 0, 0 ]
 
-[sub_resource type="Curve" id=18]
+[sub_resource type="Curve" id=17]
 max_value = 4.0
 _data = [ Vector2( 0, 1.16564 ), 0.0, 1.03609, 0, 1, Vector2( 0.923718, 2.1227 ), 0.0, 0.0, 0, 0, Vector2( 1, 4 ), 24.61, 0.0, 1, 0 ]
 
-[sub_resource type="Gradient" id=19]
+[sub_resource type="Gradient" id=18]
 offsets = PoolRealArray( 0, 0.22252, 0.525469, 0.844504, 0.887399, 1 )
 colors = PoolColorArray( 0, 0, 0, 0, 0.359375, 0, 0.151611, 1, 1, 0, 0, 1, 0.992188, 1, 0, 1, 1, 1, 1, 1, 2, 2, 2, 1 )
 
-[sub_resource type="Shader" id=20]
+[sub_resource type="Shader" id=19]
 code = "shader_type canvas_item;
 
 uniform float roundness = 1f;
@@ -164,14 +167,14 @@ void fragment() {
 
 "
 
-[sub_resource type="ShaderMaterial" id=21]
-shader = SubResource( 20 )
+[sub_resource type="ShaderMaterial" id=20]
+shader = SubResource( 19 )
 shader_param/roundness = 1.0
 
-[sub_resource type="Curve" id=22]
+[sub_resource type="Curve" id=21]
 _data = [ Vector2( 0, 0 ), 0.0, 1.0, 0, 1, Vector2( 1, 1 ), 1.0, 0.0, 1, 0 ]
 
-[sub_resource type="RectangleShape2D" id=23]
+[sub_resource type="RectangleShape2D" id=22]
 extents = Vector2( 8, 8 )
 
 [node name="Player" type="RigidBody2D"]
@@ -191,7 +194,7 @@ texture = ExtResource( 1 )
 [node name="Particles" type="Node2D" parent="."]
 
 [node name="Thruster" type="Node2D" parent="Particles"]
-material = SubResource( 5 )
+material = SubResource( 2 )
 position = Vector2( 0, 5 )
 z_index = -1
 script = ExtResource( 7 )
@@ -200,15 +203,32 @@ numParticles = 64
 lifetime = 0.4
 gravity = Vector2( 0, 0 )
 timeScale = 2.0
-mesh = SubResource( 6 )
+mesh = SubResource( 3 )
 circle = 2.0
 spreadAngle = 10.0
 sizeRange = Vector2( 4, 8 )
-sizeCurve = SubResource( 7 )
-gradient = SubResource( 8 )
+sizeCurve = SubResource( 4 )
+gradient = SubResource( 5 )
+
+[node name="ThrusterExplosion" type="Node2D" parent="Particles"]
+material = SubResource( 2 )
+position = Vector2( 0, 5 )
+z_index = -1
+script = ExtResource( 15 )
+local = true
+numParticles = 64
+timeScale = 1.0
+mesh = SubResource( 23 )
+spreadAngle = 45.0
+amountRange = Vector2( 16, 32 )
+speedRange = Vector2( 16, 64 )
+sizeRange = Vector2( 4, 10 )
+lifetimeRange = Vector2( 0.15, 0.3 )
+sizeCurve = SubResource( 4 )
+gradient = SubResource( 5 )
 
 [node name="WaterThruster" type="Node2D" parent="Particles"]
-material = SubResource( 3 )
+material = SubResource( 7 )
 position = Vector2( 0, 6 )
 z_index = -1
 script = ExtResource( 7 )
@@ -218,14 +238,14 @@ lifetime = 0.4
 color = Color( 1, 1, 1, 0.5 )
 gravity = Vector2( 0, 0 )
 timeScale = 1.5
-mesh = SubResource( 6 )
+mesh = SubResource( 3 )
 rate = 16.0
 circle = 4.0
 spreadAngle = 30.0
 speedRange = Vector2( 32, 100 )
 sizeRange = Vector2( 4, 8 )
-sizeCurve = SubResource( 7 )
-gradient = SubResource( 9 )
+sizeCurve = SubResource( 4 )
+gradient = SubResource( 8 )
 
 [node name="Sprite" type="Sprite" parent="Particles/WaterThruster"]
 visible = false
@@ -240,49 +260,49 @@ script = ExtResource( 9 )
 numParticles = 64
 lifetime = 0.5
 gravity = Vector2( 0, 0 )
-mesh = SubResource( 10 )
+mesh = SubResource( 9 )
 maxDistance = 80.0
 minDistance = 20.0
 spread = 12.0
 sizeRange = Vector2( 4, 6.667 )
 velocityRange = Vector2( 16, 32 )
-sizeCurve = SubResource( 11 )
-gradient = SubResource( 12 )
+sizeCurve = SubResource( 10 )
+gradient = SubResource( 11 )
 
 [node name="WaterGroundThruster" type="Node2D" parent="Particles"]
-material = SubResource( 3 )
+material = SubResource( 7 )
 position = Vector2( 0, 6 )
 script = ExtResource( 9 )
 numParticles = 64
 lifetime = 0.5
 color = Color( 1, 1, 1, 0.5 )
 gravity = Vector2( 0, 0 )
-mesh = SubResource( 10 )
+mesh = SubResource( 9 )
 maxDistance = 80.0
 minDistance = 20.0
 spread = 12.0
 sizeRange = Vector2( 4, 6.667 )
 velocityRange = Vector2( 16, 32 )
-sizeCurve = SubResource( 11 )
+sizeCurve = SubResource( 10 )
 
 [node name="Explosion" type="Node2D" parent="Particles"]
-material = SubResource( 14 )
+material = SubResource( 13 )
 script = ExtResource( 10 )
 numParticles = 128
 gravity = Vector2( 0, -98 )
-mesh = SubResource( 15 )
+mesh = SubResource( 14 )
 amountRange = Vector2( 32, 48 )
 velocityRange = Vector2( 0, 512 )
 sizeRange = Vector2( 4, 12 )
 lifetimeRange = Vector2( 1, 2 )
 drag = 10.0
-processCurve = SubResource( 16 )
-dragCurve = SubResource( 17 )
-sizeCurve = SubResource( 18 )
-gradient = SubResource( 19 )
+processCurve = SubResource( 15 )
+dragCurve = SubResource( 16 )
+sizeCurve = SubResource( 17 )
+gradient = SubResource( 18 )
 
 [node name="Wind" type="Node2D" parent="Particles"]
-material = SubResource( 21 )
+material = SubResource( 20 )
 z_index = -1
 script = ExtResource( 11 )
 local = true
@@ -293,11 +313,11 @@ timeScale = 2.0
 windSpeed = 32.0
 waveMagnitude = 8.0
 sizeRange = Vector2( 1, 1.5 )
-sizeCurve = SubResource( 22 )
+sizeCurve = SubResource( 21 )
 
 [node name="Col" type="CollisionShape2D" parent="."]
 visible = false
-shape = SubResource( 23 )
+shape = SubResource( 22 )
 
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource( 4 )
@@ -307,10 +327,12 @@ script = ExtResource( 3 )
 maxAngularVelocity = 10.0
 maxVelocity = 200.0
 maxThrusterForce = 150.0
-thrusterAddRate = 75.0
+thrusterAddRate = 40.0
 angularAcceleration = 5.0
 velocityDrag = 0.5
 angularVelocityDrag = 4.0
+kickOffForceAdd = 2.0
+kickOffTime = 1.0
 
 [node name="Landed" type="Node" parent="StateMachine"]
 script = ExtResource( 6 )

@@ -8,19 +8,35 @@ export (float) var onWaterThrusterLossRate = .75
 export (float) var angularAcceleration = 15.0
 export (float) var velocityDrag = 8.0
 export (float) var angularVelocityDrag = 8.0
+export (float) var kickOffForceAdd = .5
+export (float) var kickOffTime = .1
 
 var currentThrusterForce = 0.0
 var thrusterAdd = 0.0
 var angAdd = 0.0
+var kickOff := false
+var currKickOffTime := 0.0
 
 func enter() -> void:
 	currentThrusterForce = 0.0
+	kickOff = false
 
 func physics_process() -> void:
 	var camera: GameCamera = root.planet.camera
 	
 	thrusterAdd = Input.get_action_strength("thruster_add") - Input.get_action_strength("thruster_subtract")
 	angAdd = Input.get_action_strength("turn_right") - Input.get_action_strength("turn_left")
+	
+	if Input.is_action_just_pressed("thruster_add") and currentThrusterForce == 0.0:
+		kickOff = true
+		currKickOffTime = kickOffTime
+		root.thrusterExplosionParticleSystem.Explode()
+	
+	if kickOff:
+		thrusterAdd *= 1.0 + kickOffForceAdd
+		currKickOffTime -= fixedDeltaTime
+		if currKickOffTime <= 0.0 or Input.is_action_just_released("thruster_add"):
+			kickOff = false
 	
 	if root.insideWater and !PlayerStats.hasWaterThruster:
 		currentThrusterForce -= thrusterAddRate * onWaterThrusterLossRate * fixedDeltaTime
