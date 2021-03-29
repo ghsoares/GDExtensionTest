@@ -99,10 +99,11 @@ func BoidBehaviour(particle: Particle, delta: float) -> void:
 	
 	desiredDirection += Vector2.UP * bottomT * collisionForce * numParticles
 	
-	var playerOff :Vector2= (particle.position - player.global_position)
-	var playerDir := playerOff.normalized()
-	var playerT :float = 1.0 - clamp(playerOff.length() / scanRadius, 0.0, 1.0)
-	desiredDirection += playerDir * playerT * collisionForce * numParticles
+	if player.is_inside_tree():
+		var playerOff :Vector2= (particle.position - player.global_position)
+		var playerDir := playerOff.normalized()
+		var playerT :float = 1.0 - clamp(playerOff.length() / scanRadius, 0.0, 1.0)
+		desiredDirection += playerDir * playerT * collisionForce * numParticles
 	
 	currDirection = currDirection.linear_interpolate(desiredDirection.normalized(), clamp(steering * delta, 0.0, 1.0))
 	particle.velocity = particle.velocity.length() * currDirection.normalized()

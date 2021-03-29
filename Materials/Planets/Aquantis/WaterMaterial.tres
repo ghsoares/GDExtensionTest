@@ -1,7 +1,8 @@
 [gd_resource type="ShaderMaterial" load_steps=5 format=2]
 
-[ext_resource path="res://Shaders/Liquid.shader" type="Shader" id=1]
+[ext_resource path="res://Shaders/LiquidShader.shader" type="Shader" id=1]
 [ext_resource path="res://Textures/BayerMatrixDithering.png" type="Texture" id=2]
+
 
 [sub_resource type="OpenSimplexNoise" id=1]
 octaves = 2

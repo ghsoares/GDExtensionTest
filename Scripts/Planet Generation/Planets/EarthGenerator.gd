@@ -1,7 +1,7 @@
 extends PlanetGenerator
 
-func _ready() -> void:
-	._ready()
+func PrepareGeneration() -> void:
+	.PrepareGeneration()
 	terrainMaterial = GameMaterials.GetMaterial("Planets/Earth/Terrain")
 
 func Generate() -> void:

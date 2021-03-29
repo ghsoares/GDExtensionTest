@@ -27,6 +27,10 @@ var currPlanet = 0
 onready var playerScene := preload("res://Scenes/Player.tscn")
 
 func _ready() -> void:
+	randomize()
+	var sed = InputRecorder.GetSessionData("seed", randi())
+	seed(sed)
+	
 	camera = GameCamera.new()
 	debug = PlanetDebug.new()
 	
@@ -42,12 +46,13 @@ func _ready() -> void:
 	pass
 
 func _process(delta: float) -> void:
-	var playerCurrState = player.stateMachine.currState.name
-	var playerTransform = player.get_global_transform()
-	if playerCurrState == "Dead":
-		playerTransform = Transform2D.IDENTITY
-	for mat in materialsToUpdate:
-		mat.set_shader_param("playerTransform", playerTransform)
+	if !generating:
+		var playerCurrState = player.stateMachine.currState.name
+		var playerTransform = player.get_global_transform()
+		if playerCurrState == "Dead":
+			playerTransform = Transform2D.IDENTITY
+		for mat in materialsToUpdate:
+			mat.set_shader_param("playerTransform", playerTransform)
 
 func AddMaterialToUpdate(mat: ShaderMaterial) -> void:
 	materialsToUpdate.append(mat)
@@ -75,14 +80,12 @@ func Generate() -> void:
 	
 	generator = planetGenerator.new()
 	
-	camera.limit_left = 0.0
-	camera.limit_right = size.x
-	camera.limit_top = 0.0
-	camera.limit_bottom = size.y
+#	camera.limit_left = 0.0
+#	camera.limit_right = size.x
+#	camera.limit_top = 0.0
+#	camera.limit_bottom = size.y
 	
 	generator.planet = self
-	
-	add_child(generator)
 	
 	generator.Generate()
 	
@@ -90,9 +93,10 @@ func Generate() -> void:
 	
 	player = playerScene.instance()
 	
-	player.position = Vector2(size.x / 2.0, -128.0)
+	player.position = Vector2(size.x / 2.0, 32.0)
 	player.planet = self
 	
+	add_child(generator)
 	add_child(player)
 	
 	generating = false

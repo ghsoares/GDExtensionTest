@@ -10,9 +10,8 @@ var platforms = []
 var planet
 var terrain
 
-onready var platformScene := preload("res://Scenes/Platform.tscn")
-
 func Place() -> void:
+	var platformScene := preload("res://Scenes/Platform.tscn")
 	var spacing = rand_range(spacingRange.x, spacingRange.y)
 	
 	for i in range(5):

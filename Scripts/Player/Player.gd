@@ -1,5 +1,7 @@
 extends HeightmapRigidbody2D
 
+class_name Player
+
 onready var body := $Body
 onready var col := $Col
 onready var stateMachine := $StateMachine
@@ -11,6 +13,8 @@ onready var groundParticleSystem := $Particles/GroundThruster
 onready var waterGroundParticleSystem := $Particles/WaterGroundThruster
 onready var explosionParticleSystem := $Particles/Explosion
 onready var windParticleSystem := $Particles/Wind
+onready var speedFireParticleSystem := $Particles/SpeedFire
+onready var thrusterArea := $ThrusterArea
 
 export (float) var maxSafeVelocity = 32.0
 export (float) var maxSafeAngle = 5.0
@@ -35,7 +39,6 @@ func _ready() -> void:
 		waterGroundParticleSystem.planet = planet
 	
 	startTransform = global_transform
-	startTransform.origin.y = 64.0
 	
 	stateMachine.root = self
 	stateMachine.start()
@@ -63,6 +66,14 @@ func GetPlatformZoom() -> float:
 	var t = inverse_lerp(platformDistanceRange.x, platformDistanceRange.y, distance)
 	var z = lerp(platformZoomRange.x, platformZoomRange.y, clamp(t, 0.0, 1.0))
 	return z
+
+
+
+
+
+
+
+
 
 
 

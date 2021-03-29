@@ -114,8 +114,8 @@ func _process(delta: float) -> void:
 	
 	update()
 
-func EmitParticle(override = {}, force: bool = false):
-	if !emitting and !force: return
+func EmitParticle(override = {}, update: bool = false):
+	if !emitting: return
 	for particle in particles:
 		if !particle: continue
 		if !particle.alive:
@@ -124,7 +124,8 @@ func EmitParticle(override = {}, force: bool = false):
 			particle.lifetime = particle.life
 			particle.startSize = particle.size
 			particle.startColor = particle.color
-			UpdateParticle(particle, 0.0)
+			if update:
+				UpdateParticle(particle, 0.0)
 			break
 
 func UpdateSystem(delta: float) -> void:
@@ -192,12 +193,14 @@ func DrawParticles() -> void:
 				
 				t.y = -t.y
 				
+				var customDataColor := Color()
+				customDataColor.r = float(part.idx) / numParticles
+				customDataColor.g = part.position.x
+				customDataColor.b = part.position.y
+				
 				multimesh.set_instance_transform_2d(visibleParticles, t)
 				multimesh.set_instance_color(visibleParticles, part.color)
-				multimesh.set_instance_custom_data(visibleParticles, Color(
-						float(part.idx) / numParticles, 0.0, 0.0
-					)
-				)
+				multimesh.set_instance_custom_data(visibleParticles, customDataColor)
 				visibleParticles += 1
 		
 		multimesh.visible_instance_count = visibleParticles

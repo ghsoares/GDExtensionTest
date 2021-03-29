@@ -20,6 +20,7 @@ func enter() -> void:
 	currTransitionTime = 0.0
 	transiting = false
 	root.mode = RigidBody2D.MODE_KINEMATIC
+	root.thrusterExplosionParticleSystem.Explode()
 
 func physics_process() -> void:
 	var camera: GameCamera = root.planet.camera

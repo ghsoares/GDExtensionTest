@@ -47,7 +47,6 @@ func GetTerrainNormal(x: float) -> Vector2:
 
 func GetTerrainY(x: float) -> float:
 	var h = GetTerrainHeight(x)
-	h -= rect_global_position.y
 	return size.y - h
 
 func RayIntersect(from: Vector2, direction: Vector2, maxDistance: float = -1, maxSteps = MAX_RAY_STEPS, checkInside: bool = false):

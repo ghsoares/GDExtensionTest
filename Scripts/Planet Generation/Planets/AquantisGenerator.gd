@@ -1,9 +1,10 @@
 extends PlanetGenerator
 
-onready var fishesParticleSystem := preload("res://Scenes/ParticleSystems/Fishes.tscn")
+var fishesParticleSystem
 
-func _ready() -> void:
-	._ready()
+func PrepareGeneration() -> void:
+	.PrepareGeneration()
+	fishesParticleSystem = preload("res://Scenes/ParticleSystems/Fishes.tscn")
 	windSpeedRange = Vector2(32.0, 64.0)
 	terrainMaterial = GameMaterials.GetMaterial("Planets/Aquantis/Terrain")
 	terrain.height = 100.0
@@ -25,7 +26,7 @@ func Generate() -> void:
 	
 	fishes.planet = planet
 	fishes.rectSize = floodedLiquid.rect_size
-	fishes.position.y = floodedLiquid.rect_global_position.y
+	fishes.position.y = floodedLiquid.rect_position.y
 	add_child(fishes)
 	
 	planet.AddMaterialToUpdate(floodedLiquid.material)

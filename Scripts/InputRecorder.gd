@@ -87,10 +87,13 @@ func LoadFromFile() -> void:
 	recordingData.data = data["recordingData"]
 	recordingData.dataSize = recordingData.data.size()
 	recordingData.recordedFrames = recordingData.data.keys()
+	var lastFrame = recordingData.recordedFrames[recordingData.dataSize - 1]
+	var totalTime = lastFrame * (1.0 / 60.0)
+	totalTime /= 60.0
 	print("[InputRecorder] [Load] Data loaded!")
 	print("[InputRecorder] [Load] Session Data: \n" + str(recordingData.sessionData))
-	print("[InputRecorder] [Load] Recording Data Size: " + str(recordingData.dataSize))
-	print("[InputRecorder] [Load] Recorded Frames: " + str(recordingData.recordedFrames))
+	print("[InputRecorder] [Load] Recorded Frames: " + str(recordingData.dataSize))
+	print("[InputRecorder] [Load] Estimated Time: " + str(totalTime) + " Minutes")
 
 func GetSessionData(key: String, default = null, writeDefault = true):
 	if recordingData == null:
@@ -109,6 +112,7 @@ func Resume():
 
 func _physics_process(delta: float) -> void:
 	if paused: return
+	if get_tree().paused: return
 	match mode:
 		Mode.Recording:
 			RecordProcess(delta)

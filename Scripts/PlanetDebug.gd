@@ -9,7 +9,7 @@ var desiredCameraPos: Vector2
 var desiredCameraZoom: float
 var casterDirection: Vector2
 
-var debugging = false
+var debugging = true
 
 func _ready() -> void:
 	desiredCameraPos = Vector2(2048, 32.0)

@@ -53,7 +53,7 @@ func Place() -> Array:
 			c.material = material.duplicate()
 			
 			add_child(c)
-			c.material.set_shader_param("worldMatrix", c.get_global_transform())
+			c.material.set_shader_param("worldMatrix", c.get_transform())
 			materials.append(c.material)
 	return materials
 
@@ -73,7 +73,7 @@ func Flood(margin: float = 64.0) -> Liquid:
 	c.material = material.duplicate()
 	
 	add_child(c)
-	c.material.set_shader_param("worldMatrix", c.get_global_transform())
+	c.material.set_shader_param("worldMatrix", c.get_transform())
 	return c
 
 

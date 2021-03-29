@@ -14,6 +14,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://Scripts/GameCamera.gd"
 }, {
+"base": "StaticBody2D",
+"class": "GiantWorm",
+"language": "GDScript",
+"path": "res://Scripts/GiantWorm.gd"
+}, {
 "base": "RigidBody2D",
 "class": "HeightmapRigidbody2D",
 "language": "GDScript",
@@ -59,6 +64,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://Scripts/Planet Generation/PlatformsPlacer.gd"
 }, {
+"base": "HeightmapRigidbody2D",
+"class": "Player",
+"language": "GDScript",
+"path": "res://Scripts/Player/Player.gd"
+}, {
 "base": "Node",
 "class": "State",
 "language": "GDScript",
@@ -76,6 +86,7 @@ _global_script_classes=[ {
 } ]
 _global_script_class_icons={
 "GameCamera": "",
+"GiantWorm": "",
 "HeightmapRigidbody2D": "",
 "Liquid": "",
 "LiquidPlacer": "",
@@ -85,6 +96,7 @@ _global_script_class_icons={
 "PlanetGenerator": "",
 "Platform": "",
 "PlatformsPlacer": "",
+"Player": "",
 "State": "",
 "StateMachine": "",
 "Terrain": ""
@@ -98,11 +110,11 @@ config/icon="res://icon.png"
 
 [autoload]
 
-InputRecorder="*res://Scripts/InputRecorder.gd"
 GameMaterials="*res://Scripts/GameMaterials.gd"
 PlayerStats="*res://Scripts/PlayerStats.gd"
 Pause="*res://Scenes/Pause.tscn"
 Transition="*res://Scenes/Transition.tscn"
+InputRecorder="*res://Scripts/InputRecorder.gd"
 
 [debug]
 

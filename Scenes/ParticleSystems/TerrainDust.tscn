@@ -1,0 +1,24 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://Scripts/ParticleSystems/TerrainDustParticleSystem.gd" type="Script" id=1]
+[ext_resource path="res://Materials/ParticleMaterial.tres" type="Material" id=2]
+
+[sub_resource type="QuadMesh" id=1]
+
+[sub_resource type="Curve" id=2]
+_data = [ Vector2( 0, 0.5 ), 0.0, 0.5, 0, 1, Vector2( 1, 1 ), 0.5, 0.0, 1, 0 ]
+
+[sub_resource type="Gradient" id=3]
+offsets = PoolRealArray( 0, 0.5, 1 )
+colors = PoolColorArray( 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1 )
+
+[node name="TerrainDust" type="Node2D"]
+material = ExtResource( 2 )
+script = ExtResource( 1 )
+numParticles = 64
+gravity = Vector2( 0, 32 )
+timeScale = 2.0
+mesh = SubResource( 1 )
+sizeRange = Vector2( 0.5, 1 )
+sizeCurve = SubResource( 2 )
+gradient = SubResource( 3 )

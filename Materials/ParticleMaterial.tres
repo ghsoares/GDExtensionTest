@@ -1,4 +1,6 @@
-[gd_resource type="ShaderMaterial" load_steps=2 format=2]
+[gd_resource type="ShaderMaterial" load_steps=3 format=2]
+
+[ext_resource path="res://Textures/BayerMatrixDithering.png" type="Texture" id=1]
 
 [sub_resource type="Shader" id=1]
 code = "shader_type canvas_item;
@@ -35,3 +37,4 @@ void fragment() {
 shader = SubResource( 1 )
 shader_param/ditherScale = 1.0
 shader_param/roundness = 1.0
+shader_param/ditheringMatrix = ExtResource( 1 )
