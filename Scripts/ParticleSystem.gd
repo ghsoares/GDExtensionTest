@@ -139,7 +139,11 @@ func UpdateSystem(delta: float) -> void:
 		if !particle: continue
 		if particle.alive:
 			UpdateParticle(particle, delta)
-	
+			if particle.life <= 0.0 or !particle.alive:
+				DestroyParticle(particle)
+				aliveParticles -= 1
+				particle.alive = false
+
 	externalForces = Vector2.ZERO
 
 func InitParticle(particle: Particle, override = {}) -> void:
@@ -170,10 +174,6 @@ func UpdateParticle(particle: Particle, delta: float) -> void:
 	if !particle.persistent:
 		particle.life -= delta
 		particle.life = clamp(particle.life, 0.0, particle.lifetime)
-	if particle.life <= 0.0 or !particle.alive:
-		DestroyParticle(particle)
-		aliveParticles -= 1
-		particle.alive = false
 
 func DestroyParticle(particle: Particle) -> void:
 	pass

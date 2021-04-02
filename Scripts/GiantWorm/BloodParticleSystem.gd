@@ -19,10 +19,10 @@ func UpdateParticle(particle: Particle, delta: float) -> void:
 	.UpdateParticle(particle, delta)
 	var lifeT = particle.life / particle.lifetime
 	
-	if sizeCurve:
-		var s = sizeCurve.interpolate(lifeT)
-		particle.size = particle.startSize * s
-	if gradient:
-		var col = gradient.interpolate(lifeT)
-		particle.color = particle.startColor * col
+#	if sizeCurve:
+#		var s = sizeCurve.interpolate(lifeT)
+#		particle.size = particle.startSize * s
+#	if gradient:
+#		var col = gradient.interpolate(lifeT)
+#		particle.color = particle.startColor * col
 

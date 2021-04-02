@@ -7,7 +7,6 @@ var mouseDragging: bool = false
 var planet
 var desiredCameraPos: Vector2
 var desiredCameraZoom: float
-var casterDirection: Vector2
 
 var debugging = true
 
@@ -15,7 +14,6 @@ func _ready() -> void:
 	desiredCameraPos = Vector2(2048, 32.0)
 	
 	desiredCameraZoom = 1.0
-	casterDirection = Vector2(1.0, 1.0).normalized()
 	
 	z_index = VisualServer.CANVAS_ITEM_Z_MAX
 
@@ -46,24 +44,6 @@ func _physics_process(delta: float) -> void:
 		desiredCameraZoom = camera.desiredZoom
 		desiredCameraPos = camera.desiredPosition
 
-func _process(delta: float) -> void:
-	var turn = Input.get_action_strength("rotate_right") - Input.get_action_strength("rotate_left")
-	casterDirection = casterDirection.rotated(turn * PI * 2.0 * delta)
-	update()
-
-func _draw() -> void:
-#	draw_circle(desiredCameraPos, 4.0, Color.yellow)
-#	draw_line(desiredCameraPos, desiredCameraPos + casterDirection * 8, Color.yellow, 4.0)
-#	var terrain: Terrain = planet.terrain
-#	var cast = terrain.RayIntersect(desiredCameraPos, casterDirection)
-#	if cast:
-#		var p = cast.point
-#		draw_line(desiredCameraPos, p, Color.green, 2.0)
-#		draw_circle(p, 4.0, Color.green)
-	
-	
-	
-	pass
 
 
 

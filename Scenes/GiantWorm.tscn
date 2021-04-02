@@ -26,15 +26,15 @@ tracks/0/keys = {
 "values": [ Color( 1, 0.45098, 0.45098, 1 ), Color( 1, 1, 1, 1 ) ]
 }
 
-[sub_resource type="QuadMesh" id=3]
+[sub_resource type="QuadMesh" id=2]
 
-[sub_resource type="Curve" id=4]
+[sub_resource type="Curve" id=3]
 _data = [ Vector2( 0, 0.515337 ), 0.0, 0.484663, 0, 1, Vector2( 1, 1 ), 0.484663, 0.0, 1, 0 ]
 
-[sub_resource type="Gradient" id=5]
+[sub_resource type="Gradient" id=4]
 colors = PoolColorArray( 1, 1, 1, 0, 1, 1, 1, 1 )
 
-[sub_resource type="CircleShape2D" id=2]
+[sub_resource type="CircleShape2D" id=5]
 radius = 50.0
 
 [node name="GiantWorm" type="StaticBody2D" groups=[
@@ -46,7 +46,8 @@ segmentsTexture = ExtResource( 5 )
 segmentsSpacing = 75.0
 segmentsSize = 100.0
 terrainDustRate = 24.0
-bloodRate = 8.0
+maxLife = 2.0
+bloodRate = 4.0
 
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource( 2 )
@@ -69,16 +70,15 @@ anims/Dmg = SubResource( 1 )
 [node name="Blood" type="Node2D" parent="."]
 material = ExtResource( 9 )
 script = ExtResource( 8 )
-local = true
 numParticles = 128
 color = Color( 0, 1, 0.486275, 1 )
-gravity = Vector2( 0, 0 )
-mesh = SubResource( 3 )
-sizeCurve = SubResource( 4 )
-gradient = SubResource( 5 )
+gravity = Vector2( 0, 98 )
+mesh = SubResource( 2 )
+sizeCurve = SubResource( 3 )
+gradient = SubResource( 4 )
 
 [node name="Head" type="CollisionShape2D" parent="."]
-shape = SubResource( 2 )
+shape = SubResource( 5 )
 
 [node name="Spr" type="Sprite" parent="Head"]
 texture = ExtResource( 6 )

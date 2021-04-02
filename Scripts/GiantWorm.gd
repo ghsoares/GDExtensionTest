@@ -6,6 +6,7 @@ var velocity := Vector2.RIGHT * 16.0
 var segments = []
 var segmentsVelocity := []
 var bloodHoles := []
+var currentBloodHoleIdx := 0
 var currentBloodRate := 0.0
 var currentLife := 0.0
 
@@ -53,8 +54,6 @@ func _ready() -> void:
 	head.raise()
 	
 	currentLife = maxLife
-	
-	bloodHoles = BloodHoles(numSegments * 2)
 	
 	bloodParticleSystem.raise()
 
@@ -116,15 +115,20 @@ func ParticlesProcess(delta: float) -> void:
 					"velocity": Vector2(vel.x, vel.y) * .25
 				})
 	var numBloodHoles = bloodHoles.size()
-	for bloodHole in bloodHoles:
+	if numBloodHoles > 0:
 		currentBloodRate += bloodRate * delta * numBloodHoles
 		while currentBloodRate >= 1.0:
+			var bloodHole = bloodHoles[currentBloodHoleIdx]
+			
 			var pos :Vector2 = bloodHole.global_position
 			bloodParticleSystem.EmitParticle({
-				"position": bloodParticleSystem.to_local(pos),
+				"position": pos,
 				"velocity": bloodHole.global_transform.x
 			})
+			
+			currentBloodHoleIdx += 1
 			currentBloodRate -= 1.0
+			currentBloodHoleIdx %= numBloodHoles
 
 func Damage(dmg: float) -> void:
 	var prevLife = currentLife
