@@ -58,6 +58,9 @@ public class Planet : Control
         generator.Generate();
 
         player.Position = new Vector2(2048, 64);
+        player.Position = new Vector2(
+            player.Position.x, terrain.GetTerrainY(player.Position.x) - 64f
+        );
 
         player.RequestReady();
         AddChild(player);

@@ -19,6 +19,11 @@ public class PlayerHoverState : State<Player>
 
     public override void Enter()
     {
+        currentThrusterForce = 0f;
+        startKickOff = false;
+        kickOff = false;
+        currKickOffTime = 0f;
+
         root.thrusterParticleSystem.emitting = true;
         root.groundThrusterParticleSystem.emitting = true;
         root.Connect("body_entered", this, "OnBodyEntered");
@@ -80,7 +85,7 @@ public class PlayerHoverState : State<Player>
 
         if (startKickOff)
         {
-            root.kickOffParticleSystem.Emit();
+            root.kickOffParticleSystem.EmitParticle();
         }
     }
 

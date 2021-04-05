@@ -12,6 +12,7 @@ public class Player : RigidBody2D
     public EmissionParticleSystem thrusterParticleSystem {get; set;}
     public RaycastEmissionParticleSystem groundThrusterParticleSystem {get; set;}
     public BurstParticleSystem kickOffParticleSystem {get; set;}
+    public SubParticleSystemEmitter explosionParticleSystem {get; set;}
     public Physics2DDirectSpaceState spaceState {get; set;}
 
     [Export] public Vector2 platformZoomDistanceRange = new Vector2(32f, 100f);
@@ -31,6 +32,7 @@ public class Player : RigidBody2D
         thrusterParticleSystem = GetNode<EmissionParticleSystem>("ParticleSystems/Thruster");
         groundThrusterParticleSystem = GetNode<RaycastEmissionParticleSystem>("ParticleSystems/GroundThruster");
         kickOffParticleSystem = GetNode<BurstParticleSystem>("ParticleSystems/KickOff");
+        explosionParticleSystem = GetNode<SubParticleSystemEmitter>("ParticleSystems/Explosion");
 
         stateMachine.root = this;
         stateMachine.Start();
