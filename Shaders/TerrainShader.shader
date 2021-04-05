@@ -1,72 +1,79 @@
 shader_type canvas_item;
 
-uniform sampler2D ditheringTexture;
-uniform float ditheringInfluence = .1;
-
 uniform sampler2D terrainHeightMap;
-uniform vec2 terrainSize;
-uniform float terrainResolution;
+uniform vec2 terrainSize = vec2(1024, 640);
+uniform float terrainResolution = .25f;
 
-uniform sampler2D terrainTexture;
+uniform sampler2D terrainNoise;
+uniform float terrainNoiseTiling = 256f;
+uniform float terrainNoiseDistortionTiling = 333f;
+uniform float terrainNoiseDistortionAmount = 32f;
+uniform float terrainNoiseEaseCurve = -2f;
+uniform float terrainNoiseSteps = 8f;
+
+uniform sampler2D heightRemapCurve;
+uniform float heightRemapCurveRange = 512f;
+
 uniform sampler2D terrainGradient;
-uniform float terrainTextureTiling = 256.0;
-uniform float terrainTextureDisplacementTiling = 512.0;
-uniform float terrainTextureDisplacement = 16.0;
-uniform float terrainTextureEaseCurve = -2.0;
-uniform float terrainTextureAdd = 0.0;
-uniform float terrainTextureSteps = 8.0;
-uniform vec2 terrainFadeRange = vec2(64, 256);
-uniform vec3 terrainFadeAmount = vec3(0.0, .1, .2);
 
 varying vec2 v;
 
-float Ease(float x, float c) {return x;}
+float Ease(float x, float c) {
+	x = clamp(x, 0f, .999f);
+	float curve1 = 1f - pow(1f - x, 1f / c);
+	float curve2 = pow(x, c);
+	float curve3 = pow(x * 2f, -c) * .5f;
+	float curve4 = (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;
+	float curveA = mix(curve1, curve2, step(1f, c));
+	float curveB = mix(curve3, curve4, step(.5f, x));
+	return mix(curveB, curveA, step(0f, c));
+}
 
-float SampleHeight() {return terrainSize.y * .5;}
+float GetTerrainHeight(float x) {
+	float height1 = texture(terrainHeightMap, vec2(x, 0f) / terrainSize).r;
+	float height2 = texture(terrainHeightMap, vec2(x + 1f / terrainResolution, 0f) / terrainSize).r;
+	float t = fract(x * terrainResolution);
+	float h = mix(height1, height2, t);
+	return h * terrainSize.y;
+}
 
-float GetTerrainY() {return terrainSize.y - SampleHeight();}
+float GetTerrainY(float x) {
+	return terrainSize.y - GetTerrainHeight(x);
+}
 
 void vertex() {
 	v = VERTEX;
 }
 
-void TerrainColor(inout vec4 col) {
-	float terrainOffset = v.y - GetTerrainY();
+vec4 GetTerrainColor() {
+	float terrainY = GetTerrainY(v.x);
+	float heightDiff = (v.y - terrainY);
 	
-	vec2 terrainTextureSize = vec2(textureSize(terrainTexture, 0));
+	float n = texture(terrainNoise, v / terrainNoiseDistortionTiling).r * radians(360f);
+	vec2 dist = vec2(cos(n), sin(n)) * terrainNoiseDistortionAmount;
+	vec2 uv = (v + dist) / terrainNoiseTiling;
 	
-	float disp = texture(terrainTexture, v / terrainTextureDisplacementTiling).r * radians(360.0);
-	vec2 dispVec = vec2(cos(disp), sin(disp)) * terrainTextureDisplacement;
+	n = texture(terrainNoise, uv).r;
 	
-	vec2 uv = v / terrainTextureTiling + dispVec / terrainTextureSize;
-	float n = texture(terrainTexture, uv).r + terrainTextureAdd;
+	float remapT = clamp(heightDiff / heightRemapCurveRange, 0f, 1f);
+	n += texture(heightRemapCurve, vec2(remapT)).r;
 	
-	float t1 = clamp(terrainOffset / terrainFadeRange.x, 0.0, 1.0);
-	float t2 = clamp((terrainOffset - terrainFadeRange.x) / (terrainFadeRange.y - terrainFadeRange.x), 0.0, 1.0);
+	n = Ease(n, terrainNoiseEaseCurve);
 	
-	float fade = mix(terrainFadeAmount.x, terrainFadeAmount.y, t1);
-	fade = mix(fade, terrainFadeAmount.z, t2);
+	n = floor(n * (terrainNoiseSteps + 1f)) / terrainNoiseSteps;
+	n = clamp(n, 0f, 1f);
 	
-	n -= fade;
+	vec4 col = texture(terrainGradient, vec2(n));
 	
-	n = Ease(n, terrainTextureEaseCurve);
+	col.a *= step(terrainY, v.y);
 	
-	vec2 ditherSize = vec2(textureSize(ditheringTexture, 0));
-	float d = texture(ditheringTexture, v / ditherSize).r * 2.0 - 1.0;
-	
-	n += d * ditheringInfluence;
-	
-	n = floor(n * terrainTextureSteps) / terrainTextureSteps;
-	n = clamp(n, 0.0, 1.0);
-	
-	col = texture(terrainGradient, vec2(n, 0.0));
+	return col;
 }
 
 void fragment() {
-	TerrainColor(COLOR);
-	
-	COLOR.a *= step(GetTerrainY(), v.y);
+	COLOR *= GetTerrainColor();
 }
+
 
 
 

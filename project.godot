@@ -8,98 +8,9 @@
 
 config_version=4
 
-_global_script_classes=[ {
-"base": "Camera2D",
-"class": "GameCamera",
-"language": "GDScript",
-"path": "res://Scripts/GameCamera.gd"
-}, {
-"base": "StaticBody2D",
-"class": "GiantWorm",
-"language": "GDScript",
-"path": "res://Scripts/GiantWorm.gd"
-}, {
-"base": "RigidBody2D",
-"class": "HeightmapRigidbody2D",
-"language": "GDScript",
-"path": "res://Scripts/HeightmapRigidbody2D.gd"
-}, {
-"base": "Control",
-"class": "Liquid",
-"language": "GDScript",
-"path": "res://Scripts/Liquid.gd"
-}, {
-"base": "Control",
-"class": "LiquidPlacer",
-"language": "GDScript",
-"path": "res://Scripts/Planet Generation/LiquidPlacer.gd"
-}, {
-"base": "Node2D",
-"class": "ParticleSystem",
-"language": "GDScript",
-"path": "res://Scripts/ParticleSystem.gd"
-}, {
-"base": "Control",
-"class": "Planet",
-"language": "GDScript",
-"path": "res://Scripts/Planet.gd"
-}, {
-"base": "Node2D",
-"class": "PlanetDebug",
-"language": "GDScript",
-"path": "res://Scripts/PlanetDebug.gd"
-}, {
-"base": "Control",
-"class": "PlanetGenerator",
-"language": "GDScript",
-"path": "res://Scripts/Planet Generation/PlanetGenerator.gd"
-}, {
-"base": "Node2D",
-"class": "Platform",
-"language": "GDScript",
-"path": "res://Scripts/Platform.gd"
-}, {
-"base": "Control",
-"class": "PlatformsPlacer",
-"language": "GDScript",
-"path": "res://Scripts/Planet Generation/PlatformsPlacer.gd"
-}, {
-"base": "HeightmapRigidbody2D",
-"class": "Player",
-"language": "GDScript",
-"path": "res://Scripts/Player/Player.gd"
-}, {
-"base": "Node",
-"class": "State",
-"language": "GDScript",
-"path": "res://Scripts/State.gd"
-}, {
-"base": "Node",
-"class": "StateMachine",
-"language": "GDScript",
-"path": "res://Scripts/StateMachine.gd"
-}, {
-"base": "ColorRect",
-"class": "Terrain",
-"language": "GDScript",
-"path": "res://Scripts/Planet Generation/Terrain.gd"
-} ]
+_global_script_classes=[  ]
 _global_script_class_icons={
-"GameCamera": "",
-"GiantWorm": "",
-"HeightmapRigidbody2D": "",
-"Liquid": "",
-"LiquidPlacer": "",
-"ParticleSystem": "",
-"Planet": "",
-"PlanetDebug": "",
-"PlanetGenerator": "",
-"Platform": "",
-"PlatformsPlacer": "",
-"Player": "",
-"State": "",
-"StateMachine": "",
-"Terrain": ""
+
 }
 
 [application]
@@ -107,14 +18,6 @@ _global_script_class_icons={
 config/name="Astronoma"
 run/main_scene="res://Scenes/Game.tscn"
 config/icon="res://icon.png"
-
-[autoload]
-
-GameMaterials="*res://Scripts/GameMaterials.gd"
-PlayerStats="*res://Scripts/PlayerStats.gd"
-Pause="*res://Scenes/Pause.tscn"
-Transition="*res://Scenes/Transition.tscn"
-InputRecorder="*res://Scripts/InputRecorder.gd"
 
 [debug]
 
