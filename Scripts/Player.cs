@@ -7,12 +7,12 @@ public class Player : RigidBody2D
 
     public Node2D body {get; set;}
     public Transform2D startTransform {get; set;}
+    public bool dead {get; set;}
 
+    public PlayerRocketParticleSystem rocketParticleSystem {get; set;}
+    public PlayerExplosionParticleSystem explosionParticleSystem {get; set;}
+    public PlayerGroundParticleSystem groundParticleSystem {get; set;}
     public PlayerStateMachine stateMachine {get; set;}
-    public EmissionParticleSystem thrusterParticleSystem {get; set;}
-    public RaycastEmissionParticleSystem groundThrusterParticleSystem {get; set;}
-    public BurstParticleSystem kickOffParticleSystem {get; set;}
-    public SubParticleSystemEmitter explosionParticleSystem {get; set;}
     public Physics2DDirectSpaceState spaceState {get; set;}
 
     [Export] public Vector2 platformZoomDistanceRange = new Vector2(32f, 100f);
@@ -28,16 +28,16 @@ public class Player : RigidBody2D
     {
         body = GetNode<Node2D>("Body");
 
+        rocketParticleSystem = GetNode<PlayerRocketParticleSystem>("Particles/Rocket");
+        explosionParticleSystem = GetNode<PlayerExplosionParticleSystem>("Particles/Explosion");
+        groundParticleSystem = GetNode<PlayerGroundParticleSystem>("Particles/Ground");
         stateMachine = GetNode<PlayerStateMachine>("StateMachine");
-        thrusterParticleSystem = GetNode<EmissionParticleSystem>("ParticleSystems/Thruster");
-        groundThrusterParticleSystem = GetNode<RaycastEmissionParticleSystem>("ParticleSystems/GroundThruster");
-        kickOffParticleSystem = GetNode<BurstParticleSystem>("ParticleSystems/KickOff");
-        explosionParticleSystem = GetNode<SubParticleSystemEmitter>("ParticleSystems/Explosion");
 
         stateMachine.root = this;
         stateMachine.Start();
 
         startTransform = GlobalTransform;
+        groundParticleSystem.AddIgnoreObject(this);
     }
 
     public override void _PhysicsProcess(float delta)

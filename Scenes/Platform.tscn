@@ -1,16 +1,16 @@
-[gd_scene load_steps=10 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://Scripts/Planet Generation/Platform.cs" type="Script" id=1]
 [ext_resource path="res://Textures/BayerMatrixDithering.png" type="Texture" id=2]
 [ext_resource path="res://Fonts/m5x7.ttf" type="DynamicFontData" id=3]
 
-[sub_resource type="StyleBoxFlat" id=6]
+[sub_resource type="StyleBoxFlat" id=1]
 bg_color = Color( 1, 1, 1, 1 )
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 anti_aliasing = false
 
-[sub_resource type="Shader" id=4]
+[sub_resource type="Shader" id=2]
 code = "shader_type canvas_item;
 
 void fragment() {
@@ -18,19 +18,20 @@ void fragment() {
 	COLOR.a = sign(COLOR.a);
 }"
 
-[sub_resource type="ShaderMaterial" id=5]
-shader = SubResource( 4 )
+[sub_resource type="ShaderMaterial" id=3]
+shader = SubResource( 2 )
 
-[sub_resource type="DynamicFont" id=3]
+[sub_resource type="DynamicFont" id=4]
 outline_size = 1
 outline_color = Color( 0, 0, 0, 1 )
 extra_spacing_top = -1
 font_data = ExtResource( 3 )
 
-[sub_resource type="Shader" id=1]
+[sub_resource type="Shader" id=5]
 code = "shader_type canvas_item;
 
 uniform sampler2D ditherTex;
+uniform sampler2D gradient;
 uniform float pulseFrequency = 2f;
 uniform float pulseMagnitude = .1f;
 uniform vec2 playerPosition;
@@ -60,16 +61,25 @@ void fragment() {
 	d *= clamp(dist / playerFadeLength, 0f, 1f);
 	
 	COLOR.a *= step(1f, d);
+	COLOR *= texture(gradient, vec2(UV.y));
 }"
 
-[sub_resource type="ShaderMaterial" id=2]
+[sub_resource type="Gradient" id=7]
+offsets = PoolRealArray( 0, 0.900356, 1 )
+colors = PoolColorArray( 1, 1, 1, 0.392157, 1, 1, 1, 0.392157, 0, 0.994141, 1, 1 )
+
+[sub_resource type="GradientTexture" id=8]
+gradient = SubResource( 7 )
+
+[sub_resource type="ShaderMaterial" id=6]
 resource_local_to_scene = true
-shader = SubResource( 1 )
+shader = SubResource( 5 )
 shader_param/pulseFrequency = 0.5
 shader_param/pulseMagnitude = 0.05
 shader_param/playerPosition = Vector2( 0, 0 )
 shader_param/playerFadeLength = 20.0
 shader_param/ditherTex = ExtResource( 2 )
+shader_param/gradient = SubResource( 8 )
 
 [node name="Platform" type="Node2D"]
 script = ExtResource( 1 )
@@ -83,17 +93,17 @@ anchor_right = 0.5
 margin_left = -16.0
 margin_right = 16.0
 margin_bottom = 13.0
-custom_styles/panel = SubResource( 6 )
+custom_styles/panel = SubResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Label" type="Label" parent="Base/Color"]
-material = SubResource( 5 )
+material = SubResource( 3 )
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 2.0
-custom_fonts/font = SubResource( 3 )
+custom_fonts/font = SubResource( 4 )
 text = "X5"
 align = 1
 valign = 1
@@ -105,7 +115,7 @@ __meta__ = {
 z_index = 10
 
 [node name="Color" type="ColorRect" parent="Light"]
-material = SubResource( 2 )
+material = SubResource( 6 )
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5

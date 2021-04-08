@@ -32,6 +32,7 @@ public class Terrain : ColorRect
             if (dist <= platformHeightInterpolationSize)
             {
                 float t = 1f - dist / platformHeightInterpolationSize;
+                t = Mathf.Ease(t, platformHeightInterpolationCurve);
 
                 float platH = SampleNoise(platform.GlobalPosition.x);
                 platH = Mathf.Floor(platH);

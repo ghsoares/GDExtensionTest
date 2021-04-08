@@ -17,7 +17,7 @@ _global_script_class_icons={
 
 config/name="Astronoma"
 run/main_scene="res://Scenes/Game.tscn"
-config/icon="res://icon.png"
+config/icon="res://Textures/icon.png"
 
 [debug]
 

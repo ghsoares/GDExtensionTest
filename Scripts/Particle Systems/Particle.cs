@@ -21,6 +21,7 @@ public class Particle {
 	    public Color startColor {get; set;}
 
         public Dictionary<String, object> customData {get; set;}
+        public Color customDataVertex {get; set;}
 
         public bool alive {get; set;}
 

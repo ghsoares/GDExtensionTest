@@ -12,7 +12,9 @@ public class PlayerDeadState : State<Player> {
 
         root.CollisionToggle(false);
 
-        root.explosionParticleSystem.EmitParticle();
+        root.dead = true;
+        
+        root.explosionParticleSystem.Emit();
         GameCamera.instance.desiredZoom = root.platformZoomRange.y;
     }
 

@@ -20,7 +20,7 @@ public class Game : Control
         view.Input(ev);
     }
 
-    public override void _Process(float delta)
+    public override void _PhysicsProcess(float delta)
     {
         UpdateCamera();
     }

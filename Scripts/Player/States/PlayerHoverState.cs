@@ -3,10 +3,16 @@ using Godot;
 
 public class PlayerHoverState : State<Player>
 {
-    float currentThrusterForce = 0f;
-    bool startKickOff = false;
-    bool kickOff = false;
-    float currKickOffTime = 0f;
+    public float currentThrusterForce {get; private set;}
+    public bool startKickOff {get; private set;}
+    public bool kickOff {get; private set;}
+    public float currKickOffTime {get; private set;}
+
+    public float thrusterT {
+        get {
+            return currentThrusterForce / maxThrusterForce;
+        }
+    }
 
     [Export] public float maxAngularVelocity = 10f, maxVelocity = 200f, maxThrusterForce = 150f;
     [Export] public float thrusterAddRate = 40f;
@@ -24,8 +30,10 @@ public class PlayerHoverState : State<Player>
         kickOff = false;
         currKickOffTime = 0f;
 
-        root.thrusterParticleSystem.emitting = true;
-        root.groundThrusterParticleSystem.emitting = true;
+        root.dead = false;
+
+        root.rocketParticleSystem.emitting = true;
+        root.groundParticleSystem.emitting = true;
         root.Connect("body_entered", this, "OnBodyEntered");
     }
 
@@ -75,18 +83,16 @@ public class PlayerHoverState : State<Player>
 
     private void ParticlesProcess(float delta)
     {
-        float thrusterT = currentThrusterForce / maxThrusterForce;
+        root.rocketParticleSystem.emissionRate = 64f * thrusterT;
+        root.rocketParticleSystem.velocityMultiply = Mathf.Lerp(.25f, 1f, thrusterT);
 
-        root.thrusterParticleSystem.emissionRate = 64f * thrusterT;
-        root.thrusterParticleSystem.velocityMultiply = Mathf.Lerp(.25f, 1f, thrusterT);
+        root.groundParticleSystem.maxRate = 32f * thrusterT;
+        root.groundParticleSystem.velocityMultiply = Mathf.Lerp(.5f, 1f, thrusterT);
 
-        root.groundThrusterParticleSystem.maxEmissionRate = 64f * thrusterT;
-        root.groundThrusterParticleSystem.velocityMultiply = Mathf.Lerp(.5f, 1f, thrusterT);
-
-        if (startKickOff)
+        /*if (startKickOff)
         {
             root.kickOffParticleSystem.EmitParticle();
-        }
+        }*/
     }
 
     public void OnBodyEntered(Node body)
@@ -132,8 +138,8 @@ public class PlayerHoverState : State<Player>
 
     public override void Exit()
     {
-        root.thrusterParticleSystem.emitting = false;
-        root.groundThrusterParticleSystem.emitting = false;
+        root.rocketParticleSystem.emitting = false;
+        root.groundParticleSystem.emitting = false;
         root.Disconnect("body_entered", this, "OnBodyEntered");
     }
 }
