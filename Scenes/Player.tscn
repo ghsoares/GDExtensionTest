@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=2]
+[gd_scene load_steps=38 format=2]
 
 [ext_resource path="res://Scripts/Player.cs" type="Script" id=1]
 [ext_resource path="res://Textures/Ship.png" type="Texture" id=2]
@@ -10,18 +10,129 @@
 [ext_resource path="res://Scripts/Player/ParticleSystems/PlayerGroundParticleSystem.cs" type="Script" id=8]
 [ext_resource path="res://Scripts/Player/States/PlayerLandedState.cs" type="Script" id=9]
 [ext_resource path="res://Scripts/Player/States/PlayerDeadState.cs" type="Script" id=10]
+[ext_resource path="res://Scripts/Player/States/PlayerNextLevelState.cs" type="Script" id=11]
 
 [sub_resource type="PhysicsMaterial" id=1]
 friction = 0.25
 
-[sub_resource type="CapsuleShape2D" id=2]
+[sub_resource type="Shader" id=2]
+code = "shader_type canvas_item;
+
+uniform float warpMargin = 16f;
+uniform vec2 texSize = vec2(16f);
+uniform sampler2D warpNoise;
+uniform float warpNoiseEaseCurve = -2f;
+uniform float warpTransition : hint_range(0f, 1f);
+uniform float warpTransitionCurve = -2f;
+uniform float warpStretchAmount = 3f;
+uniform sampler2D transitionGradient : hint_black;
+uniform sampler2D energyCurve : hint_black;
+uniform sampler2D transitionGradientMixCurve : hint_black;
+
+float Ease(float x, float c) {
+	if (x < 0f) x = 0f;
+	if (x > 1f) x = 1f;
+	
+	if (c > 0f) {
+		if (c < 1f) {
+			return 1f - pow(1f - x, 1f / c);
+		} else {
+			return pow(x, c);
+		}
+	} else if (c < 0f) {
+		if (x < 0.5f) {
+			return pow(x * 2f, -c) * .5f;
+		} else {
+			return (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;
+		}
+	}
+	
+	return 0f;
+}
+
+void vertex() {
+	VERTEX.y -= (1f - UV.y) * warpMargin;
+	UV.y -= (1f - UV.y) * (warpMargin / texSize.y);
+}
+
+void fragment() {
+	vec2 uv = UV;
+	
+	float warp = texture(warpNoise, clamp(uv, vec2(0f), vec2(1f))).r;
+	warp = Ease(warp, warpNoiseEaseCurve);
+	warp -= 1f;
+	warp += warpTransition * 2f;
+	warp = clamp(warp, 0f, 1f);
+	warp = Ease(warp, warpTransitionCurve);
+	uv.y += warp * (warpMargin / texSize.y);
+	uv.y /= (1f + warp * warpStretchAmount);
+	
+	vec4 transitionColor = texture(transitionGradient, vec2(warp, 0f));
+	transitionColor *= (1f + texture(energyCurve, vec2(warp, 0f)).r);
+	float mixT = texture(transitionGradientMixCurve, vec2(warp, 0f)).r;
+	
+	COLOR *= texture(TEXTURE, uv);
+	COLOR.a *= step(0f, uv.y);
+	COLOR.a *= step(uv.y, 1f);
+	
+	COLOR.rgb = mix(COLOR.rgb, transitionColor.rgb, mixT);
+	COLOR.a = mix(COLOR.a, COLOR.a * transitionColor.a, mixT);
+}
+
+
+
+
+"
+
+[sub_resource type="Curve" id=3]
+_data = [ Vector2( 0, 1 ), 0.0, -1.0, 0, 1, Vector2( 1, 0 ), -1.0, 0.0, 1, 0 ]
+
+[sub_resource type="CurveTexture" id=4]
+curve = SubResource( 3 )
+
+[sub_resource type="Gradient" id=5]
+offsets = PoolRealArray( 0, 0.775801, 1 )
+colors = PoolColorArray( 0, 0.941406, 1, 1, 0, 0.537255, 1, 1, 0, 0.537255, 1, 0 )
+
+[sub_resource type="GradientTexture" id=6]
+gradient = SubResource( 5 )
+
+[sub_resource type="Curve" id=7]
+_data = [ Vector2( 0, 0 ), 0.0, 14.515, 0, 0, Vector2( 0.165268, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 1 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=8]
+curve = SubResource( 7 )
+
+[sub_resource type="OpenSimplexNoise" id=9]
+octaves = 1
+period = 16.0
+
+[sub_resource type="NoiseTexture" id=10]
+width = 256
+height = 1
+noise = SubResource( 9 )
+
+[sub_resource type="ShaderMaterial" id=11]
+shader = SubResource( 2 )
+shader_param/warpMargin = 128.0
+shader_param/texSize = Vector2( 16, 16 )
+shader_param/warpNoiseEaseCurve = -4.0
+shader_param/warpTransition = 0.0
+shader_param/warpTransitionCurve = 8.0
+shader_param/warpStretchAmount = 6.0
+shader_param/warpNoise = SubResource( 10 )
+shader_param/transitionGradient = SubResource( 6 )
+shader_param/energyCurve = SubResource( 4 )
+shader_param/transitionGradientMixCurve = SubResource( 8 )
+
+[sub_resource type="CapsuleShape2D" id=12]
 radius = 6.0
 height = 2.0
 
-[sub_resource type="CircleShape2D" id=3]
+[sub_resource type="CircleShape2D" id=13]
 radius = 2.0
 
-[sub_resource type="Shader" id=4]
+[sub_resource type="Shader" id=14]
 code = "shader_type canvas_item;
 render_mode blend_add;
 
@@ -48,26 +159,26 @@ void fragment() {
 	COLOR.a *= step(0.0, UV.y);
 }"
 
-[sub_resource type="ShaderMaterial" id=5]
-shader = SubResource( 4 )
+[sub_resource type="ShaderMaterial" id=15]
+shader = SubResource( 14 )
 shader_param/ditherScale = 1.0
 shader_param/ditheringMatrix = ExtResource( 7 )
 
-[sub_resource type="QuadMesh" id=6]
+[sub_resource type="QuadMesh" id=16]
 
-[sub_resource type="Curve" id=7]
+[sub_resource type="Curve" id=17]
 _data = [ Vector2( 0, 0.5 ), 0.0, -0.0899085, 0, 0, Vector2( 1, 1 ), -1.04742, 0.0, 0, 0 ]
 
-[sub_resource type="Gradient" id=8]
+[sub_resource type="Gradient" id=18]
 offsets = PoolRealArray( 0, 0.361204, 0.802676, 1 )
 colors = PoolColorArray( 0.08, 0, 0.23, 0, 0, 0.291016, 1, 1, 0, 1.25, 0.876465, 1, 1.5, 1.5, 1.5, 1 )
 
-[sub_resource type="QuadMesh" id=9]
+[sub_resource type="QuadMesh" id=19]
 
-[sub_resource type="Curve" id=10]
+[sub_resource type="Curve" id=20]
 _data = [ Vector2( 0, 0 ), 0.0, 1.4, 0, 0, Vector2( 1, 1 ), 0.0, 0.0, 0, 0 ]
 
-[sub_resource type="Shader" id=11]
+[sub_resource type="Shader" id=21]
 code = "shader_type canvas_item;
 
 uniform sampler2D ditheringMatrix;
@@ -93,22 +204,22 @@ void fragment() {
 	COLOR.a *= step(0.0, UV.y);
 }"
 
-[sub_resource type="ShaderMaterial" id=12]
-shader = SubResource( 11 )
+[sub_resource type="ShaderMaterial" id=22]
+shader = SubResource( 21 )
 shader_param/ditherScale = 1.0
 shader_param/ditheringMatrix = ExtResource( 7 )
 
-[sub_resource type="QuadMesh" id=17]
+[sub_resource type="QuadMesh" id=23]
 
-[sub_resource type="Curve" id=14]
+[sub_resource type="Curve" id=24]
 max_value = 2.0
 _data = [ Vector2( 0, 0.496933 ), 0.0, 0.0, 0, 0, Vector2( 0.918513, 1 ), 0.0, 0.0, 0, 0, Vector2( 0.918513, 2 ), 0.0, 0.0, 0, 0, Vector2( 1, 2 ), -0.243854, 0.0, 0, 0 ]
 
-[sub_resource type="Gradient" id=15]
+[sub_resource type="Gradient" id=25]
 offsets = PoolRealArray( 0, 0.214047, 0.431438, 0.615385, 0.812709, 1 )
 colors = PoolColorArray( 0.180392, 0.14902, 0.168627, 0, 0.180392, 0.145098, 0.172549, 1, 0.180392, 0.145098, 0.172549, 1, 0.893555, 0, 0.204191, 1, 1, 0.873047, 0, 1, 2, 2, 2, 1 )
 
-[sub_resource type="Curve" id=16]
+[sub_resource type="Curve" id=26]
 _data = [ Vector2( 0, 0 ), 0.0, 0.0, 0, 1, Vector2( 0.750791, 0 ), 0.0, 0.0, 0, 0, Vector2( 0.750791, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 1 ), 0.0, 0.0, 1, 0 ]
 
 [node name="Player" type="RigidBody2D"]
@@ -117,71 +228,89 @@ gravity_scale = 0.0
 contacts_reported = 8
 contact_monitor = true
 script = ExtResource( 1 )
+platformZoomDistanceRange = Vector2( 64, 196 )
+maxSafeVelocity = 16.0
 
 [node name="Body" type="Node2D" parent="."]
 
 [node name="Sprite" type="Sprite" parent="Body"]
+material = SubResource( 11 )
 texture = ExtResource( 2 )
 
 [node name="Col" type="CollisionShape2D" parent="."]
 visible = false
 position = Vector2( 0, -1 )
-shape = SubResource( 2 )
+shape = SubResource( 12 )
 
 [node name="Col2" type="CollisionShape2D" parent="."]
 visible = false
 position = Vector2( -6, 6 )
-shape = SubResource( 3 )
+shape = SubResource( 13 )
 
 [node name="Col3" type="CollisionShape2D" parent="."]
 visible = false
 position = Vector2( 6, 6 )
-shape = SubResource( 3 )
+shape = SubResource( 13 )
 
 [node name="Particles" type="Node2D" parent="."]
 
 [node name="Rocket" type="Node2D" parent="Particles"]
-material = SubResource( 5 )
+material = SubResource( 15 )
 position = Vector2( 0, 6 )
 script = ExtResource( 5 )
 local = true
 numParticles = 64
-mesh = SubResource( 6 )
-sizeOverLife = SubResource( 7 )
-colorOverLife = SubResource( 8 )
+mesh = SubResource( 16 )
+sizeOverLife = SubResource( 17 )
+colorOverLife = SubResource( 18 )
+spreadAngleRange = Vector2( 0, 7.5 )
 velocityRange = Vector2( 64, 64 )
 sizeRange = Vector2( 3, 6 )
 lifetimeRange = Vector2( 0.2, 0.4 )
 
+[node name="KickOff" type="Node2D" parent="Particles"]
+material = SubResource( 15 )
+position = Vector2( 0, 6 )
+script = ExtResource( 5 )
+local = true
+numParticles = 64
+mesh = SubResource( 16 )
+sizeOverLife = SubResource( 17 )
+colorOverLife = SubResource( 18 )
+spreadAngleRange = Vector2( 70, 90 )
+velocityRange = Vector2( 32, 32 )
+sizeRange = Vector2( 3, 6 )
+lifetimeRange = Vector2( 0.2, 0.4 )
+
 [node name="Ground" type="Node2D" parent="Particles"]
-material = SubResource( 5 )
+material = SubResource( 15 )
 position = Vector2( 0, 6 )
 script = ExtResource( 8 )
 numParticles = 64
 gravity = Vector2( 0, 0 )
-mesh = SubResource( 9 )
-sizeOverLife = SubResource( 10 )
-colorOverLife = SubResource( 8 )
+mesh = SubResource( 19 )
+sizeOverLife = SubResource( 20 )
+colorOverLife = SubResource( 18 )
 maxRate = 32.0
 maxRange = 48.0
 hitSpread = 32.0
 sizeRange = Vector2( 5, 10 )
 
 [node name="Explosion" type="Node2D" parent="Particles"]
-material = SubResource( 12 )
+material = SubResource( 22 )
 position = Vector2( 0, 6 )
 script = ExtResource( 6 )
 numParticles = 64
 lifetime = 2.0
 gravity = Vector2( 0, -20 )
-mesh = SubResource( 17 )
-sizeOverLife = SubResource( 14 )
-colorOverLife = SubResource( 15 )
+mesh = SubResource( 23 )
+sizeOverLife = SubResource( 24 )
+colorOverLife = SubResource( 25 )
 radius = 4.0
 velocityRange = Vector2( 16, 512 )
 sizeRange = Vector2( 16, 32 )
 lifetimeRange = Vector2( 2, 2.1 )
-dragCurve = SubResource( 16 )
+dragCurve = SubResource( 26 )
 
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource( 3 )
@@ -196,3 +325,6 @@ script = ExtResource( 10 )
 
 [node name="Landed" type="Node" parent="StateMachine"]
 script = ExtResource( 9 )
+
+[node name="NextLevel" type="Node" parent="StateMachine"]
+script = ExtResource( 11 )

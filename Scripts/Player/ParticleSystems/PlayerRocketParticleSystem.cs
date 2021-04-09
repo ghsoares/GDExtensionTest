@@ -7,7 +7,7 @@ public class PlayerRocketParticleSystem : ParticleSystem
 
     [Export] public float emissionRate = 64f;
     [Export] public float spreadRadius = 1f;
-    [Export] public float spreadAngle = 15f;
+    [Export] public Vector2 spreadAngleRange = new Vector2(0f, 15f);
     [Export] public Vector2 direction = Vector2.Down;
     [Export] public Vector2 velocityRange = Vector2.One * 256f;
     [Export] public Vector2 sizeRange = Vector2.One * 4f;
@@ -28,7 +28,9 @@ public class PlayerRocketParticleSystem : ParticleSystem
     protected override void InitParticle(Particle particle, Dictionary<string, object> overrideParams)
     {
         base.InitParticle(particle, overrideParams);
-        Vector2 v = direction.Rotated(Mathf.Deg2Rad((float)GD.RandRange(-spreadAngle, spreadAngle)) / 2f);
+        float angle = (float)GD.RandRange(spreadAngleRange.x, spreadAngleRange.y);
+        angle *= (particle.idx % 2) * 2f - 1f;
+        Vector2 v = direction.Rotated(Mathf.Deg2Rad(angle));
 
         particle.position += v * spreadRadius;
         particle.velocity += v * (float)GD.RandRange(velocityRange.x, velocityRange.y) * velocityMultiply;

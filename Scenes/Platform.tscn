@@ -30,56 +30,93 @@ font_data = ExtResource( 3 )
 [sub_resource type="Shader" id=5]
 code = "shader_type canvas_item;
 
-uniform sampler2D ditherTex;
-uniform sampler2D gradient;
-uniform float pulseFrequency = 2f;
-uniform float pulseMagnitude = .1f;
+uniform sampler2D ditheringMatrix;
+uniform vec2 ditheringSize = vec2(32f);
+uniform sampler2D verticalGradient;
+uniform sampler2D horizontalGradient;
+
+uniform float width = .1f;
+uniform float frequency = 4f;
+uniform float speed = 2f;
+uniform float numWaves = 8f;
+uniform float offset = .1f;
+
 uniform vec2 playerPosition;
 uniform float playerFadeLength = 32f;
 
+varying float time;
 varying vec2 v;
 
+vec2 get_wave(vec2 uv, float off) {
+	float w = width;
+	w *= uv.y;
+	
+	float x = uv.y * radians(360f) * frequency + time * speed + off * radians(360f);
+	float fx = (sin(x) * (1f - w)) * .5f + .5f;
+	float fx2 = (cos(x)) * .5f + .5f;
+	
+	float a = step(fx - w * .5f, uv.x);
+	a *= step(uv.x, fx + w * .5f);
+	
+	return vec2(a, fx2 * a);
+}
+
 void vertex() {
+	time = TIME;
 	v = VERTEX;
 }
 
 void fragment() {
-	vec2 size = v / UV;
+	vec2 uv = UV;
 	
-	vec2 uv = floor(v) / vec2(textureSize(ditherTex, 0));
-	float d = texture(ditherTex, uv).r;
+	vec2 w = get_wave(uv, 0);
 	
-	uv = floor(v) / size;
+	float o = 0f;
+	for (float i = 0f; i < numWaves - 1.1f; i += 1f) {
+		o += offset;
+		vec2 otherW = get_wave(uv, o);
+		float t = step(w.g, otherW.g);
+		w = mix(w, otherW, t);
+	}
 	
-	d += uv.y;
-	d -= (sin(TIME * radians(360f) * pulseFrequency) * .5 + .5) * pulseMagnitude * (1f - uv.y);
+	COLOR.a = w.r;
+	COLOR *= texture(verticalGradient, vec2(UV.y, 0f));
+	COLOR *= texture(horizontalGradient, vec2(w.g, 0f));
 	
-	vec2 playerOff = playerPosition - floor(v);
-	playerOff.y = min(playerOff.y, 0f);
+	vec2 playerOff = (v - playerPosition);
+	playerOff.y = max(playerOff.y, 0f);
+	float t = clamp((length(playerOff) - 4f) / (playerFadeLength - 4f), 0f, 1f);
+	COLOR.a *= t;
 	
-	float dist = length(playerOff);
-	d *= clamp(dist / playerFadeLength, 0f, 1f);
+	float b = COLOR.a + texture(ditheringMatrix, FRAGCOORD.xy / ditheringSize).r;
+	b = step(1f, b);
 	
-	COLOR.a *= step(1f, d);
-	COLOR *= texture(gradient, vec2(UV.y));
-}"
+	COLOR.a = b;
+}
 
-[sub_resource type="Gradient" id=7]
-offsets = PoolRealArray( 0, 0.900356, 1 )
-colors = PoolColorArray( 1, 1, 1, 0.392157, 1, 1, 1, 0.392157, 0, 0.994141, 1, 1 )
 
-[sub_resource type="GradientTexture" id=8]
-gradient = SubResource( 7 )
 
-[sub_resource type="ShaderMaterial" id=6]
+"
+
+[sub_resource type="Gradient" id=9]
+colors = PoolColorArray( 0.149951, 0.450657, 0.749023, 1, 0.0595703, 1, 0.939386, 1 )
+
+[sub_resource type="GradientTexture" id=10]
+gradient = SubResource( 9 )
+
+[sub_resource type="ShaderMaterial" id=8]
 resource_local_to_scene = true
 shader = SubResource( 5 )
-shader_param/pulseFrequency = 0.5
-shader_param/pulseMagnitude = 0.05
-shader_param/playerPosition = Vector2( 0, 0 )
-shader_param/playerFadeLength = 20.0
-shader_param/ditherTex = ExtResource( 2 )
-shader_param/gradient = SubResource( 8 )
+shader_param/ditheringSize = Vector2( 32, 32 )
+shader_param/width = 0.338
+shader_param/frequency = 0.442
+shader_param/speed = 2.0
+shader_param/numWaves = 3.0
+shader_param/offset = 0.333
+shader_param/playerPosition = Vector2( -128, -128 )
+shader_param/playerFadeLength = 32.0
+shader_param/ditheringMatrix = ExtResource( 2 )
+shader_param/horizontalGradient = SubResource( 10 )
 
 [node name="Platform" type="Node2D"]
 script = ExtResource( 1 )
@@ -115,13 +152,13 @@ __meta__ = {
 z_index = 10
 
 [node name="Color" type="ColorRect" parent="Light"]
-material = SubResource( 6 )
+material = SubResource( 8 )
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 margin_left = -16.0
-margin_top = -128.0
+margin_top = -16.0
 margin_right = 16.0
 __meta__ = {
 "_edit_use_anchors_": false

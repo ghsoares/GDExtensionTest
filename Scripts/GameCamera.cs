@@ -40,10 +40,12 @@ public class GameCamera : Camera2D
         currentPosition = currentPosition.LinearInterpolate(desiredPosition, Mathf.Min(1f, delta * lerpSpeed));
         currentZoom = Mathf.Lerp(currentZoom, desiredZoom, Mathf.Min(1f, delta * lerpSpeed));
         
-        GlobalPosition = new Vector2(
+        GlobalPosition = currentPosition;
+
+        /*GlobalPosition = new Vector2(
             Mathf.Floor(currentPosition.x),
             Mathf.Floor(currentPosition.y)
-        );
+        );*/
 
         //Zoom = Vector2.One * currentZoom;
 

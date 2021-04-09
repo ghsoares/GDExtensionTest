@@ -4,7 +4,6 @@ using Godot;
 public class PlayerHoverState : State<Player>
 {
     public float currentThrusterForce {get; private set;}
-    public bool startKickOff {get; private set;}
     public bool kickOff {get; private set;}
     public float currKickOffTime {get; private set;}
 
@@ -26,7 +25,6 @@ public class PlayerHoverState : State<Player>
     public override void Enter()
     {
         currentThrusterForce = 0f;
-        startKickOff = false;
         kickOff = false;
         currKickOffTime = 0f;
 
@@ -42,7 +40,6 @@ public class PlayerHoverState : State<Player>
         MotionProcess(delta);
         ParticlesProcess(delta);
 
-        startKickOff = false;
         GameCamera.instance.desiredZoom = root.CalculatePlatformZoom();
     }
 
@@ -56,7 +53,6 @@ public class PlayerHoverState : State<Player>
         if (Input.IsActionJustPressed("thruster_add") && currentThrusterForce == 0f)
         {
             kickOff = true;
-            startKickOff = true;
             currKickOffTime = kickOffTime;
         }
 
@@ -89,10 +85,8 @@ public class PlayerHoverState : State<Player>
         root.groundParticleSystem.maxRate = 32f * thrusterT;
         root.groundParticleSystem.velocityMultiply = Mathf.Lerp(.5f, 1f, thrusterT);
 
-        /*if (startKickOff)
-        {
-            root.kickOffParticleSystem.EmitParticle();
-        }*/
+        root.kickOffParticleSystem.emitting = kickOff;
+        root.kickOffParticleSystem.emissionRate = 64f * Mathf.Clamp(currKickOffTime / kickOffTime, 0f, 1f);
     }
 
     public void OnBodyEntered(Node body)

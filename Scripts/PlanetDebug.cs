@@ -2,6 +2,7 @@ using Godot;
 
 public class PlanetDebug : Node {
     bool mouseDragging = false;
+    bool debugging = false;
     float cameraZoom = 1f;
     Vector2 cameraPos;
 
@@ -34,7 +35,9 @@ public class PlanetDebug : Node {
     }
 
     public override void _PhysicsProcess(float delta) {
-        if (mouseDragging) {
+        if (Input.IsActionJustPressed("debug_mode")) debugging = !debugging;
+
+        if (debugging) {
             GameCamera.instance.desiredPosition = cameraPos;
             GameCamera.instance.desiredZoom = cameraZoom;
         } else {

@@ -36,12 +36,7 @@ public class PlayerLandedState : State<Player> {
     public override void PhysicsProcess(float delta)
     {
         if (Input.IsActionJustPressed("next_level")) {
-            QueryState("Hover");
+            QueryState("NextLevel");
         }
-    }
-
-    public override void Exit()
-    {
-        root.GlobalTransform = root.startTransform;
     }
 }

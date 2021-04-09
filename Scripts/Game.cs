@@ -29,7 +29,7 @@ public class Game : Control
         if (planet.generating) return;
 
         GameCamera gameCamera = GameCamera.instance;
-        Vector2 cameraScPos = view.CanvasTransform.Xform(gameCamera.currentPosition);
+        Vector2 cameraScPos = gameCamera.GetGlobalTransformWithCanvas().origin;
 
         zoomCamera.Zoom = Vector2.One * gameCamera.currentZoom;
         zoomCamera.Position = cameraScPos;

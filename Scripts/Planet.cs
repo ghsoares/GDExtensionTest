@@ -25,12 +25,6 @@ public class Planet : Control
         Generate();
     }
 
-    public override void _PhysicsProcess(float delta) {
-        if (Input.IsActionJustPressed("ui_select")) {
-            Generate();
-        }
-    }
-
     public void Generate() {
         if (generator != null) {
             generator.QueueFree();
