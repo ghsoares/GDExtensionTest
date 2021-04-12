@@ -11,7 +11,7 @@
 [ext_resource path="res://Scripts/Player/States/PlayerLandedState.cs" type="Script" id=9]
 [ext_resource path="res://Scripts/Player/States/PlayerDeadState.cs" type="Script" id=10]
 [ext_resource path="res://Scripts/Player/States/PlayerNextLevelState.cs" type="Script" id=11]
-[ext_resource path="res://Scripts/WaterAgent.cs" type="Script" id=12]
+[ext_resource path="res://Scripts/LiquidAgent.cs" type="Script" id=12]
 
 [sub_resource type="PhysicsMaterial" id=1]
 friction = 0.25
