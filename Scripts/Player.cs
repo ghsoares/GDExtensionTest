@@ -5,6 +5,7 @@ public class Player : RigidBody2D
 {
     public static Player instance;
 
+    public WaterAgent waterAgent {get; set;}
     public Node2D body {get; set;}
     public Sprite sprite {get; set;}
     public Transform2D startTransform {get; set;}
@@ -28,6 +29,7 @@ public class Player : RigidBody2D
 
     public override void _Ready()
     {
+        waterAgent = GetNode<WaterAgent>("WaterAgent");
         body = GetNode<Node2D>("Body");
         sprite = GetNode<Sprite>("Body/Sprite");
 
@@ -42,6 +44,13 @@ public class Player : RigidBody2D
 
         startTransform = GlobalTransform;
         groundParticleSystem.AddIgnoreObject(this);
+
+        if (!waterAgent.IsConnected("OnLiquidBodyEnter", this, "OnLiquidBodyEnter")) {
+            waterAgent.Connect("OnLiquidBodyEnter", this, "OnLiquidBodyEnter");
+        }
+        if (!waterAgent.IsConnected("OnLiquidBodyExit", this, "OnLiquidBodyExit")) {
+            waterAgent.Connect("OnLiquidBodyExit", this, "OnLiquidBodyExit");
+        }
     }
 
     public override void _PhysicsProcess(float delta)
@@ -50,9 +59,6 @@ public class Player : RigidBody2D
         if (Mode != RigidBody2D.ModeEnum.Static) {
             LinearVelocity += Planet.instance.gravity * delta;
         }
-        RotationDegrees = Mathf.Round(RotationDegrees);
-
-        GameCamera.instance.desiredPosition = GlobalPosition;
     }
 
     public float CalculatePlatformZoom() {
@@ -89,5 +95,13 @@ public class Player : RigidBody2D
                 (c as CollisionShape2D).Disabled = !enabled;
             }
         }
+    }
+
+    public void OnLiquidBodyEnter(LiquidBody liquid) {
+        GD.Print("Enter: " + liquid);
+    }
+
+    public void OnLiquidBodyExit(LiquidBody liquid) {
+        GD.Print("Exit: " + liquid);
     }
 }

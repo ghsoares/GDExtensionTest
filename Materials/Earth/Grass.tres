@@ -1,0 +1,48 @@
+[gd_resource type="ShaderMaterial" load_steps=8 format=2]
+
+[ext_resource path="res://Shaders/Grass.shader" type="Shader" id=1]
+
+[sub_resource type="Gradient" id=2]
+offsets = PoolRealArray( 0, 0.366548, 0.818505 )
+colors = PoolColorArray( 0.132299, 0.716797, 0.422265, 1, 0.419608, 1, 0.356863, 1, 0.702244, 1, 0.672852, 1 )
+
+[sub_resource type="GradientTexture" id=3]
+gradient = SubResource( 2 )
+
+[sub_resource type="OpenSimplexNoise" id=4]
+octaves = 2
+
+[sub_resource type="NoiseTexture" id=5]
+seamless = true
+noise = SubResource( 4 )
+
+[sub_resource type="OpenSimplexNoise" id=6]
+octaves = 1
+period = 2.0
+
+[sub_resource type="NoiseTexture" id=7]
+noise = SubResource( 6 )
+
+[resource]
+resource_local_to_scene = true
+shader = ExtResource( 1 )
+shader_param/grassHeightMapSize = 512.0
+shader_param/grassAmountNoiseSize = 512.0
+shader_param/grassAmountHeightMapCurve = -2.0
+shader_param/grassAmountNoiseCurve = -10.0
+shader_param/grassAmount = 0.519
+shader_param/size = Vector2( 4096, 16 )
+shader_param/windSpeed = 16.0
+shader_param/windFrequency = 0.25
+shader_param/playerTransform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 128, -62.598, 0 )
+shader_param/playerDistortionDistance = 20.0
+shader_param/playerDistortionAmount = 20.0
+shader_param/playerThrusterPercentage = 0.0
+shader_param/playerThrusterLength = 80.0
+shader_param/playerThrusterAngleRange = Vector2( 15, 45 )
+shader_param/playerThrusterDistortionAmount = 8.0
+shader_param/playerThrusterDistortionSpeed = 4.0
+shader_param/playerThrusterDistortionFrequency = 0.05
+shader_param/grassHeightMap = SubResource( 7 )
+shader_param/grassAmountNoise = SubResource( 5 )
+shader_param/gradient = SubResource( 3 )

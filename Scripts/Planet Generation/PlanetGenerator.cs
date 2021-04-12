@@ -3,13 +3,13 @@ using System;
 using System.Collections.Generic;
 
 public class PlanetGenerator : Control {
-    public Planet planet;
-    Grass grass;
+    public Planet planet {get; set;}
+    protected Terrain terrain {get; set;}
+    protected PlatformPlacer platformPlacer {get; set;}
 
     public virtual void Configure() {
-        Terrain terrain = new Terrain();
-        PlatformPlacer platformPlacer = new PlatformPlacer();
-        grass = new Grass();
+        terrain = new Terrain();
+        platformPlacer = new PlatformPlacer();
 
         planet.terrain = terrain;
         planet.platformPlacer = platformPlacer;
@@ -20,40 +20,18 @@ public class PlanetGenerator : Control {
 
         platformPlacer.planet = planet;
 
-        grass.planet = planet;
-        grass.resolution = terrain.visualResolution;
-        grass.height = 16f;
-        grass.Material = ResourceLoader.Load<ShaderMaterial>("res://Materials/Grass.tres");
-
         planet.gravity = Vector2.Down * 49f;
+
+        AddChild(planet.terrain);
+        AddChild(planet.platformPlacer);
     }
 
     public virtual void Generate() {
         RectSize = planet.size;
 
-        AddChild(grass);
-        AddChild(planet.terrain);
-        AddChild(planet.platformPlacer);
-        planet.platformPlacer.Scatter();
-        planet.terrain.Generate();
-        grass.Create();
+        planet.windSpeed = Vector2.Right * 16f;
 
-        List<Rect2> valleys = planet.terrain.valleys;
-
-        Rect2 r = valleys[valleys.Count / 2];
-        r = r.GrowIndividual(1f, -1f, 1f, 1f);
-
-        r.Size = new Vector2(
-            Mathf.Floor(r.Size.x),
-            Mathf.Floor(r.Size.y)
-        );
-
-        ShaderMaterial liquidMaterial = ResourceLoader.Load<ShaderMaterial>("res://Materials/Liquid.tres");
-        LiquidBody liquid = new LiquidBody();
-        liquid.Material = liquidMaterial;
-        liquid.RectPosition = r.Position;
-        liquid.RectSize = r.Size;
-
-        AddChild(liquid);
+        platformPlacer.Scatter();
+        terrain.Generate();
     }
 }

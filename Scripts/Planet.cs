@@ -10,6 +10,8 @@ public class Planet : Control
     public Terrain terrain {get; set;}
     public PlatformPlacer platformPlacer {get; set;}
 
+    public Vector2 windSpeed {get; set;}
+
     public Player player {get; set;}
     public GameCamera gameCamera {get; set;}
 
@@ -38,7 +40,7 @@ public class Planet : Control
             AddChild(gameCamera);
         }
 
-        generator = new PlanetGenerator();
+        generator = new AquantisPlanetGenerator();
         generator.planet = this;
 
         AddChild(generator);

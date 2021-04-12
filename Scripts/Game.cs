@@ -10,9 +10,14 @@ public class Game : Control
     public override void _Ready()
     {
         base._Ready();
+
+        Engine.TargetFps = 30;
+
         view = GetNode<Viewport>("View");
         zoomCamera = GetNode<Camera2D>("ZoomCamera");
         planet = GetNode<Planet>("View/Planet");
+
+        PlayerData.ResetSession();
     }
 
     public override void _Input(InputEvent ev)

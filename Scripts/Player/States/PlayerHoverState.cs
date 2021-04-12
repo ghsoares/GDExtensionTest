@@ -40,6 +40,7 @@ public class PlayerHoverState : State<Player>
         MotionProcess(delta);
         ParticlesProcess(delta);
 
+        GameCamera.instance.desiredPosition = root.GlobalPosition;
         GameCamera.instance.desiredZoom = root.CalculatePlatformZoom();
     }
 
@@ -67,6 +68,11 @@ public class PlayerHoverState : State<Player>
         currentThrusterForce += thrusterAdd * thrusterAddRate * delta;
         currentThrusterForce = Mathf.Clamp(currentThrusterForce, 0, maxThrusterForce);
 
+        if (PlayerData.sessionCurrentFuel <= 0f) {
+            currentThrusterForce = 0f;
+            kickOff = false;
+        }
+
         root.LinearVelocity += -root.GlobalTransform.y * currentThrusterForce * forceMultiply * delta / (1f + root.Mass);
         root.AngularVelocity += angAdd * angularAcceleration * delta / (1f + root.Mass);
 
@@ -75,6 +81,8 @@ public class PlayerHoverState : State<Player>
 
         root.LinearVelocity = root.LinearVelocity.Clamped(maxVelocity);
         root.AngularVelocity = Mathf.Clamp(root.AngularVelocity, -maxAngularVelocity, maxAngularVelocity);
+    
+        PlayerData.sessionCurrentFuel -= PlayerData.fuelLossRate * currentThrusterForce * delta;
     }
 
     private void ParticlesProcess(float delta)

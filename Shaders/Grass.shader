@@ -1,7 +1,4 @@
-[gd_resource type="ShaderMaterial" load_steps=8 format=2]
-
-[sub_resource type="Shader" id=1]
-code = "shader_type canvas_item;
+shader_type canvas_item;
 
 uniform sampler2D grassHeightMap;
 uniform sampler2D grassAmountNoise;
@@ -14,7 +11,7 @@ uniform float grassAmount : hint_range(0f, 1f) = 1f;
 uniform vec2 size = vec2(4096f, 16f);
 
 uniform float windSpeed = 4f;
-uniform float windFrequency = 1f;
+uniform float windFrequency = 32f;
 uniform mat4 playerTransform;
 uniform float playerDistortionDistance = 32f;
 uniform float playerDistortionAmount = 16f;
@@ -108,49 +105,4 @@ void fragment() {
 	
 	COLOR *= texture(gradient, vec2(t));
 	COLOR.a *= step(t, 1f);
-}"
-
-[sub_resource type="Gradient" id=8]
-offsets = PoolRealArray( 0, 0.366548, 0.818505 )
-colors = PoolColorArray( 0.347656, 0.347656, 0.347656, 1, 0.738281, 0.738281, 0.738281, 1, 1, 1, 1, 1 )
-
-[sub_resource type="GradientTexture" id=9]
-gradient = SubResource( 8 )
-
-[sub_resource type="OpenSimplexNoise" id=4]
-octaves = 2
-
-[sub_resource type="NoiseTexture" id=5]
-seamless = true
-noise = SubResource( 4 )
-
-[sub_resource type="OpenSimplexNoise" id=6]
-octaves = 1
-period = 2.0
-
-[sub_resource type="NoiseTexture" id=7]
-noise = SubResource( 6 )
-
-[resource]
-resource_local_to_scene = true
-shader = SubResource( 1 )
-shader_param/grassHeightMapSize = 512.0
-shader_param/grassAmountNoiseSize = 512.0
-shader_param/grassAmountHeightMapCurve = -2.0
-shader_param/grassAmountNoiseCurve = -2.0
-shader_param/grassAmount = 0.423
-shader_param/size = Vector2( 4096, 16 )
-shader_param/windSpeed = 16.0
-shader_param/windFrequency = 1.0
-shader_param/playerTransform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 128, -62.598, 0 )
-shader_param/playerDistortionDistance = 20.0
-shader_param/playerDistortionAmount = 20.0
-shader_param/playerThrusterPercentage = 0.0
-shader_param/playerThrusterLength = 80.0
-shader_param/playerThrusterAngleRange = Vector2( 15, 45 )
-shader_param/playerThrusterDistortionAmount = 8.0
-shader_param/playerThrusterDistortionSpeed = 4.0
-shader_param/playerThrusterDistortionFrequency = 0.05
-shader_param/grassHeightMap = SubResource( 7 )
-shader_param/grassAmountNoise = SubResource( 5 )
-shader_param/gradient = SubResource( 9 )
+}

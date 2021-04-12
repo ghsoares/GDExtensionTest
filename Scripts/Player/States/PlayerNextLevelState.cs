@@ -21,7 +21,7 @@ public class PlayerNextLevelState : State<Player> {
         float t = 1f - Mathf.Clamp(currTransitionTime / transitionTime, 0f, 1f);
         transitionMaterial.SetShaderParam("warpTransition", t);
         if (currTransitionTime <= 0f) {
-            QueryState("Hover");
+            Planet.instance.Generate();
         }
     }
 

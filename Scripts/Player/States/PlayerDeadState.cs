@@ -15,6 +15,8 @@ public class PlayerDeadState : State<Player> {
         root.dead = true;
         
         root.explosionParticleSystem.Emit();
+
+        root.GlobalPosition = Vector2.One * -128f;
         GameCamera.instance.desiredZoom = root.platformZoomRange.y;
     }
 

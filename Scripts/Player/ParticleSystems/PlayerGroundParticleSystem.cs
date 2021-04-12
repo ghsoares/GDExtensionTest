@@ -19,9 +19,9 @@ public class PlayerGroundParticleSystem : ParticleSystem
         if (!ignoreObjects.Contains(node)) ignoreObjects.Add(node);
     }
 
-    protected override void UpdateSystem(float delta)
+    protected override void EmissionProcess(float delta)
     {
-        base.UpdateSystem(delta);
+        base.EmissionProcess(delta);
         Vector2 from = GlobalPosition;
         Vector2 to = from + GlobalTransform.y * maxRange;
 

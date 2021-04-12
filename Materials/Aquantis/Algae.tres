@@ -14,7 +14,7 @@ uniform float grassAmount : hint_range(0f, 1f) = 1f;
 uniform vec2 size = vec2(4096f, 16f);
 
 uniform float windSpeed = 4f;
-uniform float windFrequency = 1f;
+uniform float windFrequency = 32f;
 uniform mat4 playerTransform;
 uniform float playerDistortionDistance = 32f;
 uniform float playerDistortionAmount = 16f;
@@ -25,9 +25,15 @@ uniform float playerThrusterDistortionAmount = 64f;
 uniform float playerThrusterDistortionSpeed = 2f;
 uniform float playerThrusterDistortionFrequency = 2f;
 
+uniform float sineFrequency = 1f;
+uniform float sineMagnitude = 2f;
+uniform float sineSpeed = 1f;
+uniform float sineSpacing = .1f;
+
 varying vec2 v;
 varying vec2 localV;
 varying float time;
+varying float instance_id;
 
 float Ease(float x, float c) {
 	x = clamp(x, 0f, .999f);
@@ -91,7 +97,8 @@ void fragment() {
 	pos += dist.xy;
 	
 	float wind = sin(pos.x * pi * (windFrequency * .01f) + windSpeed * time) * .5 + .5;
-	pos.x += wind * (windSpeed * .02f) * pos.y;
+	//pos.x += wind * (windSpeed * .02f) * pos.y;
+	pos.x += sin((pos.y + pos.x * sineSpacing * 0.01f) * sineFrequency * pi + sineSpeed * TIME * pi) * sineMagnitude * (pos.y / size.y);
 	
 	float h = texture(grassHeightMap, pos.xx / grassHeightMapSize).r;
 	h = Ease(h, grassAmountHeightMapCurve);
@@ -110,15 +117,14 @@ void fragment() {
 	COLOR.a *= step(t, 1f);
 }"
 
-[sub_resource type="Gradient" id=8]
+[sub_resource type="Gradient" id=2]
 offsets = PoolRealArray( 0, 0.366548, 0.818505 )
-colors = PoolColorArray( 0.347656, 0.347656, 0.347656, 1, 0.738281, 0.738281, 0.738281, 1, 1, 1, 1, 1 )
+colors = PoolColorArray( 0.0814419, 0.646484, 0.153176, 1, 0.137695, 1, 0.186537, 1, 0.290039, 1, 0.380171, 1 )
 
-[sub_resource type="GradientTexture" id=9]
-gradient = SubResource( 8 )
+[sub_resource type="GradientTexture" id=3]
+gradient = SubResource( 2 )
 
 [sub_resource type="OpenSimplexNoise" id=4]
-octaves = 2
 
 [sub_resource type="NoiseTexture" id=5]
 seamless = true
@@ -126,7 +132,7 @@ noise = SubResource( 4 )
 
 [sub_resource type="OpenSimplexNoise" id=6]
 octaves = 1
-period = 2.0
+period = 3.0
 
 [sub_resource type="NoiseTexture" id=7]
 noise = SubResource( 6 )
@@ -136,21 +142,25 @@ resource_local_to_scene = true
 shader = SubResource( 1 )
 shader_param/grassHeightMapSize = 512.0
 shader_param/grassAmountNoiseSize = 512.0
-shader_param/grassAmountHeightMapCurve = -2.0
-shader_param/grassAmountNoiseCurve = -2.0
-shader_param/grassAmount = 0.423
-shader_param/size = Vector2( 4096, 16 )
+shader_param/grassAmountHeightMapCurve = -5.0
+shader_param/grassAmountNoiseCurve = -8.0
+shader_param/grassAmount = 0.519
+shader_param/size = Vector2( 4096, 32 )
 shader_param/windSpeed = 16.0
-shader_param/windFrequency = 1.0
-shader_param/playerTransform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 128, -62.598, 0 )
-shader_param/playerDistortionDistance = 20.0
+shader_param/windFrequency = 0.25
+shader_param/playerTransform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 64, 0, 0 )
+shader_param/playerDistortionDistance = 32.0
 shader_param/playerDistortionAmount = 20.0
-shader_param/playerThrusterPercentage = 0.0
+shader_param/playerThrusterPercentage = 1.0
 shader_param/playerThrusterLength = 80.0
 shader_param/playerThrusterAngleRange = Vector2( 15, 45 )
 shader_param/playerThrusterDistortionAmount = 8.0
 shader_param/playerThrusterDistortionSpeed = 4.0
 shader_param/playerThrusterDistortionFrequency = 0.05
+shader_param/sineFrequency = 0.05
+shader_param/sineMagnitude = 3.0
+shader_param/sineSpeed = -1.0
+shader_param/sineSpacing = 14.407
 shader_param/grassHeightMap = SubResource( 7 )
 shader_param/grassAmountNoise = SubResource( 5 )
-shader_param/gradient = SubResource( 9 )
+shader_param/gradient = SubResource( 3 )

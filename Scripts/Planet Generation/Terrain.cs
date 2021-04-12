@@ -28,6 +28,8 @@ public class Terrain : ColorRect
 
     public List<Rect2> mountains {get; private set;}
     public List<Rect2> valleys {get; private set;}
+    public float maxY {get; private set;}
+    public float minY {get; private set;}
 
     public float SampleNoise(float x)
     {
@@ -138,6 +140,10 @@ public class Terrain : ColorRect
 
     public void SampleMountainsAndValleys() {
         Vector2 size = planet.size;
+
+        minY = size.y;
+        maxY = 0f;
+
         var spaceState = GetWorld2d().DirectSpaceState;
 
         float spacing = 1f/visualResolution;
@@ -157,6 +163,9 @@ public class Terrain : ColorRect
             regionMin.y = Mathf.Min(regionMin.y, y);
             regionMax.y = Mathf.Max(regionMax.y, y);
             regionMax.x = x;
+
+            minY = Mathf.Min(minY, y);
+            maxY = Mathf.Max(maxY, y);
 
             if (thisDir != dir && thisDir != 0) {
                 blocks.Add(new Rect2(regionMin, regionMax - regionMin));
@@ -213,7 +222,7 @@ public class Terrain : ColorRect
                     startX,         startY,
                     endX - startX,  endY - startY
                 );
-                valleys.Add(r);
+                mountains.Add(r);
             }
 
             dir *= -1;

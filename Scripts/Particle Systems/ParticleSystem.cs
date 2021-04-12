@@ -36,7 +36,7 @@ public class ParticleSystem : Node2D
     [Export] public Curve sizeOverLife;
     [Export] public Gradient colorOverLife;
 
-    public void ResetMultimesh()
+    public virtual void ResetMultimesh()
     {
         if (mesh == null)
         {
@@ -52,7 +52,7 @@ public class ParticleSystem : Node2D
         multimesh.InstanceCount = numParticles;
     }
 
-    public void ResetParticles()
+    public virtual void ResetParticles()
     {
         aliveParticles = 0;
         particles = new Particle[numParticles];
@@ -66,7 +66,7 @@ public class ParticleSystem : Node2D
         }
     }
 
-    public void ResetIfNeeded()
+    public virtual void ResetIfNeeded()
     {
         if (particles == null || particles.Length != numParticles)
         {
@@ -121,7 +121,6 @@ public class ParticleSystem : Node2D
 
     public virtual void EmitParticle(Dictionary<String, object> overrideParams = null, bool update = true)
     {
-        if (!emitting) return;
         if (overrideParams == null) overrideParams = new Dictionary<string, object>();
         for (int i = 0; i < numParticles; i++)
         {
@@ -173,7 +172,13 @@ public class ParticleSystem : Node2D
 
         prevPos = GlobalPosition;
         externalForces = Vector2.Zero;
+
+        if (emitting) {
+            EmissionProcess(delta);
+        }
     }
+
+    protected virtual void EmissionProcess(float delta) {}
 
     protected virtual void InitParticle(Particle particle, Dictionary<String, object> overrideParams)
     {
@@ -222,6 +227,13 @@ public class ParticleSystem : Node2D
         {
             particle.color = particle.startColor * colorOverLife.Interpolate(lifeT);
         }
+
+        Color dataColor = particle.customDataVertex;
+
+        dataColor.r = particle.position.x;
+        dataColor.g = particle.position.y;
+
+        particle.customDataVertex = dataColor;
     }
 
     protected virtual void DestroyParticle(Particle particle) { }
@@ -251,6 +263,7 @@ public class ParticleSystem : Node2D
 
                     multimesh.SetInstanceTransform2d(visibleParticles, t);
                     multimesh.SetInstanceColor(visibleParticles, particle.color);
+                    multimesh.SetInstanceCustomData(visibleParticles, particle.customDataVertex);
                     visibleParticles++;
                 }
             }

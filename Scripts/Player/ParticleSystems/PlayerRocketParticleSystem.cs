@@ -13,9 +13,9 @@ public class PlayerRocketParticleSystem : ParticleSystem
     [Export] public Vector2 sizeRange = Vector2.One * 4f;
     [Export] public Vector2 lifetimeRange = Vector2.One;
 
-    protected override void UpdateSystem(float delta)
+    protected override void EmissionProcess(float delta)
     {
-        base.UpdateSystem(delta);
+        base.EmissionProcess(delta);
         currentRate += delta * emissionRate;
 
         while (currentRate >= 1f)

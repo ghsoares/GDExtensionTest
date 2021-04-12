@@ -1,6 +1,10 @@
 using Godot;
 
 public class Grass : Line2D {
+    Transform2D playerTransform {get; set;}
+
+    public float totalSize {get; private set;}
+
     public ShaderMaterial mat;
     public Planet planet;
     public float sizeScale = 1f;
@@ -16,12 +20,19 @@ public class Grass : Line2D {
         int numPoints = Mathf.CeilToInt(planet.size.x * resolution);
 
         ClearPoints();
+        totalSize = 0f;
+        Vector2 prevP = new Vector2(0f, terrain.GetTerrainY(0));
 
         for (int i = numPoints - 1; i >= 0; i--) {
             float x = i / resolution;
             x = Mathf.Min(x, planet.size.x);
             float y = terrain.GetTerrainY(x);
-            AddPoint(new Vector2(x, y));
+            Vector2 p = new Vector2(x, y);
+            AddPoint(p);
+            
+            float l = (p - prevP).Length();
+            totalSize += l;
+            prevP = p;
         }
 
         Width = height * 2f;
@@ -29,33 +40,32 @@ public class Grass : Line2D {
         TextureMode = LineTextureMode.Stretch;
 
         if (mat != null) {
-            mat.SetShaderParam("size", new Vector2(planet.size.x * sizeScale, height));
+            mat.SetShaderParam("size", new Vector2(totalSize * sizeScale, height));
         }
     }
 
-    public override void _Process(float delta)
+    public override void _PhysicsProcess(float delta)
     {
         if (mat != null) {
-            if (!Player.instance.dead) {
-                Transform2D playerTransform = Player.instance.GlobalTransform;
-                float heightDiff = planet.terrain.GetTerrainY(playerTransform.origin.x) - playerTransform.origin.y;
-                heightDiff -= 16f;
-                float t = 1f - Mathf.Clamp(heightDiff / playerThrusterAngleTransitionLength, 0f, 1f);
-                Vector2 thrusterAngleRange = playerThrusterAngleRangeMin.LinearInterpolate(playerThrusterAngleRangeMax, t);
-                playerTransform = GlobalTransform.AffineInverse() * playerTransform;
+            mat.SetShaderParam("windSpeed", planet.windSpeed.x);
+            
+            Transform2D currentPlayerTransform = Player.instance.GlobalTransform;
+            float heightDiff = planet.terrain.GetTerrainY(currentPlayerTransform.origin.x) - currentPlayerTransform.origin.y;
+            heightDiff -= 16f;
+            float t = 1f - Mathf.Clamp(heightDiff / playerThrusterAngleTransitionLength, 0f, 1f);
+            Vector2 thrusterAngleRange = playerThrusterAngleRangeMin.LinearInterpolate(playerThrusterAngleRangeMax, t);
+            currentPlayerTransform = GlobalTransform.AffineInverse() * currentPlayerTransform;
 
-                mat.SetShaderParam("playerTransform", playerTransform);
-                mat.SetShaderParam("playerThrusterAngleRange", thrusterAngleRange);
+            playerTransform = playerTransform.InterpolateWith(currentPlayerTransform, Mathf.Clamp(4f * delta, 0f, 1f));
 
-                State<Player> playerCurrentState = Player.instance.stateMachine.currentState;
-                if (playerCurrentState is PlayerHoverState) {
-                    PlayerHoverState state = (PlayerHoverState)playerCurrentState;
-                    mat.SetShaderParam("playerThrusterPercentage", state.thrusterT);
-                } else {
-                    mat.SetShaderParam("playerThrusterPercentage", 0f);
-                }
+            mat.SetShaderParam("playerTransform", playerTransform);
+            mat.SetShaderParam("playerThrusterAngleRange", thrusterAngleRange);
+
+            State<Player> playerCurrentState = Player.instance.stateMachine.currentState;
+            if (playerCurrentState is PlayerHoverState) {
+                PlayerHoverState state = (PlayerHoverState)playerCurrentState;
+                mat.SetShaderParam("playerThrusterPercentage", state.thrusterT);
             } else {
-                mat.SetShaderParam("playerTransform", Transform2D.Identity);
                 mat.SetShaderParam("playerThrusterPercentage", 0f);
             }
         }

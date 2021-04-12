@@ -9,17 +9,17 @@ _data = [ Vector2( 0, 0.840491 ), 0.0, -8.46119, 0, 1, Vector2( 0.10151, -0.0184
 [sub_resource type="CurveTexture" id=2]
 curve = SubResource( 1 )
 
-[sub_resource type="Gradient" id=7]
-colors = PoolColorArray( 0.0927734, 0.0927734, 0.0927734, 1, 1, 1, 1, 1 )
+[sub_resource type="Gradient" id=3]
+colors = PoolColorArray( 0.174805, 0.119837, 0, 1, 1, 0.857965, 0.356445, 1 )
 
-[sub_resource type="GradientTexture" id=8]
-gradient = SubResource( 7 )
+[sub_resource type="GradientTexture" id=4]
+gradient = SubResource( 3 )
 
-[sub_resource type="OpenSimplexNoise" id=9]
+[sub_resource type="OpenSimplexNoise" id=5]
 
-[sub_resource type="NoiseTexture" id=10]
+[sub_resource type="NoiseTexture" id=6]
 seamless = true
-noise = SubResource( 9 )
+noise = SubResource( 5 )
 
 [resource]
 shader = ExtResource( 1 )
@@ -27,10 +27,10 @@ shader_param/terrainSize = Vector2( 1024, 640 )
 shader_param/terrainResolution = 0.25
 shader_param/terrainNoiseTiling = 256.0
 shader_param/terrainNoiseDistortionTiling = 333.0
-shader_param/terrainNoiseDistortionAmount = 0.0
+shader_param/terrainNoiseDistortionAmount = 32.0
 shader_param/terrainNoiseEaseCurve = -2.0
 shader_param/terrainNoiseSteps = 8.0
 shader_param/heightRemapCurveRange = 512.0
-shader_param/terrainNoise = SubResource( 10 )
+shader_param/terrainNoise = SubResource( 6 )
 shader_param/heightRemapCurve = SubResource( 2 )
-shader_param/terrainGradient = SubResource( 8 )
+shader_param/terrainGradient = SubResource( 4 )
