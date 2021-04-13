@@ -1,0 +1,52 @@
+[gd_resource type="ShaderMaterial" load_steps=9 format=2]
+
+[ext_resource path="res://Textures/BayerMatrixDithering.png" type="Texture" id=1]
+[ext_resource path="res://Shaders/Clouds.shader" type="Shader" id=2]
+
+[sub_resource type="Curve" id=1]
+min_value = -1.0
+max_value = 2.0
+_data = [ Vector2( 0, 2 ), 0.0, 0.0, 0, 0, Vector2( 0.870946, -0.51227 ), -0.204666, -0.204666, 0, 0, Vector2( 1, 2 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=2]
+curve = SubResource( 1 )
+
+[sub_resource type="Gradient" id=3]
+offsets = PoolRealArray( 0, 0.51105, 1 )
+colors = PoolColorArray( 0.776471, 0.745098, 0.717647, 1, 1, 0.952941, 0.831373, 1, 1, 1, 0.87793, 1 )
+
+[sub_resource type="GradientTexture" id=4]
+gradient = SubResource( 3 )
+
+[sub_resource type="OpenSimplexNoise" id=5]
+octaves = 2
+
+[sub_resource type="NoiseTexture" id=6]
+seamless = true
+bump_strength = 32.0
+noise = SubResource( 5 )
+
+[resource]
+shader = ExtResource( 2 )
+shader_param/globalTransform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+shader_param/noiseLod = 2.0
+shader_param/noiseOffset = Vector2( 0, 0 )
+shader_param/noiseMotion = Vector2( 0.025, 0 )
+shader_param/noisePeriod = Vector2( 512, 384 )
+shader_param/noiseOffsetPeriod = Vector2( 1, 1 )
+shader_param/noiseOctaves = 2
+shader_param/noiseLacunarity = 2.0
+shader_param/noiseOffsetLacunarity = 2.5
+shader_param/noisePersistance = 0.339
+shader_param/noiseEaseCurve = -4.0
+shader_param/noiseBumpness = 32.0
+shader_param/noiseThreshold = 0.413
+shader_param/lightDirection = Vector3( -9.669, 8, 0 )
+shader_param/dotMultiply = 1.0
+shader_param/ditheringSize = Vector2( 32, 32 )
+shader_param/ditheringInfluence = 0.0
+shader_param/dotSteps = 4.0
+shader_param/noise = SubResource( 6 )
+shader_param/fadeCurve = SubResource( 2 )
+shader_param/ditheringTexture = ExtResource( 1 )
+shader_param/lightGradient = SubResource( 4 )

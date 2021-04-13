@@ -119,7 +119,9 @@ public class ParticleSystem : Node2D
         Update();
     }
 
-    public virtual void EmitParticle(Dictionary<String, object> overrideParams = null, bool update = true)
+    public virtual void Emit() {}
+
+    public virtual void EmitParticle(Dictionary<string, object> overrideParams = null, bool update = true)
     {
         if (overrideParams == null) overrideParams = new Dictionary<string, object>();
         for (int i = 0; i < numParticles; i++)

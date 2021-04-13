@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using Godot;
 
 public class EarthPlanetGenerator : PlanetGenerator {
-    List<LiquidBody> liquidBodies {get; set;}
     Grass grass;
+    Line2D clouds;
+    ShaderMaterial cloudsShaderMaterial;
+    List<LiquidBody> liquidBodies;
     Control liquidBodiesRoot;
 
     public override void Configure() {
@@ -12,6 +14,8 @@ public class EarthPlanetGenerator : PlanetGenerator {
         terrain.Material = ResourceLoader.Load<ShaderMaterial>("res://Materials/Earth/Terrain.tres");
 
         grass = new Grass();
+        clouds = new Line2D();
+
         liquidBodies = new List<LiquidBody>();
         liquidBodiesRoot = new Control();
 
@@ -20,6 +24,13 @@ public class EarthPlanetGenerator : PlanetGenerator {
         grass.height = 16f;
         grass.Material = ResourceLoader.Load<ShaderMaterial>("res://Materials/Earth/Grass.tres");
 
+
+        cloudsShaderMaterial = ResourceLoader.Load<ShaderMaterial>("res://Materials/Earth/Clouds.tres");
+        clouds.Material = cloudsShaderMaterial;
+        clouds.DefaultColor = Colors.White;
+        clouds.Width = 256f;
+        clouds.TextureMode = Line2D.LineTextureMode.Stretch;
+
         liquidBodiesRoot.RectSize = planet.size;
 
         AddChild(grass);
@@ -27,6 +38,8 @@ public class EarthPlanetGenerator : PlanetGenerator {
 
         terrain.Raise();
         platformPlacer.Raise();
+
+        //AddChild(clouds);
     }
 
     public override void Generate()
@@ -35,7 +48,14 @@ public class EarthPlanetGenerator : PlanetGenerator {
 
         grass.Create();
 
+        clouds.AddPoint(new Vector2(0f, 256f));
+        clouds.AddPoint(new Vector2(planet.size.x, 256f));
+
+        cloudsShaderMaterial.SetShaderParam("lineSize", new Vector2(planet.size.x, clouds.Width));
+
         List<Rect2> valleys = terrain.valleys;
+
+        ShaderMaterial mat = ResourceLoader.Load<ShaderMaterial>("res://Materials/Earth/Liquid.tres");
 
         foreach (Rect2 r in valleys) {
             if (GD.Randf() > .5f) continue;
@@ -50,7 +70,7 @@ public class EarthPlanetGenerator : PlanetGenerator {
             LiquidBody liquid = new LiquidBody();
 
             liquid.windStrength = Mathf.Abs(planet.windSpeed.x);
-            liquid.Material = GD.Load<ShaderMaterial>("res://Materials/Earth/Liquid.tres");
+            liquid.Material = mat.Duplicate() as ShaderMaterial;
             liquid.RectPosition = extentedR.Position;
             liquid.RectSize = extentedR.Size;
 

@@ -2,26 +2,26 @@
 
 [ext_resource path="res://Shaders/Grass.shader" type="Shader" id=1]
 
-[sub_resource type="Gradient" id=2]
+[sub_resource type="Gradient" id=1]
 offsets = PoolRealArray( 0, 0.366548, 0.818505 )
 colors = PoolColorArray( 0.132299, 0.716797, 0.422265, 1, 0.419608, 1, 0.356863, 1, 0.702244, 1, 0.672852, 1 )
 
-[sub_resource type="GradientTexture" id=3]
-gradient = SubResource( 2 )
+[sub_resource type="GradientTexture" id=2]
+gradient = SubResource( 1 )
 
-[sub_resource type="OpenSimplexNoise" id=4]
+[sub_resource type="OpenSimplexNoise" id=3]
 octaves = 2
 
-[sub_resource type="NoiseTexture" id=5]
+[sub_resource type="NoiseTexture" id=4]
 seamless = true
-noise = SubResource( 4 )
+noise = SubResource( 3 )
 
-[sub_resource type="OpenSimplexNoise" id=6]
+[sub_resource type="OpenSimplexNoise" id=5]
 octaves = 1
 period = 2.0
 
-[sub_resource type="NoiseTexture" id=7]
-noise = SubResource( 6 )
+[sub_resource type="NoiseTexture" id=6]
+noise = SubResource( 5 )
 
 [resource]
 resource_local_to_scene = true
@@ -43,6 +43,6 @@ shader_param/playerThrusterAngleRange = Vector2( 15, 45 )
 shader_param/playerThrusterDistortionAmount = 8.0
 shader_param/playerThrusterDistortionSpeed = 4.0
 shader_param/playerThrusterDistortionFrequency = 0.05
-shader_param/grassHeightMap = SubResource( 7 )
-shader_param/grassAmountNoise = SubResource( 5 )
-shader_param/gradient = SubResource( 3 )
+shader_param/grassHeightMap = SubResource( 6 )
+shader_param/grassAmountNoise = SubResource( 4 )
+shader_param/gradient = SubResource( 2 )

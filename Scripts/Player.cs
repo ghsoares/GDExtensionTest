@@ -5,7 +5,7 @@ public class Player : RigidBody2D
 {
     public static Player instance;
 
-    public WaterAgent waterAgent {get; set;}
+    public LiquidAgent waterAgent {get; set;}
     public Node2D body {get; set;}
     public Sprite sprite {get; set;}
     public Transform2D startTransform {get; set;}
@@ -13,7 +13,7 @@ public class Player : RigidBody2D
 
     public PlayerRocketParticleSystem rocketParticleSystem {get; set;}
     public PlayerRocketParticleSystem kickOffParticleSystem {get; set;}
-    public PlayerExplosionParticleSystem explosionParticleSystem {get; set;}
+    public ParticleSystemGroup explosionParticleSystem {get; set;}
     public PlayerGroundParticleSystem groundParticleSystem {get; set;}
     public PlayerStateMachine stateMachine {get; set;}
     public Physics2DDirectSpaceState spaceState {get; set;}
@@ -29,13 +29,13 @@ public class Player : RigidBody2D
 
     public override void _Ready()
     {
-        waterAgent = GetNode<WaterAgent>("WaterAgent");
+        waterAgent = GetNode<LiquidAgent>("WaterAgent");
         body = GetNode<Node2D>("Body");
         sprite = GetNode<Sprite>("Body/Sprite");
 
         rocketParticleSystem = GetNode<PlayerRocketParticleSystem>("Particles/Rocket");
         kickOffParticleSystem = GetNode<PlayerRocketParticleSystem>("Particles/KickOff");
-        explosionParticleSystem = GetNode<PlayerExplosionParticleSystem>("Particles/Explosion");
+        explosionParticleSystem = GetNode<ParticleSystemGroup>("Particles/Explosion");
         groundParticleSystem = GetNode<PlayerGroundParticleSystem>("Particles/Ground");
         stateMachine = GetNode<PlayerStateMachine>("StateMachine");
 

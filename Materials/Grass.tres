@@ -110,12 +110,12 @@ void fragment() {
 	COLOR.a *= step(t, 1f);
 }"
 
-[sub_resource type="Gradient" id=8]
+[sub_resource type="Gradient" id=2]
 offsets = PoolRealArray( 0, 0.366548, 0.818505 )
 colors = PoolColorArray( 0.347656, 0.347656, 0.347656, 1, 0.738281, 0.738281, 0.738281, 1, 1, 1, 1, 1 )
 
-[sub_resource type="GradientTexture" id=9]
-gradient = SubResource( 8 )
+[sub_resource type="GradientTexture" id=3]
+gradient = SubResource( 2 )
 
 [sub_resource type="OpenSimplexNoise" id=4]
 octaves = 2
@@ -153,4 +153,4 @@ shader_param/playerThrusterDistortionSpeed = 4.0
 shader_param/playerThrusterDistortionFrequency = 0.05
 shader_param/grassHeightMap = SubResource( 7 )
 shader_param/grassAmountNoise = SubResource( 5 )
-shader_param/gradient = SubResource( 9 )
+shader_param/gradient = SubResource( 3 )

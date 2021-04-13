@@ -11,7 +11,7 @@ public class Game : Control
     {
         base._Ready();
 
-        Engine.TargetFps = 30;
+        Engine.TargetFps = 60;
 
         view = GetNode<Viewport>("View");
         zoomCamera = GetNode<Camera2D>("ZoomCamera");

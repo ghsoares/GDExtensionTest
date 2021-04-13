@@ -105,6 +105,10 @@ debug_mode={
 
 pointing/emulate_touch_from_mouse=true
 
+[mono]
+
+profiler/enabled=true
+
 [rendering]
 
 quality/2d/use_pixel_snap=true

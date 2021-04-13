@@ -4,7 +4,7 @@ using ExtensionMethods.Shape2DExtensions;
 using ExtensionMethods.Transform2DMethods;
 using Godot;
 
-public class WaterAgent : Node2D
+public class LiquidAgent : Node2D
 {
     public enum CollisionDetectionMode {
         BoundingBox,

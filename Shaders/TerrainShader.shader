@@ -11,6 +11,10 @@ uniform float terrainNoiseDistortionAmount = 32f;
 uniform float terrainNoiseEaseCurve = -2f;
 uniform float terrainNoiseSteps = 8f;
 
+uniform sampler2D ditheringTexture;
+uniform vec2 ditheringSize = vec2(32f);
+uniform float ditheringInfluence = .01f;
+
 uniform sampler2D heightRemapCurve;
 uniform float heightRemapCurveRange = 512f;
 
@@ -59,6 +63,9 @@ vec4 GetTerrainColor() {
 	n += texture(heightRemapCurve, vec2(remapT)).r;
 	
 	n = Ease(n, terrainNoiseEaseCurve);
+	
+	float d = texture(ditheringTexture, v / ditheringSize).r * 2f - 1f;
+	n += d * ditheringInfluence;
 	
 	n = floor(n * (terrainNoiseSteps + 1f)) / terrainNoiseSteps;
 	n = clamp(n, 0f, 1f);

@@ -10,7 +10,7 @@ public class PlayerExplosionParticleSystem : ParticleSystem {
     [Export] public Curve dragCurve;
     [Export] public Vector2 dragRange = new Vector2(0f, 10f);
 
-    public void Emit() {
+    public override void Emit() {
         for (int i = 0; i < amount; i++) {
             EmitParticle();
         }

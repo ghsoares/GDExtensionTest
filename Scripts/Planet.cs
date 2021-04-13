@@ -40,7 +40,7 @@ public class Planet : Control
             AddChild(gameCamera);
         }
 
-        generator = new AquantisPlanetGenerator();
+        generator = new EarthPlanetGenerator();
         generator.planet = this;
 
         AddChild(generator);

@@ -1,0 +1,40 @@
+[gd_resource type="ShaderMaterial" load_steps=9 format=2]
+
+[ext_resource path="res://Shaders/TerrainShader.shader" type="Shader" id=1]
+[ext_resource path="res://Textures/BayerMatrixDithering.png" type="Texture" id=2]
+
+[sub_resource type="Curve" id=1]
+min_value = -1.0
+_data = [ Vector2( 0, 0.355828 ), 0.0, -1.55457, 0, 1, Vector2( 0.228892, 0 ), 0.0, 0.0, 0, 0, Vector2( 1, -0.306748 ), -0.397801, 0.0, 1, 0 ]
+
+[sub_resource type="CurveTexture" id=2]
+curve = SubResource( 1 )
+
+[sub_resource type="Gradient" id=3]
+colors = PoolColorArray( 0.197266, 0, 0, 1, 1, 0.334578, 0.241211, 1 )
+
+[sub_resource type="GradientTexture" id=4]
+gradient = SubResource( 3 )
+
+[sub_resource type="OpenSimplexNoise" id=5]
+
+[sub_resource type="NoiseTexture" id=6]
+seamless = true
+noise = SubResource( 5 )
+
+[resource]
+shader = ExtResource( 1 )
+shader_param/terrainSize = Vector2( 1024, 640 )
+shader_param/terrainResolution = 0.25
+shader_param/terrainNoiseTiling = 512.0
+shader_param/terrainNoiseDistortionTiling = 555.0
+shader_param/terrainNoiseDistortionAmount = 64.0
+shader_param/terrainNoiseEaseCurve = -2.0
+shader_param/terrainNoiseSteps = 8.0
+shader_param/ditheringSize = Vector2( 32, 32 )
+shader_param/ditheringInfluence = -0.001
+shader_param/heightRemapCurveRange = 512.0
+shader_param/terrainNoise = SubResource( 6 )
+shader_param/ditheringTexture = ExtResource( 2 )
+shader_param/heightRemapCurve = SubResource( 2 )
+shader_param/terrainGradient = SubResource( 4 )

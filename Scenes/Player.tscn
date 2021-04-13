@@ -1,4 +1,4 @@
-[gd_scene load_steps=46 format=2]
+[gd_scene load_steps=52 format=2]
 
 [ext_resource path="res://Scripts/Player.cs" type="Script" id=1]
 [ext_resource path="res://Textures/Ship.png" type="Texture" id=2]
@@ -12,6 +12,8 @@
 [ext_resource path="res://Scripts/Player/States/PlayerDeadState.cs" type="Script" id=10]
 [ext_resource path="res://Scripts/Player/States/PlayerNextLevelState.cs" type="Script" id=11]
 [ext_resource path="res://Scripts/LiquidAgent.cs" type="Script" id=12]
+[ext_resource path="res://Scripts/Particle Systems/ParticleSystemGroup.cs" type="Script" id=13]
+[ext_resource path="res://Scripts/Particle Systems/ParticleSystemRenderer2D.cs" type="Script" id=14]
 
 [sub_resource type="PhysicsMaterial" id=1]
 friction = 0.25
@@ -105,7 +107,8 @@ _data = [ Vector2( 0, 0 ), 0.0, 14.515, 0, 0, Vector2( 0.165268, 1 ), 0.0, 0.0, 
 curve = SubResource( 7 )
 
 [sub_resource type="OpenSimplexNoise" id=9]
-octaves = 1
+seed = 1
+octaves = 2
 period = 16.0
 
 [sub_resource type="NoiseTexture" id=10]
@@ -117,10 +120,10 @@ noise = SubResource( 9 )
 shader = SubResource( 2 )
 shader_param/warpMargin = 128.0
 shader_param/texSize = Vector2( 16, 16 )
-shader_param/warpNoiseEaseCurve = -4.0
+shader_param/warpNoiseEaseCurve = 1.0
 shader_param/warpTransition = 0.0
 shader_param/warpTransitionCurve = 8.0
-shader_param/warpStretchAmount = 6.0
+shader_param/warpStretchAmount = 4.0
 shader_param/warpNoise = SubResource( 10 )
 shader_param/transitionGradient = SubResource( 6 )
 shader_param/energyCurve = SubResource( 4 )
@@ -154,7 +157,6 @@ void fragment() {
 	float b = COLOR.a + texture(ditheringMatrix, ditheringUv).r;
 	b = step(1f, b);
 	
-	COLOR.a = b;
 	COLOR.a *= step(d, 1.0);
 	COLOR.a *= step(UV.x, 1.0);
 	COLOR.a *= step(0.0, UV.y);
@@ -179,98 +181,130 @@ colors = PoolColorArray( 0.08, 0, 0.23, 0, 0, 0.291016, 1, 1, 0, 1, 0.765625, 1,
 [sub_resource type="Curve" id=20]
 _data = [ Vector2( 0, 0 ), 0.0, 1.4, 0, 0, Vector2( 1, 1 ), 0.0, 0.0, 0, 0 ]
 
-[sub_resource type="Shader" id=21]
+[sub_resource type="Curve" id=21]
+max_value = 4.0
+_data = [ Vector2( 0, 2 ), 0.0, -3.79516, 0, 0, Vector2( 0.952091, 0.871166 ), 0.0, 0.0, 0, 0, Vector2( 1, 4 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="Gradient" id=22]
+offsets = PoolRealArray( 0, 0.75 )
+colors = PoolColorArray( 0.215686, 0, 0.0627451, 0, 1.5, 1.5, 1.5, 1 )
+
+[sub_resource type="Curve" id=23]
+_data = [ Vector2( 0, 0 ), 0.0, 0.0, 0, 1, Vector2( 0.750791, 0 ), 0.0, 0.0, 0, 0, Vector2( 0.750791, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 1 ), 0.0, 0.0, 1, 0 ]
+
+[sub_resource type="Shader" id=24]
 code = "shader_type canvas_item;
 
+uniform mat4 globalTransform;
+uniform float alphaThreshold = .1f;
+uniform float fadeBorder = 16f;
 uniform sampler2D noise;
-uniform vec2 noiseTiling = vec2(64f);
-uniform vec2 noiseMotion = vec2(0f, 32f);
-uniform float noiseThreshold = .1f;
-uniform float noiseEaseCurve = -2f;
+uniform sampler2D gradient;
+uniform vec2 noiseTiling = vec2(512f);
+uniform vec2 noiseMotion = vec2(1f, 2f);
+uniform float noiseSteps = 8f;
 
 varying vec2 worldV;
+varying vec2 v;
 
 void vertex() {
-	float d = INSTANCE_CUSTOM.r;
-	float a = INSTANCE_CUSTOM.g;
-	float a2 = INSTANCE_CUSTOM.b;
-	
-	worldV = (EXTRA_MATRIX * vec4(VERTEX, 0f, 1f)).xy;
+	v = VERTEX;
+	worldV = (globalTransform * vec4(VERTEX, 0f, 1f)).xy;
 }
 
 void fragment() {
-	float d = distance(UV, vec2(.5f)) / .5f;
+	vec2 size = v / UV;
+	vec4 color = COLOR * texture(TEXTURE, UV);
 	
-	vec2 uv = worldV / noiseTiling;
+	float n = texture(noise, (worldV + noiseMotion * TIME) / noiseTiling).r;
+	n += color.a * 2f - 1f;
+	n = clamp(n, 0f, 1f);
+	float prevN = n;
+	n = round(n * noiseSteps) / noiseSteps;
+	color = texture(gradient, vec2(n, 0f));
 	
-	float n = texture(noise, uv + noiseMotion * TIME).r;
-	n -= 1f;
-	n += COLOR.a * 2f;
+	float bD = v.x;
+	bD = min(bD, size.x - v.x);
+	bD = min(bD, v.y);
+	bD = min(bD, size.y - v.y);
 	
-	float a = n * clamp(1f - d, 0f, 1f);
-	COLOR.a = step(noiseThreshold, a);
+	float fadeT = clamp(bD / fadeBorder, 0f, 1f);
+	
+	COLOR = color;
+	COLOR.a *= step(0.001f, prevN);
+	COLOR.a *= fadeT;
 }
-
 
 
 
 
 "
 
-[sub_resource type="OpenSimplexNoise" id=22]
-octaves = 2
+[sub_resource type="Gradient" id=25]
+offsets = PoolRealArray( 0, 0.433428, 0.745043, 1 )
+colors = PoolColorArray( 0, 0, 0, 0, 1, 0, 0, 1, 0.952941, 1, 0, 1, 1, 1, 1, 1 )
 
-[sub_resource type="NoiseTexture" id=23]
+[sub_resource type="GradientTexture" id=26]
+gradient = SubResource( 25 )
+
+[sub_resource type="OpenSimplexNoise" id=27]
+octaves = 1
+
+[sub_resource type="NoiseTexture" id=28]
 seamless = true
-noise = SubResource( 22 )
+noise = SubResource( 27 )
 
-[sub_resource type="ShaderMaterial" id=24]
-shader = SubResource( 21 )
+[sub_resource type="ShaderMaterial" id=29]
+shader = SubResource( 24 )
+shader_param/globalTransform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+shader_param/alphaThreshold = 0.01
+shader_param/fadeBorder = 4.0
 shader_param/noiseTiling = Vector2( 128, 128 )
-shader_param/noiseMotion = Vector2( 0, 0.25 )
-shader_param/noiseThreshold = 0.098
-shader_param/noiseEaseCurve = -2.0
-shader_param/noise = SubResource( 23 )
+shader_param/noiseMotion = Vector2( 0, 32 )
+shader_param/noiseSteps = 8.0
+shader_param/noise = SubResource( 28 )
+shader_param/gradient = SubResource( 26 )
 
-[sub_resource type="QuadMesh" id=25]
+[sub_resource type="QuadMesh" id=30]
 
-[sub_resource type="Curve" id=26]
-max_value = 4.0
-_data = [ Vector2( 0, 2 ), 0.0, -3.79516, 0, 0, Vector2( 0.952091, 0.871166 ), 0.0, 0.0, 0, 0, Vector2( 1, 4 ), 0.0, 0.0, 0, 0 ]
+[sub_resource type="Shader" id=31]
+code = "shader_type canvas_item;
 
-[sub_resource type="Gradient" id=27]
-offsets = PoolRealArray( 0, 0.569, 0.905, 1 )
-colors = PoolColorArray( 0.215686, 0, 0.0627451, 0, 1.25, 0.34, 0, 0.71, 1.47, 1.5, 0, 0.63, 1.5, 1.5, 1.5, 1 )
+void fragment() {
+	float d = distance(UV, vec2(.5f)) * 2f;
+	d = clamp(d, 0f, 1f);
+	
+	COLOR.a *= 1f - d;
+}"
 
-[sub_resource type="Curve" id=28]
-_data = [ Vector2( 0, 0 ), 0.0, 0.0, 0, 1, Vector2( 0.750791, 0 ), 0.0, 0.0, 0, 0, Vector2( 0.750791, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 1 ), 0.0, 0.0, 1, 0 ]
+[sub_resource type="ShaderMaterial" id=32]
+shader = SubResource( 31 )
 
-[sub_resource type="Gradient" id=29]
-offsets = PoolRealArray( 0, 0.0949153, 0.430508, 0.99661 )
-colors = PoolColorArray( 1, 1, 1, 1, 0.980392, 1, 0, 0.627451, 1, 0.270588, 0, 0.709804, 0.215686, 0, 0.0627451, 0 )
+[sub_resource type="Shader" id=33]
+code = "shader_type canvas_item;
+render_mode blend_add;
 
-[sub_resource type="GradientTexture" id=30]
-gradient = SubResource( 29 )
+uniform float innerRadius = 1f;
 
-[sub_resource type="Curve" id=31]
-max_value = 4.0
-_data = [ Vector2( 0, 4 ), 0.0, 0.0, 0, 0, Vector2( 0.0424679, 0.797546 ), 0.0, 0.0, 0, 0, Vector2( 1, 0.576687 ), 0.0, 0.0, 0, 0 ]
+void fragment() {
+	float d = distance(UV, vec2(.5f)) / .5f;
+	
+	COLOR.a *= step(d, 1f);
+	COLOR.a *= step(innerRadius, d);
+}"
 
-[sub_resource type="CurveTexture" id=32]
-curve = SubResource( 31 )
+[sub_resource type="ShaderMaterial" id=34]
+shader = SubResource( 33 )
+shader_param/innerRadius = 0.9
 
-[sub_resource type="ParticlesMaterial" id=33]
-flag_disable_z = true
-spread = 180.0
-gravity = Vector3( 0, -32, 0 )
-initial_velocity = 32.0
-initial_velocity_random = 1.0
-orbit_velocity = 0.0
-orbit_velocity_random = 0.0
-scale = 32.0
-scale_random = 0.25
-scale_curve = SubResource( 32 )
-color_ramp = SubResource( 30 )
+[sub_resource type="QuadMesh" id=35]
+
+[sub_resource type="Curve" id=36]
+_data = [ Vector2( 0, 1 ), -2.48516, -0.0582949, 0, 0, Vector2( 1, 0 ), -3.42906, 0.0, 0, 0 ]
+
+[sub_resource type="Gradient" id=37]
+offsets = PoolRealArray( 0, 0.5 )
+colors = PoolColorArray( 0.215686, 0, 0.0627451, 0, 1, 1, 1, 1 )
 
 [node name="Player" type="RigidBody2D"]
 physics_material_override = SubResource( 1 )
@@ -351,29 +385,42 @@ hitSpread = 32.0
 sizeRange = Vector2( 4, 8 )
 
 [node name="Explosion" type="Node2D" parent="Particles"]
-material = SubResource( 24 )
-position = Vector2( 0, 6 )
+script = ExtResource( 13 )
+recursive = true
+
+[node name="_1" type="Node2D" parent="Particles/Explosion"]
 script = ExtResource( 6 )
 numParticles = 64
 lifetime = 2.0
 gravity = Vector2( 0, -20 )
-mesh = SubResource( 25 )
-sizeOverLife = SubResource( 26 )
-colorOverLife = SubResource( 27 )
+sizeOverLife = SubResource( 21 )
+colorOverLife = SubResource( 22 )
 radius = 4.0
 velocityRange = Vector2( 0, 512 )
 sizeRange = Vector2( 32, 48 )
 lifetimeRange = Vector2( 2, 2.1 )
-dragCurve = SubResource( 28 )
+dragCurve = SubResource( 23 )
 
-[node name="Particles2D" type="Particles2D" parent="Particles"]
-visible = false
-material = SubResource( 24 )
-amount = 32
-lifetime = 2.0
-explosiveness = 1.0
-local_coords = false
-process_material = SubResource( 33 )
+[node name="Renderer2D" type="Node2D" parent="Particles/Explosion/_1"]
+material = SubResource( 29 )
+script = ExtResource( 14 )
+mesh = SubResource( 30 )
+meshMaterial = SubResource( 32 )
+bounds = Rect2( 240, 135, 0, 0 )
+
+[node name="_2" type="Node2D" parent="Particles/Explosion"]
+material = SubResource( 34 )
+script = ExtResource( 6 )
+numParticles = 1
+gravity = Vector2( 0, 0 )
+mesh = SubResource( 35 )
+sizeOverLife = SubResource( 36 )
+colorOverLife = SubResource( 37 )
+amount = 1
+radius = 0.0
+velocityRange = Vector2( 0, 0 )
+sizeRange = Vector2( 200, 200 )
+dragRange = Vector2( 0, 0 )
 
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource( 3 )
