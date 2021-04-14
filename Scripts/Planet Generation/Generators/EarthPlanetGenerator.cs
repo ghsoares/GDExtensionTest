@@ -3,8 +3,9 @@ using Godot;
 
 public class EarthPlanetGenerator : PlanetGenerator {
     Grass grass;
-    Line2D clouds;
-    ShaderMaterial cloudsShaderMaterial;
+    Clouds clouds;
+    ShaderMaterial cloudsNoiseMaterial;
+    ShaderMaterial cloudsRenderMaterial;
     List<LiquidBody> liquidBodies;
     Control liquidBodiesRoot;
 
@@ -14,7 +15,7 @@ public class EarthPlanetGenerator : PlanetGenerator {
         terrain.Material = ResourceLoader.Load<ShaderMaterial>("res://Materials/Earth/Terrain.tres");
 
         grass = new Grass();
-        clouds = new Line2D();
+        clouds = new Clouds();
 
         liquidBodies = new List<LiquidBody>();
         liquidBodiesRoot = new Control();
@@ -24,12 +25,10 @@ public class EarthPlanetGenerator : PlanetGenerator {
         grass.height = 16f;
         grass.Material = ResourceLoader.Load<ShaderMaterial>("res://Materials/Earth/Grass.tres");
 
-
-        cloudsShaderMaterial = ResourceLoader.Load<ShaderMaterial>("res://Materials/Earth/Clouds.tres");
-        clouds.Material = cloudsShaderMaterial;
-        clouds.DefaultColor = Colors.White;
-        clouds.Width = 256f;
-        clouds.TextureMode = Line2D.LineTextureMode.Stretch;
+        cloudsNoiseMaterial = ResourceLoader.Load<ShaderMaterial>("res://Materials/Earth/CloudsNoise.tres");
+        cloudsRenderMaterial = ResourceLoader.Load<ShaderMaterial>("res://Materials/Earth/CloudsRendering.tres");
+        clouds.cloudsNoiseMaterial = cloudsNoiseMaterial;
+        clouds.cloudsRenderingMaterial = cloudsRenderMaterial;
 
         liquidBodiesRoot.RectSize = planet.size;
 
@@ -39,7 +38,7 @@ public class EarthPlanetGenerator : PlanetGenerator {
         terrain.Raise();
         platformPlacer.Raise();
 
-        //AddChild(clouds);
+        AddChild(clouds);
     }
 
     public override void Generate()
@@ -47,11 +46,7 @@ public class EarthPlanetGenerator : PlanetGenerator {
         base.Generate();
 
         grass.Create();
-
-        clouds.AddPoint(new Vector2(0f, 256f));
-        clouds.AddPoint(new Vector2(planet.size.x, 256f));
-
-        cloudsShaderMaterial.SetShaderParam("lineSize", new Vector2(planet.size.x, clouds.Width));
+        clouds.Setup();
 
         List<Rect2> valleys = terrain.valleys;
 

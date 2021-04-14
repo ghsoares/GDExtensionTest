@@ -216,6 +216,14 @@ void fragment() {
 	vec2 size = v / UV;
 	vec4 color = COLOR * texture(TEXTURE, UV);
 	
+	float bD = v.x;
+	bD = min(bD, size.x - v.x);
+	bD = min(bD, v.y);
+	bD = min(bD, size.y - v.y);
+	
+	float fadeT = 1f - clamp(bD / fadeBorder, 0f, 1f);
+	color.a -= fadeT;
+	
 	float n = texture(noise, (worldV + noiseMotion * TIME) / noiseTiling).r;
 	n += color.a * 2f - 1f;
 	n = clamp(n, 0f, 1f);
@@ -223,16 +231,10 @@ void fragment() {
 	n = round(n * noiseSteps) / noiseSteps;
 	color = texture(gradient, vec2(n, 0f));
 	
-	float bD = v.x;
-	bD = min(bD, size.x - v.x);
-	bD = min(bD, v.y);
-	bD = min(bD, size.y - v.y);
-	
-	float fadeT = clamp(bD / fadeBorder, 0f, 1f);
-	
 	COLOR = color;
 	COLOR.a *= step(0.001f, prevN);
-	COLOR.a *= fadeT;
+	//COLOR.a *= fadeT;
+	//COLOR = mix(COLOR, vec4(1f), fadeT);
 }
 
 
@@ -258,7 +260,7 @@ noise = SubResource( 27 )
 shader = SubResource( 24 )
 shader_param/globalTransform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 shader_param/alphaThreshold = 0.01
-shader_param/fadeBorder = 4.0
+shader_param/fadeBorder = 32.0
 shader_param/noiseTiling = Vector2( 128, 128 )
 shader_param/noiseMotion = Vector2( 0, 32 )
 shader_param/noiseSteps = 8.0
@@ -307,6 +309,7 @@ offsets = PoolRealArray( 0, 0.5 )
 colors = PoolColorArray( 0.215686, 0, 0.0627451, 0, 1, 1, 1, 1 )
 
 [node name="Player" type="RigidBody2D"]
+collision_mask = 2
 physics_material_override = SubResource( 1 )
 gravity_scale = 0.0
 contacts_reported = 8
@@ -388,7 +391,7 @@ sizeRange = Vector2( 4, 8 )
 script = ExtResource( 13 )
 recursive = true
 
-[node name="_1" type="Node2D" parent="Particles/Explosion"]
+[node name="Explosion_1" type="Node2D" parent="Particles/Explosion"]
 script = ExtResource( 6 )
 numParticles = 64
 lifetime = 2.0
@@ -401,14 +404,14 @@ sizeRange = Vector2( 32, 48 )
 lifetimeRange = Vector2( 2, 2.1 )
 dragCurve = SubResource( 23 )
 
-[node name="Renderer2D" type="Node2D" parent="Particles/Explosion/_1"]
+[node name="Renderer2D" type="Node2D" parent="Particles/Explosion/Explosion_1"]
 material = SubResource( 29 )
 script = ExtResource( 14 )
 mesh = SubResource( 30 )
 meshMaterial = SubResource( 32 )
-bounds = Rect2( 240, 135, 0, 0 )
+bounds = Rect2( -160, -160, 320, 320 )
 
-[node name="_2" type="Node2D" parent="Particles/Explosion"]
+[node name="Explosion_2" type="Node2D" parent="Particles/Explosion"]
 material = SubResource( 34 )
 script = ExtResource( 6 )
 numParticles = 1

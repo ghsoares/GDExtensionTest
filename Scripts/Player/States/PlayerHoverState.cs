@@ -82,7 +82,7 @@ public class PlayerHoverState : State<Player>
         root.LinearVelocity = root.LinearVelocity.Clamped(maxVelocity);
         root.AngularVelocity = Mathf.Clamp(root.AngularVelocity, -maxAngularVelocity, maxAngularVelocity);
     
-        PlayerData.sessionCurrentFuel -= PlayerData.fuelLossRate * currentThrusterForce * delta;
+        //PlayerData.sessionCurrentFuel -= PlayerData.fuelLossRate * currentThrusterForce * delta;
     }
 
     private void ParticlesProcess(float delta)

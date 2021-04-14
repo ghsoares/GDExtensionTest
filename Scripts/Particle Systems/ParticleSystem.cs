@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ExtensionMethods.DictionaryExtensions;
 using Godot;
 
@@ -102,21 +103,36 @@ public class ParticleSystem : Node2D
 
     public override void _PhysicsProcess(float delta)
     {
+        Stopwatch stopWatch = new Stopwatch();
+        stopWatch.Start();
         if (updateMode == UpdateMode.PhysicsProcess)
         {
             ResetIfNeeded();
             UpdateSystem(delta * Mathf.Max(timeScale, 0f));
         }
+        stopWatch.Stop();
+        TimeSpan ts = stopWatch.Elapsed;
+        /*Debug.instance.AddOutput(
+            this.Name + " Physics Process Time", this.Name + " Physics Process Time: " + ts.Milliseconds + " ms"
+        );*/
     }
 
     public override void _Process(float delta)
     {
+        Stopwatch stopWatch = new Stopwatch();
+        stopWatch.Start();
         if (updateMode == UpdateMode.PhysicsProcess)
         {
             ResetIfNeeded();
             UpdateSystem(delta * Mathf.Max(timeScale, 0f));
         }
         Update();
+        stopWatch.Stop();
+        TimeSpan ts = stopWatch.Elapsed;
+
+        /*Debug.instance.AddOutput(
+            this.Name + " Process Time", this.Name + " Process Time: " + ts.Milliseconds + " ms"
+        );*/
     }
 
     public virtual void Emit() {}

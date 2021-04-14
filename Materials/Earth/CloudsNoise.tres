@@ -1,0 +1,83 @@
+[gd_resource type="ShaderMaterial" load_steps=6 format=2]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform mat4 globalTransform;
+
+uniform sampler2D noise;
+uniform float noiseLod = 0f;
+uniform vec2 noisePeriod = vec2(512f);
+uniform vec2 noiseOffset;
+uniform vec2 noiseMotion;
+uniform vec2 noiseOffsetPeriod = vec2(512f);
+uniform int noiseOctaves = 1;
+uniform float noiseLacunarity = 2f;
+uniform float noiseOffsetLacunarity = 1.5f;
+uniform float noisePersistance = .5f;
+uniform sampler2D fadeCurve;
+
+varying vec2 v;
+
+void vertex() {
+	v = (globalTransform * vec4(VERTEX, 0f, 1f)).xy;
+}
+
+void fragment() {
+	float n = 0f;
+	
+	vec2 period = noisePeriod;
+	vec2 offPeriod = noiseOffsetPeriod;
+	float persistance = 1f;
+	
+	for (int i = 0; i < noiseOctaves; i++) {
+		float thisN = textureLod(noise, v / period - (noiseOffset + noiseMotion * TIME) / offPeriod, noiseLod).r;
+		thisN = thisN * 2f - 1f;
+		n += thisN * persistance;
+		
+		period /= noiseLacunarity;
+		offPeriod /= noiseOffsetLacunarity;
+		persistance *= noisePersistance;
+	}
+	
+	n = n * .5f + .5f;
+	n -= texture(fadeCurve, vec2(UV.y, 0f)).r;
+	
+	n = clamp(n, 0f, 1f);
+	
+	COLOR.rgb = vec3(n);
+}
+
+
+
+
+
+"
+
+[sub_resource type="Curve" id=2]
+_data = [ Vector2( 0, 1 ), 0.0, -0.102447, 0, 0, Vector2( 0.842593, 0 ), 0.0, 0.0, 0, 0, Vector2( 1, 1 ), 11.2004, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=3]
+curve = SubResource( 2 )
+
+[sub_resource type="OpenSimplexNoise" id=4]
+octaves = 2
+
+[sub_resource type="NoiseTexture" id=5]
+seamless = true
+noise = SubResource( 4 )
+
+[resource]
+shader = SubResource( 1 )
+shader_param/globalTransform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+shader_param/noiseLod = 0.0
+shader_param/noisePeriod = Vector2( 512, 512 )
+shader_param/noiseOffset = Vector2( 0, 0 )
+shader_param/noiseMotion = Vector2( 32, 0 )
+shader_param/noiseOffsetPeriod = Vector2( 512, 512 )
+shader_param/noiseOctaves = 2
+shader_param/noiseLacunarity = 2.0
+shader_param/noiseOffsetLacunarity = 3.0
+shader_param/noisePersistance = 0.702
+shader_param/noise = SubResource( 5 )
+shader_param/fadeCurve = SubResource( 3 )

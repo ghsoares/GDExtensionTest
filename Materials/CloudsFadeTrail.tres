@@ -1,0 +1,55 @@
+[gd_resource type="ShaderMaterial" load_steps=8 format=2]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform sampler2D fadeCurve;
+uniform sampler2D capFadeCurve;
+uniform sampler2D alongFadeCurve;
+uniform float lineSize = 256f;
+uniform float capSize = 64f;
+
+void fragment() {
+	COLOR = texture(TEXTURE, UV);
+	
+	float vX = UV.x * lineSize;
+	float x = abs(UV.y - .5f) * 2f;
+	
+	COLOR.rgb *= vec3(0f);
+	COLOR.a *= texture(fadeCurve, vec2(x, 0f)).r;
+	
+	float cap = vX;
+	cap = min(cap, lineSize - vX);
+	cap = clamp(cap / capSize, 0f, 1f);
+	cap = texture(capFadeCurve, vec2(cap, 0f)).r;
+	COLOR.a *= cap;
+	
+	COLOR.a *= texture(alongFadeCurve, vec2(UV.x)).r;
+}"
+
+[sub_resource type="Curve" id=2]
+_data = [ Vector2( 0, 0.696319 ), 0.0, 0.303681, 0, 1, Vector2( 1, 1 ), 0.303681, 0.0, 1, 0 ]
+
+[sub_resource type="CurveTexture" id=3]
+curve = SubResource( 2 )
+
+[sub_resource type="Curve" id=4]
+_data = [ Vector2( 0, 0 ), 0.0, 0.0, 0, 0, Vector2( 1, 1 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=5]
+curve = SubResource( 4 )
+
+[sub_resource type="Curve" id=6]
+max_value = 2.0
+_data = [ Vector2( 0, 1.14724 ), 0.0, 0.0444258, 0, 0, Vector2( 1, 0 ), 0.119264, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=7]
+curve = SubResource( 6 )
+
+[resource]
+shader = SubResource( 1 )
+shader_param/lineSize = 256.0
+shader_param/capSize = 32.0
+shader_param/fadeCurve = SubResource( 7 )
+shader_param/capFadeCurve = SubResource( 5 )
+shader_param/alongFadeCurve = SubResource( 3 )

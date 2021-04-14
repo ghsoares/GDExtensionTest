@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Godot;
 
 public class ParticleSystemRenderer2D : Node2D
@@ -13,6 +14,7 @@ public class ParticleSystemRenderer2D : Node2D
     [Export] public Mesh mesh;
     [Export] public ShaderMaterial meshMaterial;
     [Export] public Rect2 bounds = new Rect2();
+    [Export] public Viewport.UsageEnum viewportUsage = Viewport.UsageEnum.Usage3dNoEffects;
 
     public void ResetMultiMesh()
     {
@@ -35,7 +37,7 @@ public class ParticleSystemRenderer2D : Node2D
         {
             view = new Viewport();
             view.TransparentBg = true;
-            view.Usage = Viewport.UsageEnum.Usage3dNoEffects;
+            view.Usage = viewportUsage;
             view.RenderTargetVFlip = true;
             AddChild(view);
         }
@@ -87,19 +89,24 @@ public class ParticleSystemRenderer2D : Node2D
         }
     }
 
-    public override void _Process(float delta)
+    public override void _PhysicsProcess(float delta)
     {
-        Viewport baseView = GetViewport();
-        Transform2D viewportTransform = baseView.CanvasTransform.AffineInverse();
-        Vector2 pos = viewportTransform.origin;
+        if (parentSystem == null) return;
 
-        viewTexRect.RectGlobalPosition = pos;
+        Stopwatch stopWatch = new Stopwatch();
+        stopWatch.Start();
+        
+        Viewport baseView = GetViewport();
+        Transform2D cameraTransform = GameCamera.instance.GlobalTransform;
+
+        viewTexRect.RectGlobalPosition = cameraTransform.origin - baseView.Size / 2f;
+        viewTexRect.RectSize = baseView.Size;
         viewTexRect.RectRotation = -GlobalRotationDegrees;
 
         if (bounds.Size != Vector2.Zero)
         {
-            viewTexRect.RectGlobalPosition = viewportTransform.Xform(bounds.Position);
-            viewTexRect.RectSize = viewportTransform.BasisXform(bounds.Size);
+            viewTexRect.RectGlobalPosition = cameraTransform.Xform(bounds.Position);
+            viewTexRect.RectSize = cameraTransform.BasisXform(bounds.Size);
         }
 
         camera.Position = viewTexRect.RectGlobalPosition + viewTexRect.RectSize * .5f;
@@ -113,6 +120,15 @@ public class ParticleSystemRenderer2D : Node2D
         }
 
         UpdateMultiMesh();
+
+        stopWatch.Stop();
+        TimeSpan ts = stopWatch.Elapsed;
+
+        string name = GetParent().Name + " 2D Renderer";
+
+        /*Debug.instance.AddOutput(
+            name + " Physics Process Time", name + " Physics Process Time: " + ts.Milliseconds + " ms"
+        );*/
     }
 
     private void UpdateMultiMesh()

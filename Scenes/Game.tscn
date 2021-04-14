@@ -1,13 +1,44 @@
-[gd_scene load_steps=13 format=2]
+[gd_scene load_steps=14 format=2]
 
 [ext_resource path="res://Scenes/Planet.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Scripts/Game.cs" type="Script" id=2]
 [ext_resource path="res://Materials/Earth/Terrain.tres" type="Material" id=3]
-[ext_resource path="res://Materials/Earth/Clouds.tres" type="Material" id=4]
-[ext_resource path="res://Textures/Ship.png" type="Texture" id=5]
+[ext_resource path="res://Materials/Earth/CloudsNoise.tres" type="Material" id=4]
+[ext_resource path="res://Materials/Earth/CloudsRendering.tres" type="Material" id=5]
 [ext_resource path="res://Scripts/UI/Debug.cs" type="Script" id=6]
 
-[sub_resource type="Shader" id=1]
+[sub_resource type="Shader" id=6]
+code = "shader_type canvas_item;
+render_mode blend_sub;
+
+float Ease(float x, float c) {
+	x = clamp(x, 0f, .999f);
+	float curve1 = 1f - pow(1f - x, 1f / c);
+	float curve2 = pow(x, c);
+	float curve3 = pow(x * 2f, -c) * .5f;
+	float curve4 = (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;
+	float curveA = mix(curve1, curve2, step(1f, c));
+	float curveB = mix(curve3, curve4, step(.5f, x));
+	return mix(curveB, curveA, step(0f, c));
+}
+
+void fragment() {
+	float d = distance(UV, vec2(.5f)) * 2f;
+	
+	d = 1f - clamp(d, 0f, 1f);
+	
+	d = Ease(d, -2f);
+	
+	COLOR.a *= d;
+}"
+
+[sub_resource type="ShaderMaterial" id=7]
+shader = SubResource( 6 )
+
+[sub_resource type="ViewportTexture" id=1]
+viewport_path = NodePath("View/Clouds/View")
+
+[sub_resource type="Shader" id=2]
 code = "shader_type canvas_item;
 
 uniform float bloomRadius = 1.0;
@@ -43,70 +74,25 @@ void fragment() {
 	COLOR = col;
 }"
 
-[sub_resource type="ShaderMaterial" id=2]
-shader = SubResource( 1 )
+[sub_resource type="ShaderMaterial" id=3]
+shader = SubResource( 2 )
 shader_param/bloomRadius = 1.0
 shader_param/bloomThreshold = Vector3( 1, 1, 1 )
 shader_param/bloomIntensity = 1.0
 
-[sub_resource type="ViewportTexture" id=3]
+[sub_resource type="ViewportTexture" id=4]
 viewport_path = NodePath("View")
 
-[sub_resource type="Gradient" id=4]
+[sub_resource type="Gradient" id=5]
 offsets = PoolRealArray( 0, 0.493261, 1 )
 colors = PoolColorArray( 1, 0.25, 0.25, 1, 1, 1, 0.25, 1, 0.25, 1, 0.25, 1 )
-
-[sub_resource type="Shader" id=5]
-code = "shader_type canvas_item;
-
-uniform float blurRadius = 1f;
-
-float Ease(float x, float c) {
-	x = clamp(x, 0f, .999f);
-	float curve1 = 1f - pow(1f - x, 1f / c);
-	float curve2 = pow(x, c);
-	float curve3 = pow(x * 2f, -c) * .5f;
-	float curve4 = (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;
-	float curveA = mix(curve1, curve2, step(1f, c));
-	float curveB = mix(curve3, curve4, step(.5f, x));
-	return mix(curveB, curveA, step(0f, c));
-}
-
-vec4 Blur(sampler2D tex, vec2 uv, vec2 pixSize) {
-	uv = fract(uv);
-	vec2 fUv = floor(uv / pixSize) * pixSize;
-	//fUv += pixSize * .5f;
-	
-	vec4 tl = texture(tex, fUv + vec2(0, 0f));
-	vec4 tr = texture(tex, fUv + vec2(pixSize.x, 0f));
-	vec4 bl = texture(tex, fUv + vec2(0f, pixSize.y));
-	vec4 br = texture(tex, fUv + vec2(pixSize.x, pixSize.y));
-	
-	vec2 t = fract(uv / pixSize);
-	/*t.x = Ease(t.x, -2f);
-	t.y = Ease(t.y, -2f);*/
-	
-	vec4 ct = mix(tl, tr, t.x);
-	vec4 cb = mix(bl, br, t.x);
-	
-	return mix(ct, cb, t.y);
-}
-
-void fragment() {
-	vec4 col = Blur(TEXTURE, UV, TEXTURE_PIXEL_SIZE * blurRadius);
-	
-	COLOR = col;
-}"
-
-[sub_resource type="ShaderMaterial" id=6]
-shader = SubResource( 5 )
-shader_param/blurRadius = 3.0
 
 [node name="Game" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource( 2 )
 __meta__ = {
+"_edit_lock_": true,
 "_edit_use_anchors_": false
 }
 
@@ -127,13 +113,40 @@ anchor_top = 0.75
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="Clouds" type="Line2D" parent="View"]
+[node name="Clouds" type="Control" parent="View"]
 visible = false
+margin_right = 960.0
+margin_bottom = 256.0
+
+[node name="View" type="Viewport" parent="View/Clouds"]
+size = Vector2( 960, 256 )
+transparent_bg = true
+usage = 0
+render_target_v_flip = true
+
+[node name="Color" type="ColorRect" parent="View/Clouds/View"]
 material = ExtResource( 4 )
-points = PoolVector2Array( 0, 64, 960, 64 )
-width = 256.0
-default_color = Color( 1, 1, 1, 1 )
-texture_mode = 2
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = 6.10352e-05
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Sprite" type="ColorRect" parent="View/Clouds/View"]
+material = SubResource( 7 )
+margin_left = 128.0
+margin_top = 160.0
+margin_right = 160.0
+margin_bottom = 192.0
+color = Color( 1, 1, 1, 0.262745 )
+
+[node name="Tex" type="TextureRect" parent="View/Clouds"]
+material = ExtResource( 5 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = SubResource( 1 )
+expand = true
 
 [node name="ZoomCamera" type="Camera2D" parent="."]
 visible = false
@@ -145,13 +158,14 @@ limit_right = 960
 limit_bottom = 540
 
 [node name="ViewTex" type="TextureRect" parent="."]
-material = SubResource( 2 )
+material = SubResource( 3 )
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-texture = SubResource( 3 )
+texture = SubResource( 4 )
 expand = true
 __meta__ = {
+"_edit_lock_": true,
 "_edit_use_anchors_": false
 }
 
@@ -165,6 +179,7 @@ margin_top = 16.0
 margin_right = -16.0
 margin_bottom = -16.0
 __meta__ = {
+"_edit_lock_": true,
 "_edit_use_anchors_": false
 }
 
@@ -174,17 +189,7 @@ anchor_bottom = 1.0
 bbcode_enabled = true
 script = ExtResource( 6 )
 __meta__ = {
+"_edit_lock_": true,
 "_edit_use_anchors_": false
 }
-fpsGradient = SubResource( 4 )
-
-[node name="TextureRect" type="TextureRect" parent="."]
-visible = false
-material = SubResource( 6 )
-margin_right = 145.0
-margin_bottom = 145.0
-texture = ExtResource( 5 )
-expand = true
-__meta__ = {
-"_edit_use_anchors_": false
-}
+fpsGradient = SubResource( 5 )

@@ -16,6 +16,7 @@ uniform float noiseEaseCurve = -2f;
 uniform float noiseBumpness = 8f;
 uniform float noiseThreshold = .1f;
 uniform sampler2D fadeCurve;
+uniform sampler2D fadeNormalCurve;
 uniform vec3 lightDirection;
 uniform float dotMultiply = 2f;
 uniform sampler2D ditheringTexture;
@@ -46,16 +47,28 @@ float GetNoise(vec2 v) {
 	vec2 offPeriod = noiseOffsetPeriod;
 	float persistance = 1f;
 	
-	for (int i = 0; i < noiseOctaves; i++) {
-		float thisN = Ease(textureLod(
-			noise, v / period - (noiseOffset + noiseMotion * time) / offPeriod, noiseLod).r, noiseEaseCurve
-		) * 2f - 1f;
-		n += thisN * persistance;
-		
-		period /= noiseLacunarity;
-		offPeriod /= noiseOffsetLacunarity;
-		persistance *= noisePersistance;
-	}
+	float thisN = 0f;
+	
+	/* For loop section */
+	thisN = Ease(textureLod(
+		noise, v / period - (noiseOffset + noiseMotion * time) / offPeriod, noiseLod).r, noiseEaseCurve
+	) * 2f - 1f;
+	n += thisN * persistance;
+	
+	period /= noiseLacunarity;
+	offPeriod /= noiseOffsetLacunarity;
+	persistance *= noisePersistance;
+	/* ---------------- */
+	/* For loop section */
+	thisN = Ease(textureLod(
+		noise, v / period - (noiseOffset + noiseMotion * time) / offPeriod, noiseLod).r, noiseEaseCurve
+	) * 2f - 1f;
+	n += thisN * persistance;
+	
+	period /= noiseLacunarity;
+	offPeriod /= noiseOffsetLacunarity;
+	persistance *= noisePersistance;
+	/* ---------------- */
 	
 	return n * .5f + .5f; //clamp(n * .5f + .5f, 0f, 1f);
 }
@@ -69,7 +82,7 @@ vec3 GetNormal(vec2 v) {
 	float ny = GetNoise(v + vec2(0f, spacing)) - nc;
 	
 	vec2 normal2D = vec2(nx, ny) * noiseBumpness;
-	return normalize(vec3(normal2D, 1f));
+	return vec3(normal2D, 1f);
 }
 
 void vertex() {
@@ -83,6 +96,10 @@ void fragment() {
 	n = clamp(n, 0f, 1f);
 	
 	vec3 normal = GetNormal(worldV);
+	float dir = (UV.y - .5f) * 2f;
+	normal.y -= dir * texture(fadeNormalCurve, vec2(UV.y, 0f)).r;
+	
+	normal = normalize(normal);
 	float d = dot(normal, normalize(lightDirection)) * dotMultiply;
 	d = d * .5f + .5f;
 	
