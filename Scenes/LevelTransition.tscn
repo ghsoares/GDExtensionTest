@@ -1,0 +1,178 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://Scripts/LevelTransition.cs" type="Script" id=1]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform float numTriangles = 5f;
+uniform float transition : hint_range(0.0, 1.0) = 0.0;
+uniform float pixelSize = 8f;
+
+uniform float backgroundTimeOffset : hint_range(0, .5f) = .05f;
+uniform float backgroundEasingCurve = -2f;
+uniform float foregroundTimeOffset : hint_range(0, .5f) = .05f;
+uniform float foregroundEasingCurve = -2f;
+
+uniform sampler2D backgroundGradient;
+uniform float backgroundMotion = 1f;
+uniform sampler2D foregroundGradient;
+uniform float foregroundMotion = 1f;
+
+varying vec2 v;
+
+float Remap(float value, float start1, float stop1, float start2, float stop2) {
+	return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
+}
+
+float Ease(float x, float c) {
+	x = clamp(x, 0f, 1f);
+	
+	float curve1 = 1f - pow(1f - x, 1f / c);
+	float curve2 = pow(x, c);
+	
+	float curve3 = pow(x * 2f, -c) * .5f;
+	float curve4 = (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;
+	
+	float curveA = c < 1f ? curve1 : curve2;
+	float curveB = x < .5f ? curve3 : curve4;
+	
+	return c == 0f ? 0f : (c > 0f ? curveA : curveB);
+}
+
+void vertex() {
+	v = VERTEX;
+}
+
+float Background(vec2 size, float triHeight, vec2 pos) {
+	float t = transition;
+	
+	int triIdx = int(floor(pos.y / triHeight));
+	float fIdx = float(triIdx);
+	
+	float between = 1f - backgroundTimeOffset * 2f;
+	float o = backgroundTimeOffset / numTriangles;
+	t = Remap(
+		t, fIdx * o, between + fIdx * o * 2f, 0f, 1f
+	);
+	t = clamp(t, 0f, 1f);
+	t = Ease(t, backgroundEasingCurve);
+	
+	pos.x = triIdx % 2 == 1 ? pos.x : size.x - pos.x;
+	pos.y = triIdx % 2 == 1 ? pos.y : size.y - pos.y;
+	
+	float triPosY = fract(pos.y / triHeight) * triHeight;
+	float thX = triPosY;
+	
+	pos.x += triHeight;
+	pos.x -= size.x * t * .5f;
+	
+	return pos.x <= thX ? 1.0 : 0.0;
+}
+
+float Foreground(vec2 size, float triHeight, vec2 pos) {
+	float t = transition;
+	
+	int triIdx = int(floor(pos.y / triHeight));
+	float fIdx = float(triIdx);
+	
+	float between = 1f - foregroundTimeOffset * 2f;
+	float o = foregroundTimeOffset / numTriangles;
+	t = Remap(
+		t, fIdx * o, between + fIdx * o * 2f, 0f, 1f
+	);
+	t = clamp(t, 0f, 1f);
+	t = Ease(t, foregroundEasingCurve);
+	
+	pos.x = triIdx % 2 == 0 ? pos.x : size.x - pos.x;
+	pos.y = triIdx % 2 == 0 ? pos.y : size.y - pos.y;
+	
+	float triPosY = fract(pos.y / triHeight) * triHeight;
+	float thX = triPosY;
+	
+	pos.x += triHeight;
+	pos.x -= (size.x + triHeight * 2f) * t * .5f;
+	
+	return pos.x <= thX ? 1.0 : 0.0;
+}
+
+void fragment() {
+	vec2 size = v / UV;
+	float triHeight = size.y / numTriangles;
+	vec2 pos = v;
+	
+	int triIdx = int(floor(pos.y / triHeight));
+	float fIdx = float(triIdx);
+	
+	float background = Background(size, triHeight, pos);
+	float foreground = Foreground(size, triHeight, pos);
+	
+	vec4 backgroundColor = vec4(1f);
+	vec4 foregroundColor = vec4(1f);
+	
+	backgroundColor *= texture(
+		backgroundGradient, fract(
+			vec2(fIdx / (numTriangles - 1f) + backgroundMotion * TIME)
+		)
+	);
+	foregroundColor *= texture(
+		foregroundGradient, fract(
+			vec2(fIdx / (numTriangles - 1f) + foregroundMotion * TIME)
+		)
+	);
+	
+	backgroundColor *= background;
+	foregroundColor *= foreground;
+	
+	COLOR = mix(backgroundColor, foregroundColor, foregroundColor.a);
+}
+
+
+
+
+
+"
+
+[sub_resource type="Gradient" id=5]
+offsets = PoolRealArray( 0, 0.5, 1 )
+colors = PoolColorArray( 1, 0.709804, 0.360784, 1, 1, 0.404297, 0, 1, 1, 0.709804, 0.360784, 1 )
+
+[sub_resource type="GradientTexture" id=6]
+gradient = SubResource( 5 )
+
+[sub_resource type="Gradient" id=3]
+offsets = PoolRealArray( 0, 0.5, 1 )
+colors = PoolColorArray( 0, 0.490196, 1, 1, 0, 0.207843, 1, 1, 0, 0.490196, 1, 1 )
+
+[sub_resource type="GradientTexture" id=4]
+gradient = SubResource( 3 )
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = SubResource( 1 )
+shader_param/numTriangles = 5.0
+shader_param/transition = 0.888
+shader_param/pixelSize = 1.0
+shader_param/backgroundTimeOffset = 0.363
+shader_param/backgroundEasingCurve = -4.0
+shader_param/foregroundTimeOffset = 0.363
+shader_param/foregroundEasingCurve = -2.0
+shader_param/backgroundMotion = 0.5
+shader_param/foregroundMotion = -0.5
+shader_param/backgroundGradient = SubResource( 6 )
+shader_param/foregroundGradient = SubResource( 4 )
+
+[node name="LevelTransition" type="CanvasLayer"]
+script = ExtResource( 1 )
+
+[node name="Color" type="ColorRect" parent="."]
+material = SubResource( 2 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+__meta__ = {
+"_edit_lock_": true,
+"_edit_use_anchors_": false
+}
+
+[node name="Tw" type="Tween" parent="."]
+playback_process_mode = 0

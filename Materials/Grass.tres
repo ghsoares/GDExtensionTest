@@ -30,14 +30,18 @@ varying vec2 localV;
 varying float time;
 
 float Ease(float x, float c) {
-	x = clamp(x, 0f, .999f);
+	x = clamp(x, 0f, 1f);
+	
 	float curve1 = 1f - pow(1f - x, 1f / c);
 	float curve2 = pow(x, c);
+	
 	float curve3 = pow(x * 2f, -c) * .5f;
 	float curve4 = (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;
-	float curveA = mix(curve1, curve2, step(1f, c));
-	float curveB = mix(curve3, curve4, step(.5f, x));
-	return mix(curveB, curveA, step(0f, c));
+	
+	float curveA = c < 1f ? curve1 : curve2;
+	float curveB = x < .5f ? curve3 : curve4;
+	
+	return c == 0f ? 0f : (c > 0f ? curveA : curveB);
 }
 
 float cross2D(vec2 v1, vec2 v2) {

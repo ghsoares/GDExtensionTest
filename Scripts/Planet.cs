@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Diagnostics;
 
 public class Planet : Control
 {
@@ -28,6 +29,9 @@ public class Planet : Control
     }
 
     public void Generate() {
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
+
         if (generator != null) {
             generator.QueueFree();
         }
@@ -54,7 +58,8 @@ public class Planet : Control
 
         generator.Generate();
 
-        player.Position = new Vector2(2048, 512);
+        player.Position = new Vector2(2048, 32);
+        player.Position = new Vector2(2048, 512f);
         /*player.Position = new Vector2(
             player.Position.x, terrain.GetTerrainY(player.Position.x) - 64f
         );*/
@@ -67,5 +72,12 @@ public class Planet : Control
         Show();
 
         generating = false;
+
+        stopwatch.Stop();
+        TimeSpan elapsed = stopwatch.Elapsed;
+
+        Console.WriteLine(
+            $"Planet Generation Time: {elapsed.Milliseconds} Ms"
+        );
     }
 }

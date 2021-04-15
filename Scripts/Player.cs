@@ -98,10 +98,10 @@ public class Player : RigidBody2D
     }
 
     public void OnLiquidBodyEnter(LiquidBody liquid) {
-        GD.Print("Enter: " + liquid);
+        //GD.Print("Enter: " + liquid);
     }
 
     public void OnLiquidBodyExit(LiquidBody liquid) {
-        GD.Print("Exit: " + liquid);
+        //GD.Print("Exit: " + liquid);
     }
 }

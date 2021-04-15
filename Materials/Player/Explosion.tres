@@ -1,0 +1,76 @@
+[gd_resource type="ShaderMaterial" load_steps=6 format=2]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform mat4 globalTransform;
+uniform float alphaThreshold = .1f;
+uniform float fadeBorder = 16f;
+uniform sampler2D noise;
+uniform sampler2D gradient;
+uniform vec2 noiseTiling = vec2(512f);
+uniform vec2 noiseMotion = vec2(1f, 2f);
+uniform float noiseSteps = 8f;
+
+varying vec2 worldV;
+varying vec2 v;
+
+void vertex() {
+	v = VERTEX;
+	worldV = (globalTransform * vec4(VERTEX, 0f, 1f)).xy;
+}
+
+void fragment() {
+	vec2 size = v / UV;
+	vec4 color = COLOR * texture(TEXTURE, UV);
+	
+	float bD = v.x;
+	bD = min(bD, size.x - v.x);
+	bD = min(bD, v.y);
+	bD = min(bD, size.y - v.y);
+	
+	float fadeT = 1f - clamp(bD / fadeBorder, 0f, 1f);
+	color.a -= fadeT;
+	
+	float n = texture(noise, (worldV + noiseMotion * TIME) / noiseTiling).r;
+	n += color.a * 2f - 1f;
+	n = clamp(n, 0f, 1f);
+	float prevN = n;
+	n = round(n * noiseSteps) / noiseSteps;
+	color = texture(gradient, vec2(n, 0f));
+	
+	COLOR = color;
+	COLOR.a *= step(0.001f, prevN);
+	//COLOR.a *= fadeT;
+	//COLOR = mix(COLOR, vec4(1f), fadeT);
+}
+
+
+
+
+"
+
+[sub_resource type="Gradient" id=2]
+offsets = PoolRealArray( 0, 0.433428, 0.745043, 1 )
+colors = PoolColorArray( 0, 0, 0, 0, 1, 0, 0, 1, 0.952941, 1, 0, 1, 1, 1, 1, 1 )
+
+[sub_resource type="GradientTexture" id=3]
+gradient = SubResource( 2 )
+
+[sub_resource type="OpenSimplexNoise" id=4]
+octaves = 1
+
+[sub_resource type="NoiseTexture" id=5]
+seamless = true
+noise = SubResource( 4 )
+
+[resource]
+shader = SubResource( 1 )
+shader_param/globalTransform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+shader_param/alphaThreshold = 0.01
+shader_param/fadeBorder = 32.0
+shader_param/noiseTiling = Vector2( 128, 128 )
+shader_param/noiseMotion = Vector2( 0, 32 )
+shader_param/noiseSteps = 8.0
+shader_param/noise = SubResource( 5 )
+shader_param/gradient = SubResource( 3 )

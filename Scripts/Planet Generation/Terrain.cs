@@ -190,7 +190,7 @@ public class Terrain : ColorRect
             Rect2 block2 = blocks[i+1];
 
             if (dir == 1) {
-                float startY = Mathf.Max(block1.Position.y, block2.Position.y);
+                float startY = Mathf.Max(block1.Position.y, block2.Position.y) + 1;
                 float endY = Mathf.Max(block1.End.y, block2.End.y);
                 float startX = block1.Position.x;
                 float endX = block2.End.x;

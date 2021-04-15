@@ -6,7 +6,8 @@ using Godot;
 
 public class LiquidAgent : Node2D
 {
-    public enum CollisionDetectionMode {
+    public enum CollisionDetectionMode
+    {
         BoundingBox,
         CollisionShapes
     }
@@ -20,17 +21,18 @@ public class LiquidAgent : Node2D
         public Transform2D transform { get; set; }
     }
 
-    class CollidedLiquidBodyData {
-        public LiquidBody body {get; set;}
-        public List<LiquidBody.LiquidSurfacePoint> collidedPoints {get; set;}
+    class CollidedLiquidBodyData
+    {
+        public LiquidBody body { get; set; }
+        public List<LiquidBody.LiquidSurfacePoint> collidedPoints { get; set; }
     }
 
-    public bool debug {get; set;}
+    public bool debug { get; set; }
 
-    Rect2 globalRect {get; set;}
+    Rect2 globalRect { get; set; }
     RigidBody2D rb { get; set; }
     List<ColShapeData> collisionShapes { get; set; }
-    Dictionary<LiquidBody, CollidedLiquidBodyData> insideBodies {get; set;}
+    Dictionary<LiquidBody, CollidedLiquidBodyData> insideBodies { get; set; }
 
     [Export] public Rect2 bounds = new Rect2(-Vector2.One * 8f, Vector2.One * 16f);
     [Export] public CollisionDetectionMode collisionDetectionMode = CollisionDetectionMode.BoundingBox;
@@ -64,6 +66,11 @@ public class LiquidAgent : Node2D
         }
     }
 
+    public override void _ExitTree()
+    {
+        insideBodies.Clear();
+    }
+
     public override void _Process(float delta)
     {
         Update();
@@ -82,19 +89,26 @@ public class LiquidAgent : Node2D
             }
         }
         CollisionCheck(delta);
-        foreach (CollidedLiquidBodyData colData in insideBodies.Values) {
-            foreach (LiquidBody.LiquidSurfacePoint colP in colData.collidedPoints) {
+        foreach (CollidedLiquidBodyData colData in insideBodies.Values)
+        {
+            foreach (LiquidBody.LiquidSurfacePoint colP in colData.collidedPoints)
+            {
                 colData.body.ApplyForce(colP.idx, (rb.LinearVelocity.y + Mathf.Abs(rb.LinearVelocity.x)) * 2f);
             }
             rb.LinearVelocity -= rb.LinearVelocity * Mathf.Clamp(colData.body.drag * delta, 0f, 1f);
         }
     }
 
-    public bool Collide(Vector2 p, float margin = 0f) {
-        if (collisionDetectionMode == CollisionDetectionMode.BoundingBox) {
+    public bool Collide(Vector2 p, float margin = 0f)
+    {
+        if (collisionDetectionMode == CollisionDetectionMode.BoundingBox)
+        {
             return globalRect.Grow(margin).HasPoint(p);
-        } else {
-            foreach (ColShapeData shapeData in collisionShapes) {
+        }
+        else
+        {
+            foreach (ColShapeData shapeData in collisionShapes)
+            {
                 Shape2D shape = shapeData.shape;
                 Transform2D transform = shapeData.transform;
 
@@ -105,12 +119,17 @@ public class LiquidAgent : Node2D
         return false;
     }
 
-    public bool Inside(Vector2 p, Rect2 limit) {
-        if (collisionDetectionMode == CollisionDetectionMode.BoundingBox) {
+    public bool Inside(Vector2 p, Rect2 limit)
+    {
+        if (collisionDetectionMode == CollisionDetectionMode.BoundingBox)
+        {
             p.y = Mathf.Clamp(GlobalPosition.y, p.y, limit.End.y);
             return globalRect.HasPoint(p);
-        } else {
-            foreach (ColShapeData shapeData in collisionShapes) {
+        }
+        else
+        {
+            foreach (ColShapeData shapeData in collisionShapes)
+            {
                 Shape2D shape = shapeData.shape;
                 Transform2D transform = shapeData.transform;
 
@@ -132,13 +151,16 @@ public class LiquidAgent : Node2D
             List<LiquidBody.LiquidSurfacePoint> collidedPoints = new List<LiquidBody.LiquidSurfacePoint>();
             bool inside = false;
             float margin = 0f;
-            if (points.Count > 0) {
+            if (points.Count > 0)
+            {
                 Rect2 liquidGlobalRect = liquid.GetGlobalRect();
 
-                foreach (LiquidBody.LiquidSurfacePoint p in points) {
+                foreach (LiquidBody.LiquidSurfacePoint p in points)
+                {
                     if (inside) margin = 16f;
 
-                    if (Collide(p.pos, margin)) {
+                    if (Collide(p.pos, margin))
+                    {
                         inside = true;
                         collidedPoints.Add(p);
                     }
@@ -149,17 +171,24 @@ public class LiquidAgent : Node2D
 
             CollidedLiquidBodyData bodyData;
 
-            if (inside) {
-                if (!insideBodies.ContainsKey(liquid)) {
-                    bodyData = new CollidedLiquidBodyData {body = liquid, collidedPoints = collidedPoints};
+            if (inside)
+            {
+                if (!insideBodies.ContainsKey(liquid))
+                {
+                    bodyData = new CollidedLiquidBodyData { body = liquid, collidedPoints = collidedPoints };
                     insideBodies.Add(liquid, bodyData);
                     EmitSignal("OnLiquidBodyEnter", liquid);
-                } else {
+                }
+                else
+                {
                     bodyData = insideBodies[liquid];
                 }
                 bodyData.collidedPoints = collidedPoints;
-            } else {
-                if (insideBodies.ContainsKey(liquid)) {
+            }
+            else
+            {
+                if (insideBodies.ContainsKey(liquid))
+                {
                     insideBodies.Remove(liquid);
                     EmitSignal("OnLiquidBodyExit", liquid);
                 }
@@ -184,7 +213,7 @@ public class LiquidAgent : Node2D
             foreach (LiquidBody.LiquidSurfacePoint p in points)
             {
                 Color color = Colors.Red;
-                
+
                 foreach (ColShapeData colShape in collisionShapes)
                 {
                     Shape2D shape = colShape.shape;
@@ -195,7 +224,7 @@ public class LiquidAgent : Node2D
                         color = Colors.Green;
                     }
                 }
-                
+
                 DrawCircle(p.pos, 1f, color);
             }
         }

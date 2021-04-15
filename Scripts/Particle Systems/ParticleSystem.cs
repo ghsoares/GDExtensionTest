@@ -19,6 +19,7 @@ public class ParticleSystem : Node2D
     public int aliveParticles { get; private set; }
     public Vector2 prevPos { get; private set; }
     public Vector2 currentVelocity { get; private set; }
+    public float currentVelocityLength { get; private set; }
     public Vector2 externalForces { get; private set; }
     public Physics2DDirectSpaceState spaceState { get; private set; }
 
@@ -169,6 +170,7 @@ public class ParticleSystem : Node2D
         {
             currentVelocity = (GlobalPosition - prevPos) / delta;
         }
+        currentVelocityLength = currentVelocity.Length();
 
         spaceState = GetWorld2d().DirectSpaceState;
 

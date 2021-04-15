@@ -1,6 +1,9 @@
 using Godot;
 
-public class PlayerDeadState : State<Player> {
+public class PlayerDeadState : State<Player>
+{
+    bool resetting = false;
+
     public override void Enter()
     {
         root.LinearVelocity = Vector2.Zero;
@@ -13,18 +16,28 @@ public class PlayerDeadState : State<Player> {
         root.CollisionToggle(false);
 
         root.dead = true;
-        
+
         root.explosionParticleSystem.Emit();
 
         root.GlobalPosition = Vector2.One * -128f;
-        GameCamera.instance.desiredZoom = root.platformZoomRange.y;
+
+        resetting = false;
     }
 
     public override void PhysicsProcess(float delta)
     {
-        if (Input.IsActionJustPressed("reset_level")) {
-            QueryState("Hover");
+        if (Input.IsActionJustPressed("reset_level") && !resetting)
+        {
+            Reset();
         }
+    }
+
+    private async void Reset()
+    {
+        if (resetting) return;
+        resetting = true;
+        await LevelTransition.instance.AsyncAnimateIn();
+        QueryState("Hover");
     }
 
     public override void Exit()

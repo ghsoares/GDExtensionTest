@@ -29,6 +29,7 @@ public class EarthPlanetGenerator : PlanetGenerator {
         cloudsRenderMaterial = ResourceLoader.Load<ShaderMaterial>("res://Materials/Earth/CloudsRendering.tres");
         clouds.cloudsNoiseMaterial = cloudsNoiseMaterial;
         clouds.cloudsRenderingMaterial = cloudsRenderMaterial;
+        clouds.RectPosition = Vector2.Down * 64f;
 
         liquidBodiesRoot.RectSize = planet.size;
 

@@ -23,7 +23,20 @@ uniform float playerFadeLength = 64.0;
 varying vec2 v;
 varying float time;
 
-float Ease(float x, float c) {return x;}
+float Ease(float x, float c) {
+	x = clamp(x, 0f, 1f);
+	
+	float curve1 = 1f - pow(1f - x, 1f / c);
+	float curve2 = pow(x, c);
+	
+	float curve3 = pow(x * 2f, -c) * .5f;
+	float curve4 = (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;
+	
+	float curveA = c < 1f ? curve1 : curve2;
+	float curveB = x < .5f ? curve3 : curve4;
+	
+	return c == 0f ? 0f : (c > 0f ? curveA : curveB);
+}
 
 void vertex() {
 	v = VERTEX;

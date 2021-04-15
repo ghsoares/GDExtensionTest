@@ -43,9 +43,5 @@ public class PlayerExplosionParticleSystem : ParticleSystem {
             drag = Mathf.Lerp(dragRange.x, dragRange.y, drag);
             particle.velocity -= particle.velocity * Mathf.Min(drag * delta, 1f);
         }
-        Color c = particle.customDataVertex;
-        c.b = particle.position.x;
-        c.a = -particle.position.y;
-        particle.customDataVertex = c;
     }
 }

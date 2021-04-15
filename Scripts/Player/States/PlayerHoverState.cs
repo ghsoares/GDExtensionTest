@@ -33,6 +33,8 @@ public class PlayerHoverState : State<Player>
         root.rocketParticleSystem.emitting = true;
         root.groundParticleSystem.emitting = true;
         root.Connect("body_entered", this, "OnBodyEntered");
+
+        LevelTransition.instance.AnimateOut();
     }
 
     public override void PhysicsProcess(float delta)
@@ -41,7 +43,7 @@ public class PlayerHoverState : State<Player>
         ParticlesProcess(delta);
 
         GameCamera.instance.desiredPosition = root.GlobalPosition;
-        GameCamera.instance.desiredZoom = root.CalculatePlatformZoom();
+        //GameCamera.instance.desiredZoom = root.CalculatePlatformZoom();
     }
 
     private void MotionProcess(float delta)
