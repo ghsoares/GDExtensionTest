@@ -27,7 +27,7 @@ public class PlanetGenerator : Control {
     }
 
     public virtual void Generate() {
-        RectSize = planet.size;
+        RectSize = planet.totalSize;
 
         planet.windSpeed = Vector2.Right * 16f;
 

@@ -17,8 +17,10 @@ public class Planet : Control
     public GameCamera gameCamera {get; set;}
 
     public Vector2 gravity {get; set;}
+    public Vector2 totalSize {get; set;}
 
     [Export] public Vector2 size;
+    [Export] public float margin = 256f;
 
     public Planet() {
         instance = this;
@@ -32,19 +34,20 @@ public class Planet : Control
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
 
+        totalSize = size + Vector2.One * margin;
+
         if (generator != null) {
             generator.QueueFree();
-        }
-        if (player == null) {
-            player = GD.Load<PackedScene>("res://Scenes/Player.tscn").Instance() as Player;
-            AddChild(player);
         }
         if (gameCamera == null) {
             gameCamera = new GameCamera();
             AddChild(gameCamera);
         }
+        if (player == null) {
+            player = GD.Load<PackedScene>("res://Scenes/Player.tscn").Instance() as Player;
+        }
 
-        generator = new EarthPlanetGenerator();
+        generator = new CyclopsPlanetGenerator();
         generator.planet = this;
 
         AddChild(generator);
@@ -54,12 +57,12 @@ public class Planet : Control
 
         Hide();
 
-        RemoveChild(player);
+        if (player.IsInsideTree()) RemoveChild(player);
 
         generator.Generate();
 
         player.Position = new Vector2(2048, 32);
-        player.Position = new Vector2(2048, 512f);
+        //player.Position = new Vector2(2048, 512f);
         /*player.Position = new Vector2(
             player.Position.x, terrain.GetTerrainY(player.Position.x) - 64f
         );*/
@@ -68,6 +71,7 @@ public class Planet : Control
         AddChild(player);
 
         generator.Raise();
+        gameCamera.SetLimits();
 
         Show();
 

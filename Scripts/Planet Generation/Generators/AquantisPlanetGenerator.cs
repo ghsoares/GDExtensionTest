@@ -23,7 +23,7 @@ public class AquantisPlanetGenerator : PlanetGenerator {
         algae.height = 32f;
         algae.Material = ResourceLoader.Load<ShaderMaterial>("res://Materials/Aquantis/Algae.tres");
 
-        liquidBodiesRoot.RectSize = planet.size;
+        liquidBodiesRoot.RectSize = planet.totalSize;
 
         AddChild(algae);
         AddChild(fishes);
@@ -41,7 +41,7 @@ public class AquantisPlanetGenerator : PlanetGenerator {
         algae.Create();
 
         Vector2 floodMin = new Vector2(0f, terrain.minY);
-        Vector2 floodMax = new Vector2(planet.size.x, terrain.maxY);
+        Vector2 floodMax = new Vector2(planet.totalSize.x, terrain.maxY);
         Rect2 floodRect = new Rect2(floodMin, floodMax - floodMin)
             .GrowIndividual(1f, 256f, 1f, 1f);
         
@@ -56,6 +56,9 @@ public class AquantisPlanetGenerator : PlanetGenerator {
         liquid.RectSize = floodRect.Size;
 
         liquidBodiesRoot.AddChild(liquid);
+
+        liquidBodiesRoot.Hide();
+        fishes.Hide();
 
         /*foreach (Rect2 r in valleys) {
             if (GD.Randf() > .5f) continue;

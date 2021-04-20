@@ -1,57 +1,18 @@
-[gd_scene load_steps=10 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://Scenes/Planet.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Scripts/Game.cs" type="Script" id=2]
-[ext_resource path="res://Materials/Earth/Terrain.tres" type="Material" id=3]
+[ext_resource path="res://Materials/Cyclops/Terrain.tres" type="Material" id=3]
 [ext_resource path="res://Materials/Earth/CloudsNoise.tres" type="Material" id=4]
 [ext_resource path="res://Materials/Earth/CloudsRendering.tres" type="Material" id=5]
+[ext_resource path="res://Materials/Cyclops/Fog.tres" type="Material" id=6]
+[ext_resource path="res://Scripts/ViewRenderer.cs" type="Script" id=7]
+[ext_resource path="res://Materials/Cyclops/Sand.tres" type="Material" id=8]
 
 [sub_resource type="ViewportTexture" id=1]
 viewport_path = NodePath("View/Clouds/View")
 
-[sub_resource type="Shader" id=2]
-code = "shader_type canvas_item;
-
-uniform float bloomRadius = 1.0;
-uniform vec3 bloomThreshold = vec3(1.0);
-uniform float bloomIntensity = 1.0;
-
-vec3 GetBloomPixel(sampler2D tex, vec2 uv, vec2 texPixelSize) {
-	return max(texture(tex, uv).rgb - bloomThreshold, 0f) * (1f + bloomThreshold);
-}
-
-vec3 GetBloom(sampler2D tex, vec2 uv, vec2 texPixelSize) {
-	vec3 bloom = vec3(0.0);
-	vec2 off = vec2(2) * texPixelSize * bloomRadius;
-	bloom += GetBloomPixel(tex, uv + off * vec2(-1, -1), texPixelSize * bloomRadius) * 0.292893;
-	bloom += GetBloomPixel(tex, uv + off * vec2(-1, 0), texPixelSize * bloomRadius) * 0.5;
-	bloom += GetBloomPixel(tex, uv + off * vec2(-1, 1), texPixelSize * bloomRadius) * 0.292893;
-	bloom += GetBloomPixel(tex, uv + off * vec2(0, -1), texPixelSize * bloomRadius) * 0.5;
-	bloom += GetBloomPixel(tex, uv + off * vec2(0, 0), texPixelSize * bloomRadius) * 1.0;
-	bloom += GetBloomPixel(tex, uv + off * vec2(0, 1), texPixelSize * bloomRadius) * 0.5;
-	bloom += GetBloomPixel(tex, uv + off * vec2(1, -1), texPixelSize * bloomRadius) * 0.292893;
-	bloom += GetBloomPixel(tex, uv + off * vec2(1, 0), texPixelSize * bloomRadius) * 0.5;
-	bloom += GetBloomPixel(tex, uv + off * vec2(1, 1), texPixelSize * bloomRadius) * 0.292893;
-	bloom /= 4.171573f;
-	return bloom;
-}
-
-void fragment() {
-	vec4 col = texture(TEXTURE, UV);
-	
-	vec3 bloom = GetBloom(TEXTURE, UV, TEXTURE_PIXEL_SIZE);
-	col.rgb += bloom * bloomIntensity;
-	
-	COLOR = col;
-}"
-
-[sub_resource type="ShaderMaterial" id=3]
-shader = SubResource( 2 )
-shader_param/bloomRadius = 1.5
-shader_param/bloomThreshold = Vector3( 1, 1, 1 )
-shader_param/bloomIntensity = 1.0
-
-[sub_resource type="ViewportTexture" id=4]
+[sub_resource type="ViewportTexture" id=2]
 viewport_path = NodePath("View")
 
 [node name="Game" type="Control"]
@@ -75,9 +36,21 @@ visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 
+[node name="Line2D" type="Line2D" parent="View/Control"]
+material = ExtResource( 8 )
+points = PoolVector2Array( 960, 405, 0, 405 )
+width = 8.0
+default_color = Color( 1, 1, 1, 1 )
+texture_mode = 2
+
 [node name="ColorRect2" type="ColorRect" parent="View/Control"]
 material = ExtResource( 3 )
 anchor_top = 0.75
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="ColorRect3" type="ColorRect" parent="View/Control"]
+material = ExtResource( 6 )
 anchor_right = 1.0
 anchor_bottom = 1.0
 
@@ -108,6 +81,16 @@ anchor_bottom = 1.0
 texture = SubResource( 1 )
 expand = true
 
+[node name="ColorRect" type="ColorRect" parent="View"]
+visible = false
+margin_left = 128.0
+margin_top = 128.0
+margin_right = 160.0
+margin_bottom = 160.0
+rect_rotation = 45.0
+rect_pivot_offset = Vector2( 16, 16 )
+color = Color( 1.5, 1, 1, 1 )
+
 [node name="ZoomCamera" type="Camera2D" parent="."]
 visible = false
 current = true
@@ -118,12 +101,12 @@ limit_right = 960
 limit_bottom = 540
 
 [node name="ViewTex" type="TextureRect" parent="."]
-material = SubResource( 3 )
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-texture = SubResource( 4 )
+texture = SubResource( 2 )
 expand = true
+script = ExtResource( 7 )
 __meta__ = {
 "_edit_lock_": true,
 "_edit_use_anchors_": false

@@ -40,6 +40,15 @@ public class ParticleSystemRenderer2D : Node2D
             view.Usage = viewportUsage;
             view.RenderTargetVFlip = true;
             AddChild(view);
+
+            if (bounds.Size != Vector2.Zero)
+            {
+                view.Size = bounds.Size;
+            }
+            else
+            {
+                view.Size = baseView.Size;
+            }
         }
         if (camera == null)
         {
@@ -65,14 +74,6 @@ public class ParticleSystemRenderer2D : Node2D
 
             ViewportTexture viewTex = view.GetTexture();
             viewTexRect.Texture = viewTex;
-        }
-        if (bounds.Size != Vector2.Zero)
-        {
-            view.Size = bounds.Size;
-        }
-        else
-        {
-            view.Size = baseView.Size;
         }
     }
 

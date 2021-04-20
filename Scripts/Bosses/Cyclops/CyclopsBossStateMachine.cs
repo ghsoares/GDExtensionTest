@@ -1,0 +1,1 @@
+public class CyclopsBossStateMachine : StateMachine<CyclopsBoss> {}

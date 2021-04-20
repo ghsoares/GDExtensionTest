@@ -31,7 +31,7 @@ public class EarthPlanetGenerator : PlanetGenerator {
         clouds.cloudsRenderingMaterial = cloudsRenderMaterial;
         clouds.RectPosition = Vector2.Down * 64f;
 
-        liquidBodiesRoot.RectSize = planet.size;
+        liquidBodiesRoot.RectSize = planet.totalSize;
 
         AddChild(grass);
         AddChild(liquidBodiesRoot);

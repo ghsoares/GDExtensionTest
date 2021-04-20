@@ -17,7 +17,7 @@ public class Grass : Line2D {
     public void Create() {
         mat = Material as ShaderMaterial;
         Terrain terrain = planet.terrain;
-        int numPoints = Mathf.CeilToInt(planet.size.x * resolution);
+        int numPoints = Mathf.CeilToInt(planet.totalSize.x * resolution);
 
         ClearPoints();
         totalSize = 0f;
@@ -25,7 +25,7 @@ public class Grass : Line2D {
 
         for (int i = numPoints - 1; i >= 0; i--) {
             float x = i / resolution;
-            x = Mathf.Min(x, planet.size.x);
+            x = Mathf.Min(x, planet.totalSize.x);
             float y = terrain.GetTerrainY(x);
             Vector2 p = new Vector2(x, y);
             AddPoint(p);

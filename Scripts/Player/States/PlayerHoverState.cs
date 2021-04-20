@@ -24,6 +24,8 @@ public class PlayerHoverState : State<Player>
 
     public override void Enter()
     {
+        GD.Print("b");
+
         currentThrusterForce = 0f;
         kickOff = false;
         currKickOffTime = 0f;
@@ -35,6 +37,8 @@ public class PlayerHoverState : State<Player>
         root.Connect("body_entered", this, "OnBodyEntered");
 
         LevelTransition.instance.AnimateOut();
+
+        GameCamera.instance.Warp(root.GlobalPosition, 1f);
     }
 
     public override void PhysicsProcess(float delta)
@@ -43,7 +47,7 @@ public class PlayerHoverState : State<Player>
         ParticlesProcess(delta);
 
         GameCamera.instance.desiredPosition = root.GlobalPosition;
-        //GameCamera.instance.desiredZoom = root.CalculatePlatformZoom();
+        GameCamera.instance.desiredZoom = root.CalculatePlatformZoom();
     }
 
     private void MotionProcess(float delta)

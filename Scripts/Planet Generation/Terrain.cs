@@ -18,7 +18,9 @@ public class Terrain : ColorRect
     public Planet planet;
 
     public OpenSimplexNoise noise;
+    public OpenSimplexNoise detailsNoise;
     public TerrainCollision collision;
+    public float detailsInfluence = 0f;
     public float height = 400f;
     public float heightOffset = 100f;
     public float visualResolution = 1f / 4f;
@@ -33,10 +35,14 @@ public class Terrain : ColorRect
 
     public float SampleNoise(float x)
     {
-        float h = noise.GetNoise1d(x) * .5f + .5f;
+        float h = noise.GetNoise1d(x);
+        if (detailsNoise != null) {
+            h += detailsNoise.GetNoise1d(x) * detailsInfluence;
+        }
+        h = h * .5f + .5f;
         h *= height;
         h += heightOffset;
-        return Mathf.Clamp(h, 0f, planet.size.y);
+        return Mathf.Clamp(h, 0f, planet.totalSize.y);
     }
 
     public float GetTerrainHeight(float x)
@@ -71,7 +77,7 @@ public class Terrain : ColorRect
     public float GetTerrainY(float x)
     {
         float h = GetTerrainHeight(x);
-        return planet.size.y - h;
+        return planet.totalSize.y - h;
     }
 
     public Vector2 GetTerrainNormal(float x)
@@ -119,7 +125,7 @@ public class Terrain : ColorRect
         ImageTexture imgTexture = new ImageTexture();
 
         float resolution = visualResolution;
-        int width = Mathf.CeilToInt(planet.size.x * resolution);
+        int width = Mathf.CeilToInt(planet.totalSize.x * resolution);
 
         img.Create(width, 1, false, Image.Format.Rf);
         img.Lock();
@@ -127,8 +133,8 @@ public class Terrain : ColorRect
         for (int i = 0; i < width; i++)
         {
             float x = i / resolution;
-            x = Mathf.Min(x, planet.size.x);
-            float h = GetTerrainHeight(x) / planet.size.y;
+            x = Mathf.Min(x, planet.totalSize.x);
+            float h = GetTerrainHeight(x) / planet.totalSize.y;
             img.SetPixel(i, 0, new Color(h, 0, 0));
         }
 
@@ -139,7 +145,7 @@ public class Terrain : ColorRect
     }
 
     public void SampleMountainsAndValleys() {
-        Vector2 size = planet.size;
+        Vector2 size = planet.totalSize;
 
         minY = size.y;
         maxY = 0f;
@@ -231,14 +237,14 @@ public class Terrain : ColorRect
 
     public void Generate()
     {
-        RectSize = planet.size;
+        RectSize = planet.totalSize;
 
         ShaderMaterial mat = Material as ShaderMaterial;
         if (mat != null)
         {
             ImageTexture terrainTex = GenerateTexture();
             mat.SetShaderParam("terrainHeightMap", terrainTex);
-            mat.SetShaderParam("terrainSize", planet.size);
+            mat.SetShaderParam("terrainSize", planet.totalSize);
             mat.SetShaderParam("terrainResolution", visualResolution);
         }
 
