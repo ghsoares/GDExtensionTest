@@ -5,6 +5,7 @@ public static class PlayerData {
 
     public static float maxFuel {get; set;}
     public static float fuelLossRate {get; set;}
+    public static float thrusterDPS {get; set;}
     public static int sessionScore {get; set;}
     public static float sessionCurrentFuel {
         get {
@@ -17,7 +18,8 @@ public static class PlayerData {
     
     static PlayerData() {
         maxFuel = 500f;
-        fuelLossRate = .1f;   
+        fuelLossRate = .1f;
+        thrusterDPS = 10f;
     }
 
     public static void ResetSession() {

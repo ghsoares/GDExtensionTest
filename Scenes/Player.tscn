@@ -225,7 +225,7 @@ void vertex() {
 
 void fragment() {
 	vec4 col = texture(TEXTURE, UV);
-	float t = col.a;
+	float t = col.a * 2f;
 	
 	vec2 uv = (v + noiseMotion * TIME * 1f) / noiseTiling;
 	
@@ -460,11 +460,12 @@ script = ExtResource( 14 )
 mesh = SubResource( 30 )
 meshMaterial = SubResource( 34 )
 bounds = Rect2( -160, -160, 0, 0 )
+viewportUsage = 1
 
 [node name="Viewport" type="Viewport" parent="Particles/Explosion/Explosion_1/Renderer2D"]
 size = Vector2( 320, 320 )
 transparent_bg = true
-usage = 3
+usage = 1
 render_target_v_flip = true
 
 [node name="Sprite" type="Sprite" parent="Particles/Explosion/Explosion_1/Renderer2D/Viewport"]
@@ -474,7 +475,7 @@ position = Vector2( 128, 128 )
 scale = Vector2( 1.5, 1.5 )
 texture = ExtResource( 15 )
 
-[node name="Sprite2" type="Sprite" parent="Particles/Explosion/Explosion_1/Renderer2D/Viewport"]
+[node name="Sprite4" type="Sprite" parent="Particles/Explosion/Explosion_1/Renderer2D/Viewport"]
 modulate = Color( 1, 0, 0, 1 )
 material = SubResource( 34 )
 position = Vector2( 160, 128 )

@@ -8,6 +8,8 @@ public class PlayerGroundParticleSystem : ParticleSystem
     List<Node> ignoreObjects = new List<Node>();
     Vector2 currentHitPoint;
 
+    public Godot.Collections.Dictionary currentRayHit {get; private set;}
+
     [Export] public float maxRate = 64f;
     [Export] public float maxRange = 24f;
     [Export] public float hitSpread = 16f;
@@ -25,11 +27,11 @@ public class PlayerGroundParticleSystem : ParticleSystem
         Vector2 from = GlobalPosition;
         Vector2 to = from + GlobalTransform.y * maxRange;
 
-        var ray = spaceState.IntersectRay(
+        currentRayHit = spaceState.IntersectRay(
             from, to, new Godot.Collections.Array(ignoreObjects)
         );
-        if (ray.Count > 0) {
-            currentHitPoint = (Vector2)ray["position"];
+        if (currentRayHit.Count > 0) {
+            currentHitPoint = (Vector2)currentRayHit["position"];
             float t = (currentHitPoint - from).Length() / maxRange;
             currentRate += (1f - t) * maxRate * delta;
         }

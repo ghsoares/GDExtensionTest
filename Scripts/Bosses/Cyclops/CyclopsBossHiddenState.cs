@@ -12,6 +12,7 @@ public class CyclopsBossHiddenState : State<CyclopsBoss> {
 
     public override void PhysicsProcess(float delta)
     {
+        if (Player.instance.dead) return;
         currTime -= delta;
         if (currTime <= 0f) {
             QueryState("Jump");

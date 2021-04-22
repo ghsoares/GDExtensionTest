@@ -77,7 +77,11 @@ public class CyclopsBossJumpState : State<CyclopsBoss>
 
         if (currentT >= curveLength)
         {
-            QueryState("Hidden");
+            if (root.health > 0f) {
+                QueryState("Hidden");
+            } else {
+                QueryState("Dead");
+            }
         }
     }
 
@@ -86,7 +90,7 @@ public class CyclopsBossJumpState : State<CyclopsBoss>
         Terrain terrain = Planet.instance.terrain;
         Vector2 cameraPos = GameCamera.instance.GlobalPosition;
         float shake = 0f;
-        foreach (Node2D segment in root.segments)
+        foreach (StaticBody2D segment in root.segments)
         {
             float terrainY = terrain.GetTerrainY(segment.GlobalPosition.x);
             float diff = terrainY - segment.GlobalPosition.y;
@@ -94,8 +98,14 @@ public class CyclopsBossJumpState : State<CyclopsBoss>
             {
                 Dictionary<string, object> emitParams = new Dictionary<string, object>();
 
+                Vector2 vel = segment.ConstantLinearVelocity;
+                if (vel.y > 0f) {
+                    vel = -vel;
+                }
+
                 emitParams["position"] = segment.GlobalPosition;
                 emitParams["spread"] = segmentsSize;
+                emitParams["velocity"] = vel * .4f;
 
                 root.sandParticles.AddRate(delta * sandEmitRate, emitParams);
 

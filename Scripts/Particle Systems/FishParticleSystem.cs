@@ -78,7 +78,7 @@ public class FishParticleSystem : ParticleSystem
         Vector2 currDirection = desiredDirection;
         float terrainY = Planet.instance.terrain.GetTerrainY(particle.position.x);
 
-        Vector2 playerOffset = (player.GlobalPosition - particle.position);
+        Vector2 playerOffset = (player.transform.origin - particle.position);
 
         /* Top and bottom collision avoidance */
         float topDistance = particle.position.y - GlobalPosition.y;

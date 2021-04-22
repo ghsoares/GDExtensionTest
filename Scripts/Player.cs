@@ -9,6 +9,15 @@ public class Player : RigidBody2D
     public Node2D body {get; set;}
     public Sprite sprite {get; set;}
     public Transform2D startTransform {get; set;}
+    public Transform2D transform {
+        get {
+            if (dead) {
+                return Transform2D.Identity.Translated(Vector2.One * -256f);
+            } else {
+                return GlobalTransform;
+            }
+        }
+    }
     public bool dead {get; set;}
 
     public PlayerRocketParticleSystem rocketParticleSystem {get; set;}
@@ -63,6 +72,10 @@ public class Player : RigidBody2D
 
     public float CalculatePlatformZoom() {
         Platform nearestPlatform = Planet.instance.platformPlacer.GetNearestPlatform(GlobalPosition.x);
+
+        if (nearestPlatform == null) {
+            return platformZoomRange.y;
+        }
 
         float distance = (nearestPlatform.GlobalPosition - GlobalPosition).Length();
         float t = Mathf.InverseLerp(platformZoomDistanceRange.x, platformZoomDistanceRange.y, distance);

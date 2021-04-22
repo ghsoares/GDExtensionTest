@@ -5,12 +5,22 @@ public class PlatformPlacer : Control
 {
     public Planet planet;
     public Platform[] platforms { get; set; }
+    public bool enabled {get; set;}
 
     public Vector2 spacingRange = new Vector2(32f, 64f);
+
+    public PlatformPlacer() {
+        enabled = true;
+    }
 
     public override void _Ready()
     {
         RectSize = planet.totalSize;
+    }
+
+    public override void _PhysicsProcess(float delta)
+    {
+        Visible = enabled;
     }
 
     public void Scatter()
@@ -59,6 +69,7 @@ public class PlatformPlacer : Control
 
     public Platform GetNearestPlatform(float posX)
     {
+        if (!enabled) return null;
         Platform nearest = platforms[0];
         float nearestDst = Mathf.Abs(nearest.GlobalPosition.x - posX);
 

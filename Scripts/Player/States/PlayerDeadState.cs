@@ -19,7 +19,7 @@ public class PlayerDeadState : State<Player>
 
         root.explosionParticleSystem.Emit();
 
-        root.GlobalPosition = Vector2.One * -128f;
+        //root.GlobalPosition = Vector2.One * -128f;
 
         resetting = false;
 

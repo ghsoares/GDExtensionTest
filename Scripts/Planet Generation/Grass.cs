@@ -49,7 +49,7 @@ public class Grass : Line2D {
         if (mat != null) {
             mat.SetShaderParam("windSpeed", planet.windSpeed.x);
             
-            Transform2D currentPlayerTransform = Player.instance.GlobalTransform;
+            Transform2D currentPlayerTransform = Player.instance.transform;
             float heightDiff = planet.terrain.GetTerrainY(currentPlayerTransform.origin.x) - currentPlayerTransform.origin.y;
             heightDiff -= 16f;
             float t = 1f - Mathf.Clamp(heightDiff / playerThrusterAngleTransitionLength, 0f, 1f);

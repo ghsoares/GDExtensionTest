@@ -3,6 +3,8 @@ using Godot;
 
 public class PlayerHoverState : State<Player>
 {
+    private bool thrusterHit {get; set;}
+
     public float currentThrusterForce {get; private set;}
     public bool kickOff {get; private set;}
     public float currKickOffTime {get; private set;}
@@ -24,8 +26,6 @@ public class PlayerHoverState : State<Player>
 
     public override void Enter()
     {
-        GD.Print("b");
-
         currentThrusterForce = 0f;
         kickOff = false;
         currKickOffTime = 0f;
@@ -45,6 +45,7 @@ public class PlayerHoverState : State<Player>
     {
         MotionProcess(delta);
         ParticlesProcess(delta);
+        DamageProcess(delta);
 
         GameCamera.instance.desiredPosition = root.GlobalPosition;
         GameCamera.instance.desiredZoom = root.CalculatePlatformZoom();
@@ -101,6 +102,16 @@ public class PlayerHoverState : State<Player>
 
         root.kickOffParticleSystem.emitting = kickOff;
         root.kickOffParticleSystem.emissionRate = 64f * Mathf.Clamp(currKickOffTime / kickOffTime, 0f, 1f);
+    
+        thrusterHit = root.groundParticleSystem.currentRayHit != null;
+    }
+
+    private void DamageProcess(float delta) {
+        if (thrusterHit) {
+            Node2D hitObj = (Node2D)root.groundParticleSystem.currentRayHit["collider"];
+            IDamageable dmgTarget = (hitObj as IDamageable) ?? (hitObj.GetParent() as IDamageable);
+            dmgTarget?.Damage(PlayerData.thrusterDPS * delta);
+        }
     }
 
     public void OnBodyEntered(Node body)

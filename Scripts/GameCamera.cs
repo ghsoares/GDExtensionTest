@@ -46,6 +46,8 @@ public class GameCamera : Camera2D
         currentZoom = desiredZoom;
 
         LimitSmoothed = true;
+
+        this.Shake(5f, 500f, 32f);
     }
 
     public void SetLimits()

@@ -2,20 +2,26 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
-public class CyclopsBoss : Node2D
+public class CyclopsBoss : Node2D, IDamageable
 {
     private StaticBody2D head {get; set;}
     private CyclopsBossStateMachine stateMachine {get; set;}
+    private bool dead {get; set;}
 
+    public float health {get; private set;}
     public List<StaticBody2D> segments {get; set;}
     public SandParticleSystem sandParticles {get; set;}
 
     [Export] public float spacing = 30f;
     [Export] public int numSegments = 8;
+    [Export] public float maxHealth = 100f;
+
+    [Signal] delegate void Dead();
 
     public override void _Ready()
     {
-        head = GetNode<StaticBody2D>("Head");
+        health = maxHealth;
+
         InitSegments();
 
         stateMachine = GetNode<CyclopsBossStateMachine>("StateMachine");
@@ -27,7 +33,9 @@ public class CyclopsBoss : Node2D
     }
 
     private void InitSegments() {
+        head = GetNode<StaticBody2D>("Head");
         StaticBody2D segmentBase = GetNode<StaticBody2D>("Segment");
+        StaticBody2D tail = GetNode<StaticBody2D>("Tail");
         segments = new List<StaticBody2D>();
 
         segments.Add(segmentBase);
@@ -38,6 +46,8 @@ public class CyclopsBoss : Node2D
 
             AddChild(clone);
         }
+
+        segments.Add(tail);
 
         head.Raise();
     }
@@ -51,11 +61,11 @@ public class CyclopsBoss : Node2D
 
     public void Move(Vector2 delta, float deltaTime) {
         float deltaLen = delta.Length();
-        for (int i = numSegments - 1; i >= 0; i--) {
+        for (int i = 0; i < numSegments; i++) {
             StaticBody2D curr = segments[i];
             StaticBody2D nxt = null;
-            if (i > 0) {
-                nxt = segments[i-1];
+            if (i < numSegments - 1) {
+                nxt = segments[i+1];
             } else {
                 nxt = head;
             }
@@ -73,5 +83,15 @@ public class CyclopsBoss : Node2D
 
         head.GlobalPosition += delta;
         head.GlobalRotation = delta.Angle();
+    }
+
+    public void Damage(float dmg)
+    {
+        if (dead) return;
+        health -= dmg;
+        if (health <= 0f) {
+            dead = true;
+            health = 0f;
+        }
     }
 }

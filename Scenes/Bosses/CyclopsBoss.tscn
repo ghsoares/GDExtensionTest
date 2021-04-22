@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://Textures/GiantWormSegment.png" type="Texture" id=1]
 [ext_resource path="res://Scripts/Bosses/CyclopsBoss.cs" type="Script" id=2]
@@ -8,6 +8,8 @@
 [ext_resource path="res://Scripts/Bosses/Cyclops/CyclopsBossHiddenState.cs" type="Script" id=6]
 [ext_resource path="res://Scripts/Particle Systems/SandParticleSystem.cs" type="Script" id=7]
 [ext_resource path="res://Materials/Particle.tres" type="Material" id=8]
+[ext_resource path="res://Scripts/Bosses/Cyclops/CyclopsBossDeadState.cs" type="Script" id=9]
+[ext_resource path="res://Textures/GiantWormTail.png" type="Texture" id=10]
 
 [sub_resource type="CircleShape2D" id=1]
 radius = 50.0
@@ -42,6 +44,15 @@ offset = Vector2( 50, 0 )
 [node name="Segment" type="CollisionShape2D" parent="Head"]
 shape = SubResource( 1 )
 
+[node name="Tail" type="StaticBody2D" parent="."]
+
+[node name="Sprite" type="Sprite" parent="Tail"]
+texture = ExtResource( 10 )
+offset = Vector2( -50, 0 )
+
+[node name="Segment" type="CollisionShape2D" parent="Tail"]
+shape = SubResource( 1 )
+
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource( 5 )
 
@@ -56,6 +67,9 @@ bezierHandleSize = 450.0
 segmentsSize = 75.0
 sandEmitRate = 32.0
 shakeMagnitudePerSegment = 4.0
+
+[node name="Dead" type="Node" parent="StateMachine"]
+script = ExtResource( 9 )
 
 [node name="SandParticles" type="Node2D" parent="."]
 material = ExtResource( 8 )
