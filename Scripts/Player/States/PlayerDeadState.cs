@@ -22,6 +22,8 @@ public class PlayerDeadState : State<Player>
         root.GlobalPosition = Vector2.One * -128f;
 
         resetting = false;
+
+        GameCamera.instance.desiredZoom = 1f;
     }
 
     public override void PhysicsProcess(float delta)

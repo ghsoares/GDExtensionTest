@@ -30,6 +30,7 @@ public class LevelTransition : CanvasLayer
         tw.InterpolateProperty(
             transitionMaterial, "shader_param/transition", 0f, 1f, 1f
         );
+        transitionMaterial.SetShaderParam("inverted", false);
         tw.Start();
     }
 
@@ -38,6 +39,7 @@ public class LevelTransition : CanvasLayer
         tw.InterpolateProperty(
             transitionMaterial, "shader_param/transition", 1f, 0f, 1f
         );
+        transitionMaterial.SetShaderParam("inverted", true);
         tw.Start();
     }
 

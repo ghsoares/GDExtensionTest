@@ -1,0 +1,95 @@
+[gd_resource type="ShaderMaterial" load_steps=6 format=2]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform sampler2D grassHeightMap;
+uniform sampler2D grassAmountNoise;
+uniform sampler2D gradient;
+uniform float grassHeightMapSize = 64f;
+uniform float grassAmountNoiseSize = 512f;
+uniform float grassAmountHeightMapCurve = -2f;
+uniform float grassAmountNoiseCurve = -2f;
+uniform float grassAmount : hint_range(0f, 1f) = 1f;
+uniform vec2 size = vec2(4096f, 16f);
+
+varying vec2 v;
+varying vec2 localV;
+varying float time;
+
+float Ease(float x, float c) {
+	x = clamp(x, 0f, 1f);
+	
+	float curve1 = 1f - pow(1f - x, 1f / c);
+	float curve2 = pow(x, c);
+	
+	float curve3 = pow(x * 2f, -c) * .5f;
+	float curve4 = (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;
+	
+	float curveA = c < 1f ? curve1 : curve2;
+	float curveB = x < .5f ? curve3 : curve4;
+	
+	return c == 0f ? 0f : (c > 0f ? curveA : curveB);
+}
+
+float cross2D(vec2 v1, vec2 v2) {
+	return v1.x * v2.y - v1.y * v2.x;
+}
+
+float angle_between(vec2 v1, vec2 v2) {
+	return atan(cross2D(v1, v2), dot(v1, v2));
+}
+
+void vertex() {
+	v = UV;
+	v.y = (v.y - .5f) * 2f;
+	v *= size;
+	
+	localV = VERTEX;
+	time = TIME;
+}
+
+void fragment() {
+	float pi = radians(360f);
+	vec2 pos = v;
+	
+	float h = texture(grassHeightMap, pos.xx / grassHeightMapSize).r;
+	h = Ease(h, grassAmountHeightMapCurve);
+	
+	float nUv = pos.x / grassAmountNoiseSize;
+	float amnt = texture(grassAmountNoise, vec2(nUv)).r;
+	amnt = Ease(amnt, grassAmountNoiseCurve);
+	amnt -= 1f;
+	amnt += grassAmount * 2f;
+	
+	h *= clamp(amnt, 0, 1) * size.y;
+	
+	float t = pos.y / h;
+	
+	COLOR *= texture(gradient, vec2(t));
+	COLOR.a *= step(t, 1f);
+}"
+
+[sub_resource type="Gradient" id=2]
+colors = PoolColorArray( 0.890196, 0.666667, 0.247059, 1, 0.75, 0.467606, 0.166992, 1 )
+
+[sub_resource type="GradientTexture" id=3]
+gradient = SubResource( 2 )
+
+[sub_resource type="OpenSimplexNoise" id=4]
+
+[sub_resource type="NoiseTexture" id=5]
+seamless = true
+noise = SubResource( 4 )
+
+[resource]
+resource_local_to_scene = true
+shader = SubResource( 1 )
+shader_param/grassHeightMapSize = 512.0
+shader_param/grassAmountNoiseSize = 512.0
+shader_param/grassAmountHeightMapCurve = -4.0
+shader_param/grassAmountNoiseCurve = -10.0
+shader_param/grassAmount = 1.0
+shader_param/size = Vector2( 960, 16 )
+shader_param/grassHeightMap = SubResource( 5 )
+shader_param/gradient = SubResource( 3 )

@@ -10,7 +10,7 @@ public class PlatformPlacer : Control
 
     public override void _Ready()
     {
-        RectSize = planet.size;
+        RectSize = planet.totalSize;
     }
 
     public void Scatter()
@@ -40,7 +40,7 @@ public class PlatformPlacer : Control
             Platform platform = platforms[i];
             Vector2 pos = platform.GlobalPosition;
 
-            pos.x = (pos.x / spacing) * planet.size.x;
+            pos.x = (pos.x / spacing) * planet.totalSize.x;
             pos.x = Mathf.Floor(pos.x);
 
             platform.GlobalPosition = pos;

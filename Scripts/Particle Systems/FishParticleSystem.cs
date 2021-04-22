@@ -39,7 +39,7 @@ public class FishParticleSystem : ParticleSystem
     {
         base.InitParticle(particle, overrideParams);
 
-        Vector2 pos = new Vector2(GD.Randf(), 0f) * Planet.instance.size;
+        Vector2 pos = new Vector2(GD.Randf(), 0f) * Planet.instance.totalSize;
         pos.y = GetY(pos.x);
 
         particle.persistent = true;

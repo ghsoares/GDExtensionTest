@@ -15,9 +15,9 @@ public class MarsPlanetGenerator : PlanetGenerator
         terrain.noise.Persistence = .5f;
         terrain.noise.Lacunarity = 2.5f;
         terrain.Material = ResourceLoader.Load<ShaderMaterial>("res://Materials/Mars/Terrain.tres");
-        fog.Material = fogMaterial;
 
-        fog.RectSize = planet.size;
+        fog.Material = fogMaterial;
+        fog.RectSize = planet.totalSize;
 
         AddChild(fog);
     }

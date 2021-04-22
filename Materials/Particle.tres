@@ -4,7 +4,6 @@
 
 [sub_resource type="Shader" id=1]
 code = "shader_type canvas_item;
-render_mode blend_add;
 
 uniform sampler2D ditheringMatrix;
 uniform float ditherScale = 1f;

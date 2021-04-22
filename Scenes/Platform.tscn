@@ -112,7 +112,7 @@ _data = [ Vector2( 0, 0 ), 0.0, -0.133737, 0, 0, Vector2( 0.997596, 1 ), 2.52613
 [sub_resource type="CurveTexture" id=9]
 curve = SubResource( 8 )
 
-[sub_resource type="ShaderMaterial" id=11]
+[sub_resource type="ShaderMaterial" id=10]
 resource_local_to_scene = true
 shader = SubResource( 5 )
 shader_param/ditheringSize = Vector2( 32, 32 )
@@ -128,7 +128,7 @@ shader_param/ditheringMatrix = ExtResource( 2 )
 shader_param/verticalEnergyCurve = SubResource( 9 )
 shader_param/horizontalGradient = SubResource( 7 )
 
-[sub_resource type="ShaderMaterial" id=10]
+[sub_resource type="ShaderMaterial" id=11]
 resource_local_to_scene = true
 shader = SubResource( 5 )
 shader_param/ditheringSize = Vector2( 32, 32 )
@@ -178,7 +178,7 @@ __meta__ = {
 z_index = -1
 
 [node name="Color" type="ColorRect" parent="Light"]
-material = SubResource( 11 )
+material = SubResource( 10 )
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
@@ -194,7 +194,7 @@ __meta__ = {
 z_index = 10
 
 [node name="Color" type="ColorRect" parent="Light2"]
-material = SubResource( 10 )
+material = SubResource( 11 )
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
