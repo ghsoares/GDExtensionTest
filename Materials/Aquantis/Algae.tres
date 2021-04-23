@@ -12,6 +12,7 @@ uniform float grassAmountHeightMapCurve = -2f;
 uniform float grassAmountNoiseCurve = -2f;
 uniform float grassAmount : hint_range(0f, 1f) = 1f;
 uniform vec2 size = vec2(4096f, 16f);
+uniform vec2 offset = vec2(0f, 4096f);
 
 uniform float windSpeed = 4f;
 uniform float windFrequency = 32f;
@@ -59,9 +60,10 @@ float angle_between(vec2 v1, vec2 v2) {
 }
 
 void vertex() {
-	v = UV;
+	v = 1f - UV;
 	v.y = (v.y - .5f) * 2f;
-	v *= size;
+	v.x = mix(offset.x, offset.y, v.x);
+	v.y *= size.y;
 	
 	localV = VERTEX;
 	time = TIME;
@@ -150,6 +152,7 @@ shader_param/grassAmountHeightMapCurve = -5.0
 shader_param/grassAmountNoiseCurve = -8.0
 shader_param/grassAmount = 0.519
 shader_param/size = Vector2( 4096, 32 )
+shader_param/offset = Vector2( 0, 4096 )
 shader_param/windSpeed = 16.0
 shader_param/windFrequency = 0.25
 shader_param/playerTransform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 64, 0, 0 )

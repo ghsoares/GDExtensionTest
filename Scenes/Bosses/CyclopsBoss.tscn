@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=24 format=2]
 
 [ext_resource path="res://Textures/GiantWormSegment.png" type="Texture" id=1]
 [ext_resource path="res://Scripts/Bosses/CyclopsBoss.cs" type="Script" id=2]
@@ -9,49 +9,234 @@
 [ext_resource path="res://Scripts/Particle Systems/SandParticleSystem.cs" type="Script" id=7]
 [ext_resource path="res://Materials/Particle.tres" type="Material" id=8]
 [ext_resource path="res://Scripts/Bosses/Cyclops/CyclopsBossDeadState.cs" type="Script" id=9]
-[ext_resource path="res://Textures/GiantWormTail.png" type="Texture" id=10]
+[ext_resource path="res://Textures/GiantWormHeadNormalMap.png" type="Texture" id=10]
+[ext_resource path="res://Textures/GiantWormSegmentNormalMap.png" type="Texture" id=11]
 
-[sub_resource type="CircleShape2D" id=1]
-radius = 50.0
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
 
-[sub_resource type="QuadMesh" id=2]
+uniform mat4 globalTransform;
 
-[sub_resource type="Curve" id=3]
+uniform vec2 spriteSheetSize = vec2(512f, 512f);
+uniform float hFrames = 1f;
+uniform float vFrames = 1f;
+uniform float frame = 0f;
+
+uniform vec4 brightnessPixelReference : hint_color = vec4(1f);
+uniform float threshold = .001f;
+uniform vec4 brightnessPixelReplace : hint_color = vec4(1.5f, 1.5f, 2f, 1f);
+uniform vec3 lightDirection = vec3(-1f, 1f, -1f);
+uniform float lightOffset;
+uniform sampler2D lightGradient;
+uniform float lightSteps = 2f;
+
+void GetFrame(sampler2D spriteSheet, sampler2D normalSpriteSheet, vec2 uv, out vec4 color, out vec3 normal) {
+	vec2 framePos = uv * spriteSheetSize;
+	
+	vec2 spacing = spriteSheetSize / vec2(hFrames, vFrames);
+	vec2 framePosIdx = floor(framePos / spacing);
+	vec2 startFramePos = framePosIdx * spacing;
+	vec2 off = framePos - startFramePos;
+	
+	float currFrame = framePosIdx.x + (framePosIdx.y * hFrames);
+	float nxtFrame = currFrame + 1f;
+	
+	vec2 nxtFramePos;
+	nxtFramePos.y = floor(nxtFrame / hFrames);
+	nxtFramePos.x = nxtFrame - nxtFramePos.y * hFrames;
+	nxtFramePos *= spacing;
+	
+	nxtFramePos += off;
+	
+	vec2 nxtUv = nxtFramePos / spriteSheetSize;
+	vec4 nxtCol = texture(spriteSheet, nxtUv);
+	vec3 nxtNormal = texture(normalSpriteSheet, nxtUv).rgb;
+	
+	color = mix(color, nxtCol, fract(frame));
+	normal = mix(normal, nxtNormal, fract(frame));
+	
+}
+
+void fragment() {
+	vec4 col = texture(TEXTURE, UV);
+	vec3 n = texture(NORMAL_TEXTURE, UV).rgb;
+	
+	GetFrame(TEXTURE, NORMAL_TEXTURE, UV, col, n);
+	
+	COLOR = col;
+	
+	float brightDistance = distance(col, brightnessPixelReference);
+	
+	n = n * 2f - 1f;
+	n.y = n.y;
+	n = (globalTransform * vec4(n, 0f)).rgb;
+	
+	float d = dot(n, normalize(lightDirection)) * 1f;
+	d = clamp(d + lightOffset, 0f, 1f);
+	d = floor(d * lightSteps) / (lightSteps - 1f);
+	d = texture(lightGradient, vec2(d, 0f)).r;
+	COLOR.rgb = vec3(d);
+	
+	COLOR *= col;
+	COLOR = mix(COLOR, brightnessPixelReplace, brightDistance <= threshold ? 1.0 : 0.0);
+}"
+
+[sub_resource type="Curve" id=2]
+_data = [ Vector2( 0.422619, 0.51227 ), 0.0, 2.17922, 0, 1, Vector2( 0.646429, 1 ), 2.17922, 0.0, 1, 0 ]
+
+[sub_resource type="CurveTexture" id=3]
+resource_local_to_scene = true
+curve = SubResource( 2 )
+
+[sub_resource type="ShaderMaterial" id=13]
+shader = SubResource( 1 )
+shader_param/globalTransform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+shader_param/spriteSheetSize = Vector2( 2028, 830 )
+shader_param/hFrames = 12.0
+shader_param/vFrames = 10.0
+shader_param/frame = 78.1638
+shader_param/brightnessPixelReference = Color( 1, 1, 1, 1 )
+shader_param/threshold = 0.002
+shader_param/brightnessPixelReplace = Color( 1.5, 0, 0.27, 1 )
+shader_param/lightDirection = Vector3( 4, -4, 2 )
+shader_param/lightOffset = 0.4
+shader_param/lightSteps = 8.0
+shader_param/lightGradient = SubResource( 3 )
+
+[sub_resource type="Animation" id=7]
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 1 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ 119, 0 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath(".:material:shader_param/frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 1 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ 119.0, 0.0 ]
+}
+
+[sub_resource type="RectangleShape2D" id=6]
+extents = Vector2( 85, 41 )
+
+[sub_resource type="ShaderMaterial" id=14]
+shader = SubResource( 1 )
+shader_param/globalTransform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+shader_param/spriteSheetSize = Vector2( 2196, 1930 )
+shader_param/hFrames = 12.0
+shader_param/vFrames = 10.0
+shader_param/frame = 3.49763
+shader_param/brightnessPixelReference = Color( 1, 1, 1, 1 )
+shader_param/threshold = 0.585
+shader_param/brightnessPixelReplace = Color( 1.5, 0, 0.27, 1 )
+shader_param/lightDirection = Vector3( 4, -4, 2 )
+shader_param/lightOffset = 0.4
+shader_param/lightSteps = 8.0
+shader_param/lightGradient = SubResource( 3 )
+
+[sub_resource type="Animation" id=8]
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 1 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ 0, 119 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath(".:material:shader_param/frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 1 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ 0.0, 119.0 ]
+}
+
+[sub_resource type="CircleShape2D" id=9]
+radius = 35.5
+
+[sub_resource type="QuadMesh" id=10]
+
+[sub_resource type="Curve" id=11]
 _data = [ Vector2( 0, 0 ), 0.0, 1.4, 0, 0, Vector2( 0.868094, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), -14.3912, 0.0, 0, 0 ]
 
-[sub_resource type="Gradient" id=4]
+[sub_resource type="Gradient" id=12]
 colors = PoolColorArray( 0.886275, 0.513726, 0.207843, 1, 0.890196, 0.666667, 0.247059, 1 )
 
 [node name="CyclopsBoss" type="Node2D"]
 script = ExtResource( 2 )
-spacing = 75.0
+initialSpacing = 18.0
+spacing = 90.0
 numSegments = 20
+animationTimeOffset = -0.1
 
 [node name="Segment" type="StaticBody2D" parent="."]
+material = SubResource( 13 )
+position = Vector2( -36, 0 )
 
 [node name="Sprite" type="Sprite" parent="Segment"]
+use_parent_material = true
 texture = ExtResource( 1 )
+normal_map = ExtResource( 11 )
+hframes = 12
+vframes = 10
+frame = 78
+region_rect = Rect2( 81, 16, 105, 116 )
 
-[node name="Segment" type="CollisionShape2D" parent="Segment"]
-shape = SubResource( 1 )
+[node name="Anim" type="AnimationPlayer" parent="Segment"]
+autoplay = "Loop"
+playback_speed = 0.5
+anims/Loop = SubResource( 7 )
+
+[node name="Col" type="CollisionShape2D" parent="Segment"]
+visible = false
+shape = SubResource( 6 )
 
 [node name="Head" type="StaticBody2D" parent="."]
+material = SubResource( 14 )
 
 [node name="Sprite" type="Sprite" parent="Head"]
+use_parent_material = true
 texture = ExtResource( 3 )
-offset = Vector2( 50, 0 )
+normal_map = ExtResource( 10 )
+offset = Vector2( 69.867, 0 )
+hframes = 12
+vframes = 10
+frame = 3
+region_rect = Rect2( 81, 16, 105, 116 )
 
-[node name="Segment" type="CollisionShape2D" parent="Head"]
-shape = SubResource( 1 )
+[node name="Anim" type="AnimationPlayer" parent="Head"]
+autoplay = "Loop"
+playback_speed = 0.5
+anims/Loop = SubResource( 8 )
 
-[node name="Tail" type="StaticBody2D" parent="."]
-
-[node name="Sprite" type="Sprite" parent="Tail"]
-texture = ExtResource( 10 )
-offset = Vector2( -50, 0 )
-
-[node name="Segment" type="CollisionShape2D" parent="Tail"]
-shape = SubResource( 1 )
+[node name="Col" type="CollisionShape2D" parent="Head"]
+visible = false
+position = Vector2( 14, 0 )
+shape = SubResource( 9 )
 
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource( 5 )
@@ -61,10 +246,10 @@ script = ExtResource( 6 )
 
 [node name="Jump" type="Node" parent="StateMachine"]
 script = ExtResource( 4 )
-distanceRange = Vector2( 512, 768 )
+distanceRange = Vector2( 768, 768 )
 velocity = 150.0
 bezierHandleSize = 450.0
-segmentsSize = 75.0
+segmentsSize = 72.0
 sandEmitRate = 32.0
 shakeMagnitudePerSegment = 4.0
 
@@ -76,9 +261,9 @@ material = ExtResource( 8 )
 script = ExtResource( 7 )
 numParticles = 128
 gravity = Vector2( 0, 10 )
-mesh = SubResource( 2 )
-sizeOverLife = SubResource( 3 )
-colorOverLife = SubResource( 4 )
+mesh = SubResource( 10 )
+sizeOverLife = SubResource( 11 )
+colorOverLife = SubResource( 12 )
 radius = 0.0
 velocityRange = Vector2( 16, 32 )
 sizeRange = Vector2( 16, 32 )

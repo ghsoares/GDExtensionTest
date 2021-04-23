@@ -32,6 +32,7 @@ shader_param/grassAmountHeightMapCurve = -2.0
 shader_param/grassAmountNoiseCurve = -10.0
 shader_param/grassAmount = 0.519
 shader_param/size = Vector2( 4096, 16 )
+shader_param/offset = Vector2( 0, 4096 )
 shader_param/windSpeed = 16.0
 shader_param/windFrequency = 0.25
 shader_param/playerTransform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 128, -62.598, 0 )

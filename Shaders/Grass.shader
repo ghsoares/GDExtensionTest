@@ -9,6 +9,7 @@ uniform float grassAmountHeightMapCurve = -2f;
 uniform float grassAmountNoiseCurve = -2f;
 uniform float grassAmount : hint_range(0f, 1f) = 1f;
 uniform vec2 size = vec2(4096f, 16f);
+uniform vec2 offset = vec2(0f, 4096f);
 
 uniform float windSpeed = 4f;
 uniform float windFrequency = 32f;
@@ -50,9 +51,10 @@ float angle_between(vec2 v1, vec2 v2) {
 }
 
 void vertex() {
-	v = UV;
+	v = 1f - UV;
 	v.y = (v.y - .5f) * 2f;
-	v *= size;
+	v.x = mix(offset.x, offset.y, v.x);
+	v.y *= size.y;
 	
 	localV = VERTEX;
 	time = TIME;

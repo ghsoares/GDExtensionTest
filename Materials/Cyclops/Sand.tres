@@ -12,6 +12,7 @@ uniform float grassAmountHeightMapCurve = -2f;
 uniform float grassAmountNoiseCurve = -2f;
 uniform float grassAmount : hint_range(0f, 1f) = 1f;
 uniform vec2 size = vec2(4096f, 16f);
+uniform float offset = 0f;
 
 varying vec2 v;
 varying vec2 localV;
@@ -32,18 +33,11 @@ float Ease(float x, float c) {
 	return c == 0f ? 0f : (c > 0f ? curveA : curveB);
 }
 
-float cross2D(vec2 v1, vec2 v2) {
-	return v1.x * v2.y - v1.y * v2.x;
-}
-
-float angle_between(vec2 v1, vec2 v2) {
-	return atan(cross2D(v1, v2), dot(v1, v2));
-}
-
 void vertex() {
-	v = UV;
+	v = 1f - UV;
 	v.y = (v.y - .5f) * 2f;
 	v *= size;
+	v.x += offset;
 	
 	localV = VERTEX;
 	time = TIME;
@@ -71,7 +65,7 @@ void fragment() {
 }"
 
 [sub_resource type="Gradient" id=2]
-colors = PoolColorArray( 0.890196, 0.666667, 0.247059, 1, 0.75, 0.467606, 0.166992, 1 )
+colors = PoolColorArray( 0.890196, 0.666667, 0.247059, 1, 0.890196, 0.666667, 0.247059, 1 )
 
 [sub_resource type="GradientTexture" id=3]
 gradient = SubResource( 2 )
@@ -85,11 +79,12 @@ noise = SubResource( 4 )
 [resource]
 resource_local_to_scene = true
 shader = SubResource( 1 )
-shader_param/grassHeightMapSize = 512.0
+shader_param/grassHeightMapSize = 256.0
 shader_param/grassAmountNoiseSize = 512.0
 shader_param/grassAmountHeightMapCurve = -4.0
 shader_param/grassAmountNoiseCurve = -10.0
 shader_param/grassAmount = 1.0
-shader_param/size = Vector2( 960, 16 )
+shader_param/size = Vector2( 4096, 16 )
+shader_param/offset = Vector2( 0, 4096 )
 shader_param/grassHeightMap = SubResource( 5 )
 shader_param/gradient = SubResource( 3 )

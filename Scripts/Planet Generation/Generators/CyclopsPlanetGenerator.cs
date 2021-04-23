@@ -3,14 +3,14 @@ using Godot;
 public class CyclopsPlanetGenerator : PlanetGenerator {
     ShaderMaterial fogMaterial;
     ShaderMaterial sandMaterial;
-    Line2D sand;
+    Grass sand;
     CyclopsBoss boss;
 
     public override void Configure() {
         base.Configure();
 
         ColorRect fog = new ColorRect();
-        sand = new Line2D();
+        sand = new Grass();
         boss = ResourceLoader.Load<PackedScene>("res://Scenes/Bosses/CyclopsBoss.tscn").Instance() as CyclopsBoss;
 
         fogMaterial = ResourceLoader.Load<ShaderMaterial>("res://Materials/Cyclops/Fog.tres");
@@ -23,13 +23,17 @@ public class CyclopsPlanetGenerator : PlanetGenerator {
         fog.Material = fogMaterial;
         fog.RectSize = planet.totalSize;
 
+        sand.planet = planet;
         sand.Material = sandMaterial;
+        sand.height = 4f;
 
         AddChild(boss);
         AddChild(sand);
 
         terrain.Raise();
         platformPlacer.Raise();
+
+        platformPlacer.enabled = false;
 
         AddChild(fog);
     }
@@ -39,36 +43,9 @@ public class CyclopsPlanetGenerator : PlanetGenerator {
         base.Generate();
         planet.windSpeed = Vector2.Right * 16f;
 
-        GenerateSand();
+        sand.Create();
 
         fogMaterial.SetShaderParam("windSpeed", planet.windSpeed.x);
-    }
-
-    private void GenerateSand() {
-        int numPoints = Mathf.CeilToInt(planet.totalSize.x * .25f);
-
-        sand.ClearPoints();
-        float totalSize = 0f;
-        Vector2 prevP = new Vector2(0f, terrain.GetTerrainY(0f));
-
-        for (int i = numPoints-1; i >= 0; i--) {
-            float x = i / .25f;
-            float y = terrain.GetTerrainY(x);
-            Vector2 p = new Vector2(x, y);
-            sand.AddPoint(p);
-
-            float l = (p - prevP).Length();
-            totalSize += l;
-            prevP = p;
-        }
-
-        sand.Width = 4f * 2f;
-        sand.DefaultColor = Colors.White;
-        sand.TextureMode = Line2D.LineTextureMode.Stretch;
-
-        if (sandMaterial != null) {
-            sandMaterial.SetShaderParam("size", new Vector2(totalSize, 4f));
-        }
     }
 
     public override void _PhysicsProcess(float delta)

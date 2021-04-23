@@ -1,9 +1,10 @@
 using Godot;
 
 public class Grass : Line2D {
-    Transform2D playerTransform {get; set;}
-
-    public float totalSize {get; private set;}
+    private Transform2D playerTransform {get; set;}
+    private Vector2[] points {get; set;}
+    private float[] pointsOffset {get; set;}
+    private int numPoints {get; set;}
 
     public ShaderMaterial mat;
     public Planet planet;
@@ -17,30 +18,69 @@ public class Grass : Line2D {
     public void Create() {
         mat = Material as ShaderMaterial;
         Terrain terrain = planet.terrain;
-        int numPoints = Mathf.CeilToInt(planet.totalSize.x * resolution);
+        numPoints = Mathf.CeilToInt(planet.totalSize.x * resolution);
 
-        ClearPoints();
-        totalSize = 0f;
+        points = new Vector2[numPoints];
+        pointsOffset = new float[numPoints];
+
+        float totalSize = 0f;
         Vector2 prevP = new Vector2(0f, terrain.GetTerrainY(0));
 
-        for (int i = numPoints - 1; i >= 0; i--) {
+        for (int i = 0; i < numPoints; i++) {
             float x = i / resolution;
-            x = Mathf.Min(x, planet.totalSize.x);
             float y = terrain.GetTerrainY(x);
             Vector2 p = new Vector2(x, y);
-            AddPoint(p);
             
             float l = (p - prevP).Length();
             totalSize += l;
             prevP = p;
+
+            points[i] = p;
+            pointsOffset[i] = -totalSize;
         }
 
         Width = height * 2f;
         DefaultColor = Colors.White;
         TextureMode = LineTextureMode.Stretch;
+    }
+
+    public override void _Process(float delta)
+    {
+        UpdatePoints();
+    }
+
+    private void UpdatePoints() {
+        Transform2D viewportTransform = GetViewport().CanvasTransform.AffineInverse();
+        Vector2 size = GetViewport().Size;
+
+        float minX = viewportTransform.origin.x;
+        float maxX = viewportTransform.origin.x + size.x;
+
+        int minIdx = Mathf.FloorToInt(minX * resolution);
+        int maxIdx = Mathf.CeilToInt(maxX * resolution);
+
+        minIdx = Mathf.Clamp(minIdx, 0, numPoints - 1);
+        maxIdx = Mathf.Clamp(maxIdx, 0, numPoints - 1);
+
+        ClearPoints();
+
+        int n = 0;
+        Vector2[] renderPoints = new Vector2[(maxIdx - minIdx) + 1];
+        for (int i = minIdx; i <= maxIdx; i++) {
+            renderPoints[n] = points[i];
+
+            n++;
+        }
+        /*System.Console.WriteLine($"Number of grass points: {n}, min idx: {minIdx}, max idx: {maxIdx}");
+        System.Console.WriteLine($"Min offset: {pointsOffset[minIdx]}, max offset: {pointsOffset[maxIdx]}");*/
+
+        Points = renderPoints;
+
+        float totalSize = Mathf.Abs(pointsOffset[minIdx] - pointsOffset[maxIdx]);
 
         if (mat != null) {
-            mat.SetShaderParam("size", new Vector2(totalSize * sizeScale, height));
+            mat.SetShaderParam("offset", pointsOffset[minIdx]);
+            mat.SetShaderParam("size", new Vector2(totalSize, height));
         }
     }
 

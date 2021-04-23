@@ -3,14 +3,16 @@ using Godot;
 
 public class PlayerHoverState : State<Player>
 {
-    private bool thrusterHit {get; set;}
+    private bool thrusterHit { get; set; }
 
-    public float currentThrusterForce {get; private set;}
-    public bool kickOff {get; private set;}
-    public float currKickOffTime {get; private set;}
+    public float currentThrusterForce { get; private set; }
+    public bool kickOff { get; private set; }
+    public float currKickOffTime { get; private set; }
 
-    public float thrusterT {
-        get {
+    public float thrusterT
+    {
+        get
+        {
             return currentThrusterForce / maxThrusterForce;
         }
     }
@@ -34,6 +36,7 @@ public class PlayerHoverState : State<Player>
 
         root.rocketParticleSystem.emitting = true;
         root.groundParticleSystem.emitting = true;
+        root.kickOffParticleSystem.emitting = true;
         root.Connect("body_entered", this, "OnBodyEntered");
 
         LevelTransition.instance.AnimateOut();
@@ -75,7 +78,8 @@ public class PlayerHoverState : State<Player>
         currentThrusterForce += thrusterAdd * thrusterAddRate * delta;
         currentThrusterForce = Mathf.Clamp(currentThrusterForce, 0, maxThrusterForce);
 
-        if (PlayerData.sessionCurrentFuel <= 0f) {
+        if (PlayerData.sessionCurrentFuel <= 0f)
+        {
             currentThrusterForce = 0f;
             kickOff = false;
         }
@@ -88,7 +92,7 @@ public class PlayerHoverState : State<Player>
 
         root.LinearVelocity = root.LinearVelocity.Clamped(maxVelocity);
         root.AngularVelocity = Mathf.Clamp(root.AngularVelocity, -maxAngularVelocity, maxAngularVelocity);
-    
+
         //PlayerData.sessionCurrentFuel -= PlayerData.fuelLossRate * currentThrusterForce * delta;
     }
 
@@ -102,12 +106,14 @@ public class PlayerHoverState : State<Player>
 
         root.kickOffParticleSystem.emitting = kickOff;
         root.kickOffParticleSystem.emissionRate = 64f * Mathf.Clamp(currKickOffTime / kickOffTime, 0f, 1f);
-    
-        thrusterHit = root.groundParticleSystem.currentRayHit != null;
+
+        thrusterHit = root.groundParticleSystem.currentRayHit.Count > 0;
     }
 
-    private void DamageProcess(float delta) {
-        if (thrusterHit) {
+    private void DamageProcess(float delta)
+    {
+        if (thrusterHit)
+        {
             Node2D hitObj = (Node2D)root.groundParticleSystem.currentRayHit["collider"];
             IDamageable dmgTarget = (hitObj as IDamageable) ?? (hitObj.GetParent() as IDamageable);
             dmgTarget?.Damage(PlayerData.thrusterDPS * delta);
@@ -159,6 +165,7 @@ public class PlayerHoverState : State<Player>
     {
         root.rocketParticleSystem.emitting = false;
         root.groundParticleSystem.emitting = false;
+        root.kickOffParticleSystem.emitting = false;
         root.Disconnect("body_entered", this, "OnBodyEntered");
     }
 }
