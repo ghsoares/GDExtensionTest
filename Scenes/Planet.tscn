@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Scenes/Player.tscn" type="PackedScene" id=1]
+[ext_resource path="res://Scripts/Planet/Planet.cs" type="Script" id=2]
+[ext_resource path="res://Scripts/CameraModelViewComponent.cs" type="Script" id=3]
+[ext_resource path="res://Scripts/GameCamera.cs" type="Script" id=4]
+
+[node name="Planet" type="Spatial"]
+script = ExtResource( 2 )
+size = Vector2( 4096, 1024 )
+
+[node name="Player" parent="." instance=ExtResource( 1 )]
+position = Vector2( 2048, 512 )
+rotation = 0.785398
+
+[node name="GameCamera" type="Camera2D" parent="."]
+position = Vector2( 2048, 512 )
+current = true
+script = ExtResource( 4 )
+
+[node name="ModelView" type="Node" parent="GameCamera"]
+script = ExtResource( 3 )
+
+[node name="Camera" type="Camera" parent="GameCamera/ModelView"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 20.48, -5.12, 8 )
+projection = 1
+current = true
+size = 5.81
+near = 0.01

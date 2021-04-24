@@ -1,0 +1,29 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=2]
+
+[ext_resource path="res://Textures/BayerMatrixDithering.png" type="Texture" id=1]
+
+[sub_resource type="Shader" id=3]
+code = "shader_type spatial;
+render_mode unshaded, blend_add;
+
+uniform sampler2D ditheringTex;
+uniform vec2 ditheringSize = vec2(32f);
+
+void fragment() {
+	ALPHA_SCISSOR = 0.9999f;
+	ALBEDO = COLOR.rgb;
+	
+	float d = texture(ditheringTex, FRAGCOORD.xy / ditheringSize).r;
+	ALPHA = COLOR.a;
+	ALPHA += d;
+}
+
+
+
+
+"
+
+[resource]
+shader = SubResource( 3 )
+shader_param/ditheringSize = Vector2( 32, 32 )
+shader_param/ditheringTex = ExtResource( 1 )
