@@ -17,11 +17,6 @@ _global_script_class_icons={
 config/name="Astronoma"
 run/main_scene="res://Scenes/Game.tscn"
 
-[autoload]
-
-LevelTransition="*res://Scenes/LevelTransition.tscn"
-Debug="*res://Scenes/Debug.tscn"
-
 [debug]
 
 gdscript/warnings/enable=false
