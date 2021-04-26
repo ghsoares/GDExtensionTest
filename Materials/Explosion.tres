@@ -1,0 +1,139 @@
+[gd_resource type="ShaderMaterial" load_steps=9 format=2]
+
+[ext_resource path="res://Textures/BayerMatrixDithering.png" type="Texture" id=1]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type spatial;
+render_mode unshaded;
+
+uniform sampler2D ditheringTex;
+uniform vec2 ditheringSize = vec2(32f);
+uniform sampler2D noiseTex;
+uniform float noiseScale = 2f;
+uniform vec3 noiseMotion;
+uniform float steps = 4f;
+uniform float easeCurve = -2f;
+uniform float fresnelPower = 2f;
+uniform float fresnelSteps = 2f;
+uniform float fresnelOffset = 0f;
+uniform float noiseFresnelInfluence = .01f;
+uniform sampler2D fresnelGradient : hint_albedo;
+uniform sampler2D gradient : hint_albedo;
+
+varying float time;
+
+float Ease(float x, float c) {
+	x = clamp(x, 0f, 1f);
+	
+	float curve1 = 1f - pow(1f - x, 1f / c);
+	float curve2 = pow(x, c);
+	
+	float curve3 = pow(x * 2f, -c) * .5f;
+	float curve4 = (1f - pow(1f - (x - .5f) * 2f, -c)) * .5f + .5f;
+	
+	float curveA = c < 1f ? curve1 : curve2;
+	float curveB = x < .5f ? curve3 : curve4;
+	
+	return c == 0f ? 0f : (c > 0f ? curveA : curveB);
+}
+
+vec4 Triplanar(sampler2D tex, float texScale, vec3 worldVertex, vec3 worldNormal, float blendSharpness) {
+	worldVertex -= noiseMotion * time;
+	vec2 yUV = worldVertex.xz / texScale;
+	vec2 xUV = worldVertex.zy / texScale;
+	vec2 zUV = worldVertex.xy / texScale;
+	
+	vec4 yDiff = texture(tex, yUV);
+	vec4 xDiff = texture(tex, xUV);
+	vec4 zDiff = texture(tex, zUV);
+	
+	vec3 blendWeights = pow (abs(worldNormal), vec3(blendSharpness));
+	blendWeights = blendWeights / (blendWeights.x + blendWeights.y + blendWeights.z);
+	
+	return xDiff * blendWeights.x + yDiff * blendWeights.y + zDiff * blendWeights.z; 
+}
+
+void vertex() {
+	time = TIME;
+}
+
+void fragment() {
+	vec4 col = COLOR;
+	float colorFade = col.r;
+	float alphaFade = col.g;
+	float fresnelFade = col.b;
+	
+	vec3 worldVec = (CAMERA_MATRIX * vec4(VERTEX, 1f)).xyz;
+	vec3 worldNormal = (CAMERA_MATRIX * vec4(NORMAL, 0f)).xyz;
+	
+	float n = Triplanar(noiseTex, noiseScale, worldVec, worldNormal, 1f).r;
+	n = Ease(n, easeCurve);
+	
+	float x = n;
+	x += colorFade * 2f - 1f;
+	x = floor(x * steps) / (steps - 1f);
+	x = clamp(x, 0f, 1f);
+	
+	col = texture(gradient, vec2(1f - x, 0f));
+	
+	float fresnel = sqrt(1f - dot(NORMAL, VIEW));
+	float nf = 1f - n / alphaFade;
+	fresnel = pow(fresnel, fresnelPower);
+	
+	fresnel += nf * noiseFresnelInfluence;
+	
+	fresnel = floor(fresnel * fresnelSteps) / (fresnelSteps - 1f);
+	fresnel = clamp(fresnel, 0f, 1f);
+	col *= texture(fresnelGradient, vec2(fresnel * fresnelFade, 0f));
+	
+	col.a -= n;
+	col.a += alphaFade;
+	col.a = clamp(col.a, 0f, 1f);
+	//col.rgb = vec3(fresnel);
+	//col.a = 1f;
+	
+	ALPHA_SCISSOR = 0.9999f;
+	ALBEDO = col.rgb;
+	ALPHA = col.a;
+}
+
+
+
+
+"
+
+[sub_resource type="Gradient" id=2]
+colors = PoolColorArray( 1, 1, 1, 1, 0.78418, 0.78418, 0.78418, 1 )
+
+[sub_resource type="GradientTexture" id=3]
+gradient = SubResource( 2 )
+
+[sub_resource type="Gradient" id=4]
+offsets = PoolRealArray( 0, 0.123209, 0.406877, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 0.986328, 1, 0, 1, 1, 0, 0.404297, 1, 0.219727, 0.0366926, 0.123562, 1 )
+
+[sub_resource type="GradientTexture" id=5]
+gradient = SubResource( 4 )
+
+[sub_resource type="OpenSimplexNoise" id=6]
+octaves = 1
+
+[sub_resource type="NoiseTexture" id=7]
+seamless = true
+noise = SubResource( 6 )
+
+[resource]
+shader = SubResource( 1 )
+shader_param/ditheringSize = Vector2( 32, 32 )
+shader_param/noiseScale = 1.0
+shader_param/noiseMotion = Vector3( 0, -0.25, 0 )
+shader_param/steps = 8.0
+shader_param/easeCurve = -4.0
+shader_param/fresnelPower = 2.0
+shader_param/fresnelSteps = 2.0
+shader_param/fresnelOffset = 0.0
+shader_param/noiseFresnelInfluence = 0.5
+shader_param/ditheringTex = ExtResource( 1 )
+shader_param/noiseTex = SubResource( 7 )
+shader_param/fresnelGradient = SubResource( 3 )
+shader_param/gradient = SubResource( 5 )

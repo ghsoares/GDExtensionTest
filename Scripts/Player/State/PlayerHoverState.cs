@@ -33,11 +33,16 @@ public class PlayerHoverState : State<Player>
         currKickOffTime = 0f;
 
         GameCamera.instance.Warp(root.GlobalPosition, 1f);
+
+        root.thrusterParticleSystem.emitting = true;
+
+        root.Connect("body_entered", this, "OnBodyEntered");
     }
 
     public override void PhysicsProcess(float delta)
     {
         MotionProcess(delta);
+        ParticlesProcess(delta);
 
         GameCamera.instance.desiredPosition = root.GlobalPosition;
         //GameCamera.instance.desiredZoom = root.CalculatePlatformZoom();
@@ -85,6 +90,11 @@ public class PlayerHoverState : State<Player>
         //PlayerData.sessionCurrentFuel -= PlayerData.fuelLossRate * currentThrusterForce * delta;
     }
 
+    private void ParticlesProcess(float delta) {
+        float thrusterT = currentThrusterForce / maxThrusterForce;
+        root.thrusterParticleSystem.rate = 32f * thrusterT;
+    }
+
     public void OnBodyEntered(Node body)
     {
         /*bool explode = false;
@@ -124,10 +134,17 @@ public class PlayerHoverState : State<Player>
         {
             QueryState("Dead");
         }*/
+
+        GD.Print(body.GetType());
+        if (body is TerrainCollision) {
+            QueryState("Dead");
+        }
     }
 
     public override void Exit()
     {
+        root.thrusterParticleSystem.emitting = false;
+
         root.Disconnect("body_entered", this, "OnBodyEntered");
     }
 }

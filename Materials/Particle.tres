@@ -1,21 +1,36 @@
-[gd_resource type="ShaderMaterial" load_steps=3 format=2]
+[gd_resource type="ShaderMaterial" load_steps=5 format=2]
 
 [ext_resource path="res://Textures/BayerMatrixDithering.png" type="Texture" id=1]
 
-[sub_resource type="Shader" id=8]
+[sub_resource type="Shader" id=1]
 code = "shader_type spatial;
 render_mode unshaded;
 
 uniform sampler2D ditheringTex;
 uniform vec2 ditheringSize = vec2(32f);
+uniform float lightOffset = 0f;
+uniform float lightSteps = 2f;
+uniform sampler2D lightGradient;
+uniform vec3 lightDirection = vec3(0f, 0f, 1f);
+
+vec3 adjust_rgb(vec3 color){
+    return mix(pow((color + vec3(0.055)) * (1.0 / (1.0 + 0.055)),vec3(2.4)),color * (1.0 / 12.92),lessThan(color,vec3(0.04045)));
+}
 
 void fragment() {
+	vec4 col = COLOR;
+	
+	if (!OUTPUT_IS_SRGB) {
+		col.rgb = adjust_rgb(col.rgb);
+	}
+	
 	ALPHA_SCISSOR = 0.9999f;
-	ALBEDO = COLOR.rgb;
+	ALBEDO = col.rgb;
 	
 	float d = texture(ditheringTex, FRAGCOORD.xy / ditheringSize).r;
-	ALPHA = COLOR.a;
+	ALPHA = col.a;
 	ALPHA += d;
+	ALPHA = clamp(ALPHA, 0f, 1f);
 }
 
 
@@ -23,7 +38,17 @@ void fragment() {
 
 "
 
+[sub_resource type="Gradient" id=2]
+colors = PoolColorArray( 0.788086, 0.788086, 0.788086, 1, 1, 1, 1, 1 )
+
+[sub_resource type="GradientTexture" id=3]
+gradient = SubResource( 2 )
+
 [resource]
-shader = SubResource( 8 )
+shader = SubResource( 1 )
 shader_param/ditheringSize = Vector2( 32, 32 )
+shader_param/lightOffset = 0.0
+shader_param/lightSteps = 2.0
+shader_param/lightDirection = Vector3( 0, 0.25, 1 )
 shader_param/ditheringTex = ExtResource( 1 )
+shader_param/lightGradient = SubResource( 3 )

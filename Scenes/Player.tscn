@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=2]
+[gd_scene load_steps=33 format=2]
 
 [ext_resource path="res://Scripts/ModelViewComponent.cs" type="Script" id=1]
 [ext_resource path="res://Scripts/Player/State/PlayerHoverState.cs" type="Script" id=2]
@@ -7,34 +7,144 @@
 [ext_resource path="res://Scripts/Player/PlayerStateMachine.cs" type="Script" id=5]
 [ext_resource path="res://Materials/Particle.tres" type="Material" id=6]
 [ext_resource path="res://Materials/AdditiveParticle.tres" type="Material" id=7]
+[ext_resource path="res://Textures/BayerMatrixDithering.png" type="Texture" id=8]
+[ext_resource path="res://Scripts/Player/ParticleSystems/ThrusterParticleSystem.cs" type="Script" id=9]
+[ext_resource path="res://Scripts/Player/ParticleSystems/ExplosionParticleSystem.cs" type="Script" id=10]
+[ext_resource path="res://Materials/Explosion.tres" type="Material" id=11]
+[ext_resource path="res://Scripts/Player/State/PlayerDeadState.cs" type="Script" id=12]
 
-[sub_resource type="SphereMesh" id=5]
+[sub_resource type="SphereMesh" id=1]
+radius = 0.04
+height = 0.08
+radial_segments = 8
+rings = 4
+
+[sub_resource type="Gradient" id=2]
+offsets = PoolRealArray( 0, 0.147453, 0.431635, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 0, 0.900391, 1, 1, 0.176471, 0, 1, 1, 0.176471, 0, 1, 0 )
+
+[sub_resource type="Curve" id=3]
+_data = [ Vector2( 0, 0.47546 ), 0.0, 0.52454, 0, 1, Vector2( 1, 1 ), 0.52454, 0.0, 1, 0 ]
+
+[sub_resource type="SphereMesh" id=4]
+radius = 0.05
+height = 0.1
+radial_segments = 16
+rings = 8
+
+[sub_resource type="Curve" id=5]
+_data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 1, Vector2( 1, 0 ), -1.42726, 0.0, 1, 0 ]
+
+[sub_resource type="Gradient" id=6]
+offsets = PoolRealArray( 0, 0.493298, 1 )
+colors = PoolColorArray( 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1 )
+
+[sub_resource type="Curve" id=7]
+_data = [ Vector2( 0, 0 ), 0.0, 17.1429, 0, 1, Vector2( 0.0583333, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0.769939 ), -0.244313, 0.0, 1, 0 ]
+
+[sub_resource type="SphereMesh" id=8]
 radius = 0.01
 height = 0.02
 radial_segments = 16
 rings = 8
 
-[sub_resource type="Curve" id=6]
+[sub_resource type="Curve" id=9]
+max_value = 2.0
+_data = [ Vector2( 0, 1 ), 0.0, 5.8383, 0, 1, Vector2( 0.171283, 2 ), 0.0, 0.0, 0, 0, Vector2( 1, 0.97546 ), -1.2363, 0.0, 1, 0 ]
+
+[sub_resource type="Gradient" id=10]
+offsets = PoolRealArray( 0, 0.193252, 0.47185, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 0, 1.25, 1.25, 1, 0, 0.39, 1.25, 1, 0, 0.313726, 1, 0 )
+
+[sub_resource type="Shader" id=11]
+code = "shader_type spatial;
+render_mode unshaded;
+
+uniform sampler2D ditheringTex;
+uniform vec2 ditheringSize = vec2(32f);
+uniform float lightOffset = 0f;
+uniform float lightSteps = 2f;
+uniform sampler2D lightGradient;
+uniform vec3 lightDirection = vec3(0f, 0f, 1f);
+
+varying mat4 camMat;
+
+vec3 adjust_rgb(vec3 color){
+    return mix(pow((color + vec3(0.055)) * (1.0 / (1.0 + 0.055)),vec3(2.4)),color * (1.0 / 12.92),lessThan(color,vec3(0.04045)));
+}
+
+void vertex() {
+	camMat = CAMERA_MATRIX;
+}
+
+void fragment() {
+	vec4 col = COLOR;
+	
+	if (!OUTPUT_IS_SRGB) {
+		col.rgb = adjust_rgb(col.rgb);
+	}
+	
+	ALPHA_SCISSOR = 0.9999f;
+	ALBEDO = col.rgb;
+	
+	float d = texture(ditheringTex, FRAGCOORD.xy / ditheringSize).r;
+	ALPHA = col.a;
+	ALPHA += d;
+	ALPHA = clamp(ALPHA, 0f, 1f);
+	
+	vec3 normal = (camMat * vec4(NORMAL, 0f)).xyz;
+	float dt = dot(normal, normalize(lightDirection)) + lightOffset;
+	dt = floor(dt * lightSteps) / (lightSteps - 1f);
+	dt = clamp(dt, 0f, 1f);
+	ALBEDO *= texture(lightGradient, vec2(dt, 0f)).rgb;
+}
+
+
+
+
+"
+
+[sub_resource type="Gradient" id=12]
+colors = PoolColorArray( 0.788086, 0.788086, 0.788086, 1, 1, 1, 1, 1 )
+
+[sub_resource type="GradientTexture" id=13]
+gradient = SubResource( 12 )
+
+[sub_resource type="ShaderMaterial" id=14]
+shader = SubResource( 11 )
+shader_param/ditheringSize = Vector2( 32, 32 )
+shader_param/lightOffset = 0.0
+shader_param/lightSteps = 2.0
+shader_param/lightDirection = Vector3( 0, 0.25, 1 )
+shader_param/ditheringTex = ExtResource( 8 )
+shader_param/lightGradient = SubResource( 13 )
+
+[sub_resource type="Curve" id=15]
+_data = [ Vector2( 0, 1 ), 0.0, -0.110337, 0, 0, Vector2( 1, 0 ), -1.913, 0.0, 0, 0 ]
+
+[sub_resource type="Gradient" id=16]
+offsets = PoolRealArray( 0.628834, 1 )
+colors = PoolColorArray( 0.286275, 0.239216, 0.25098, 1, 0.25098, 0.196078, 0.211765, 0 )
+
+[sub_resource type="Curve" id=17]
 max_value = 8.0
-_data = [ Vector2( 0, 8 ), 0.0, 0.0, 0, 1, Vector2( 0.0546647, 8 ), 0.0, 0.0, 0, 0, Vector2( 0.104227, 3.5092 ), 0.0, 0.0, 0, 0, Vector2( 1, 2.19632 ), 0.0, 0.0, 0, 0 ]
+_data = [ Vector2( 0, 8 ), 0.0, 0.0, 0, 1, Vector2( 0.0546647, 8 ), 0.0, 0.0, 0, 0, Vector2( 0.069242, 2.42945 ), 0.0, 0.0, 0, 0, Vector2( 1, 1.34969 ), 0.0, 0.0, 0, 0 ]
 
-[sub_resource type="Gradient" id=7]
-offsets = PoolRealArray( 0, 0.193252, 0.47546, 1 )
-colors = PoolColorArray( 1, 1, 1, 1, 0, 0.648438, 1, 1, 0, 0.313726, 1, 1, 0, 0.313726, 1, 0 )
+[sub_resource type="Gradient" id=18]
+offsets = PoolRealArray( 0, 0.116564, 0.349693, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 1, 0.960938, 0, 1, 1, 0, 0, 1, 0.203125, 0, 0, 0 )
 
-[sub_resource type="Gradient" id=8]
-offsets = PoolRealArray( 0, 0.0613497, 0.0981595, 0.309816, 0.656442, 1 )
-colors = PoolColorArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.990234, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0 )
-
-[sub_resource type="CapsuleShape2D" id=1]
+[sub_resource type="CapsuleShape2D" id=19]
 radius = 6.0
 height = 2.0
 
-[sub_resource type="CircleShape2D" id=2]
+[sub_resource type="CircleShape2D" id=20]
 radius = 2.0
 
 [node name="Player" type="RigidBody2D"]
 gravity_scale = 0.0
+contacts_reported = 4
+contact_monitor = true
 script = ExtResource( 4 )
 
 [node name="Body" type="Node2D" parent="."]
@@ -46,44 +156,80 @@ texture = ExtResource( 3 )
 script = ExtResource( 1 )
 
 [node name="Spr" type="Sprite3D" parent="Body/SprView"]
-transform = Transform( -1, 0, -1.50996e-07, 0, 1, 0, 1.50996e-07, 0, -1, 0, 0, 0 )
+transform = Transform( -1, 1.60933e-20, -1.50996e-07, 0, 1, 1.06581e-13, 1.50996e-07, 1.06581e-13, -1, 0, 0, 0 )
 transparent = false
 alpha_cut = 1
 texture = ExtResource( 3 )
 
-[node name="ParticlesView" type="Node" parent="Body"]
+[node name="Particles" type="Node2D" parent="."]
+
+[node name="ParticlesView" type="Node" parent="Particles"]
 script = ExtResource( 1 )
 
-[node name="Particles" type="Spatial" parent="Body/ParticlesView"]
-transform = Transform( -1, 0, -1.50996e-07, 0, 1, 0, 1.50996e-07, 0, -1, 0, 0, 0 )
+[node name="Particles" type="Spatial" parent="Particles/ParticlesView"]
+transform = Transform( -1, 1.60933e-20, -1.50996e-07, 0, 1, 1.06581e-13, 1.50996e-07, 1.06581e-13, -1, 0, 0, 0 )
 
-[node name="Thruster" type="CPUParticles" parent="Body/ParticlesView/Particles"]
+[node name="Thruster" type="MeshInstance" parent="Particles/ParticlesView/Particles"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.082, 0.053 )
+material_override = ExtResource( 7 )
+script = ExtResource( 9 )
+size = Vector3( 1, 1, 1.5 )
+amount = 32
+lifetime = 0.25
+spread = 30.0
+rate = 64.0
+local = true
+gravity = Vector3( 0, 0, 0 )
+transformDir = false
+followDirection = true
+particleMesh = SubResource( 1 )
+colorOverLifeGradient = SubResource( 2 )
+
+[node name="Explosion" type="MeshInstance" parent="Particles/ParticlesView/Particles"]
+material_override = ExtResource( 11 )
+script = ExtResource( 10 )
+size = Vector3( 10, 10, 10 )
+amount = 16
+velocity = 2.0
+lifetime = 2.0
+rate = 0.5
+gravity = Vector3( 0, 4, 0 )
+velocityVariation = SubResource( 3 )
+drag = 10.0
+amountPerc = 1.0
+particleMesh = SubResource( 4 )
+overLifeDrag = SubResource( 5 )
+colorOverLifeGradient = SubResource( 6 )
+sizeOverLifeCurve = SubResource( 7 )
+
+[node name="Thruster_" type="CPUParticles" parent="Particles/ParticlesView/Particles"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.0599136, 0 )
 material_override = ExtResource( 7 )
 emitting = false
 amount = 16
 lifetime = 0.5
 speed_scale = 2.0
-mesh = SubResource( 5 )
+mesh = SubResource( 8 )
 emission_shape = 1
 emission_sphere_radius = 0.01
 direction = Vector3( 0, -1, 0 )
 spread = 30.0
 gravity = Vector3( 0, 0, 0 )
-initial_velocity = 0.5
+initial_velocity = 1.0
 scale_amount = 3.0
 scale_amount_random = 1.0
-scale_amount_curve = SubResource( 6 )
-color_ramp = SubResource( 7 )
+scale_amount_curve = SubResource( 9 )
+color_ramp = SubResource( 10 )
 
-[node name="Explosion" type="CPUParticles" parent="Body/ParticlesView/Particles"]
-material_override = ExtResource( 6 )
+[node name="ExplosionSmoke_" type="CPUParticles" parent="Particles/ParticlesView/Particles"]
+visible = false
+material_override = SubResource( 14 )
 emitting = false
 amount = 32
 lifetime = 2.0
-one_shot = true
 explosiveness = 1.0
-mesh = SubResource( 5 )
+local_coords = false
+mesh = SubResource( 8 )
 emission_shape = 1
 emission_sphere_radius = 0.01
 direction = Vector3( 0, -1, 0 )
@@ -92,25 +238,49 @@ gravity = Vector3( 0, 2, 0 )
 initial_velocity = 2.0
 initial_velocity_random = 0.5
 damping = 4.0
-scale_amount = 8.0
-scale_amount_random = 1.0
-scale_amount_curve = SubResource( 6 )
-color_ramp = SubResource( 8 )
+scale_amount = 32.0
+scale_amount_random = 0.5
+scale_amount_curve = SubResource( 15 )
+color_ramp = SubResource( 16 )
+
+[node name="Explosion_" type="CPUParticles" parent="Particles/ParticlesView/Particles"]
+visible = false
+material_override = ExtResource( 6 )
+emitting = false
+amount = 32
+explosiveness = 1.0
+local_coords = false
+mesh = SubResource( 8 )
+emission_shape = 1
+emission_sphere_radius = 0.01
+direction = Vector3( 0, -1, 0 )
+spread = 180.0
+gravity = Vector3( 0, 0, 0 )
+initial_velocity = 2.1
+initial_velocity_random = 0.5
+damping = 4.0
+scale_amount = 16.0
+scale_amount_random = 0.5
+scale_amount_curve = SubResource( 17 )
+color_ramp = SubResource( 18 )
 
 [node name="Col" type="CollisionShape2D" parent="."]
 position = Vector2( 0, -1 )
-shape = SubResource( 1 )
+shape = SubResource( 19 )
 
 [node name="Col2" type="CollisionShape2D" parent="."]
 position = Vector2( -6, 6 )
-shape = SubResource( 2 )
+shape = SubResource( 20 )
 
 [node name="Col3" type="CollisionShape2D" parent="."]
 position = Vector2( 6, 6 )
-shape = SubResource( 2 )
+shape = SubResource( 20 )
 
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource( 5 )
 
 [node name="Hover" type="Node" parent="StateMachine"]
 script = ExtResource( 2 )
+
+[node name="Dead" type="Node" parent="StateMachine"]
+script = ExtResource( 12 )
