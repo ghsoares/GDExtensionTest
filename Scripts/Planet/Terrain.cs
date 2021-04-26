@@ -87,27 +87,29 @@ public class Terrain : Spatial
         SurfaceTool st = new SurfaceTool();
         st.Begin(Mesh.PrimitiveType.Triangles);
 
+        float pixelSize = ModelViewComponent.pixelSize;
+
         // First tri
 
         st.AddUv(new Vector2(0f, 0f));
-        st.AddVertex(new Vector3(0f, 0f, 0f) * 0.01f);
+        st.AddVertex(new Vector3(0f, 0f, 0f) * pixelSize);
 
         st.AddUv(new Vector2(1f, 1f));
-        st.AddVertex(new Vector3(planet.totalSize.x, -planet.totalSize.y, 0f) * 0.01f);
+        st.AddVertex(new Vector3(planet.totalSize.x, -planet.totalSize.y, 0f) * pixelSize);
 
         st.AddUv(new Vector2(1f, 1f));
-        st.AddVertex(new Vector3(0f, -planet.totalSize.y, 0f) * 0.01f);
+        st.AddVertex(new Vector3(0f, -planet.totalSize.y, 0f) * pixelSize);
 
         // Second tri
 
         st.AddUv(new Vector2(1f, 1f));
-        st.AddVertex(new Vector3(planet.totalSize.x, -planet.totalSize.y, 0f) * 0.01f);
+        st.AddVertex(new Vector3(planet.totalSize.x, -planet.totalSize.y, 0f) * pixelSize);
 
         st.AddUv(new Vector2(0f, 0f));
-        st.AddVertex(new Vector3(0f, 0f, 0f) * 0.01f);
+        st.AddVertex(new Vector3(0f, 0f, 0f) * pixelSize);
 
         st.AddUv(new Vector2(1f, 0f));
-        st.AddVertex(new Vector3(planet.totalSize.x, 0f, 0f) * 0.01f);
+        st.AddVertex(new Vector3(planet.totalSize.x, 0f, 0f) * pixelSize);
 
         viewMesh = st.Commit();
     }
@@ -129,6 +131,7 @@ public class Terrain : Spatial
             mat.SetShaderParam("terrainHeightMap", terrainTex);
             mat.SetShaderParam("terrainSize", planet.totalSize);
             mat.SetShaderParam("terrainResolution", visualResolution);
+            mat.SetShaderParam("pixelSize", ModelViewComponent.pixelSize);
         }
 
         collision.Generate();

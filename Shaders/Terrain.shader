@@ -4,6 +4,7 @@ render_mode unshaded, cull_disabled;
 uniform sampler2D terrainHeightMap;
 uniform vec2 terrainSize = vec2(1024, 640);
 uniform float terrainResolution = .25f;
+uniform float pixelSize = 0.01f;
 
 uniform sampler2D terrainNoise;
 uniform float terrainNoiseTiling = 256f;
@@ -80,7 +81,7 @@ vec4 GetTerrainColor() {
 }
 
 void vertex() {
-	v = VERTEX.xy / 0.01f;
+	v = VERTEX.xy / pixelSize;
 	v.y = -v.y;
 }
 

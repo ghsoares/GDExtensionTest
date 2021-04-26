@@ -21,7 +21,9 @@ public class ModelViewComponent : Node
             if (_modelNode == null)
             {
                 _modelNode = GetParent();
-            } else {
+            }
+            else
+            {
                 if (!_modelNode.IsInsideTree()) _modelNode = null;
             }
             return _modelNode;
@@ -41,7 +43,9 @@ public class ModelViewComponent : Node
                 {
                     _viewNode = GetChild(0);
                 }
-            } else {
+            }
+            else
+            {
                 if (!_viewNode.IsInsideTree()) _viewNode = null;
             }
             return _viewNode;
@@ -53,6 +57,7 @@ public class ModelViewComponent : Node
     }
 
     [Export] public TransformUpdateMode transformUpdate = TransformUpdateMode.Process;
+    [Export] public Vector2 positionSnap = Vector2.Zero;
 
     public override void _Process(float delta)
     {
@@ -74,6 +79,7 @@ public class ModelViewComponent : Node
             Transform2D t = Update3DTo2D(
                 model.GlobalTransform, view.GetGlobalTransform()
             );
+
             view.Visible = model.Visible;
             if (!Engine.EditorHint) VisualServer.CanvasItemSetTransform(view.GetCanvasItem(), t);
         }
@@ -84,6 +90,7 @@ public class ModelViewComponent : Node
             Transform t = view.GlobalTransform = Update2DTo3D(
                 model.GetGlobalTransform(), view.GlobalTransform
             );
+
             view.Visible = model.Visible;
             view.GlobalTransform = t;
             if (!Engine.EditorHint) VisualServer.CanvasItemSetVisible(model.GetCanvasItem(), false);
@@ -92,9 +99,18 @@ public class ModelViewComponent : Node
 
     protected virtual Transform2D Update3DTo2D(Transform modelTransform, Transform2D viewTransform)
     {
-        viewTransform.origin = new Vector2(
+        Vector2 pos = new Vector2(
             modelTransform.origin.x / pixelSize, -modelTransform.origin.y / pixelSize
         );
+        if (positionSnap.x > 0f)
+        {
+            pos.x = Mathf.Stepify(pos.x, positionSnap.x * pixelSize);
+        }
+        if (positionSnap.y > 0f)
+        {
+            pos.y = Mathf.Stepify(pos.y, positionSnap.y * pixelSize);
+        }
+        viewTransform.origin = pos;
 
         viewTransform.x = new Vector2(modelTransform.basis.x.x, modelTransform.basis.x.y);
         viewTransform.y = new Vector2(modelTransform.basis.y.x, modelTransform.basis.y.y);
@@ -104,17 +120,27 @@ public class ModelViewComponent : Node
 
     protected virtual Transform Update2DTo3D(Transform2D modelTransform, Transform viewTransform)
     {
-        viewTransform.origin = new Vector3(
+        Vector3 pos = new Vector3(
             modelTransform.origin.x * pixelSize, -modelTransform.origin.y * pixelSize,
             viewTransform.origin.z
         );
+        if (positionSnap.x > 0f)
+        {
+            pos.x = Mathf.Stepify(pos.x, positionSnap.x * pixelSize);
+        }
+        if (positionSnap.y > 0f)
+        {
+            pos.y = Mathf.Stepify(pos.y, positionSnap.y * pixelSize);
+        }
+        viewTransform.origin = pos;
 
         Basis basis = viewTransform.basis;
         Quat q = basis.Quat().Normalized();
 
-        if (q.IsNormalized()) {
+        if (q.IsNormalized())
+        {
             Vector3 euler = q.GetEuler();
-            euler.z = modelTransform.Rotation;
+            euler.z = -modelTransform.Rotation;
 
             basis = new Basis(new Quat(euler));
         }

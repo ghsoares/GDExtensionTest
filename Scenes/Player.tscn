@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=2]
+[gd_scene load_steps=34 format=2]
 
 [ext_resource path="res://Scripts/ModelViewComponent.cs" type="Script" id=1]
 [ext_resource path="res://Scripts/Player/State/PlayerHoverState.cs" type="Script" id=2]
@@ -14,49 +14,54 @@
 [ext_resource path="res://Scripts/Player/State/PlayerDeadState.cs" type="Script" id=12]
 
 [sub_resource type="SphereMesh" id=1]
-radius = 0.04
-height = 0.08
+radius = 0.03
+height = 0.06
 radial_segments = 8
 rings = 4
 
 [sub_resource type="Gradient" id=2]
-offsets = PoolRealArray( 0, 0.147453, 0.431635, 1 )
-colors = PoolColorArray( 1, 1, 1, 1, 0, 0.900391, 1, 1, 0.176471, 0, 1, 1, 0.176471, 0, 1, 0 )
+offsets = PoolRealArray( 0, 0.147453, 0.520107, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 0, 0.900391, 1, 1, 0, 0.337891, 1, 1, 0, 0.101961, 1, 0 )
 
 [sub_resource type="Curve" id=3]
+max_value = 2.0
+_data = [ Vector2( 0, 1 ), 0.0, 2.64015, 0, 1, Vector2( 0.130128, 1.34356 ), 0.0, 0.0, 0, 0, Vector2( 1, 0.582822 ), -0.874538, 0.0, 1, 0 ]
+
+[sub_resource type="Curve" id=4]
 _data = [ Vector2( 0, 0.47546 ), 0.0, 0.52454, 0, 1, Vector2( 1, 1 ), 0.52454, 0.0, 1, 0 ]
 
-[sub_resource type="SphereMesh" id=4]
+[sub_resource type="SphereMesh" id=5]
 radius = 0.05
 height = 0.1
 radial_segments = 16
 rings = 8
-
-[sub_resource type="Curve" id=5]
-_data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 1, Vector2( 1, 0 ), -1.42726, 0.0, 1, 0 ]
 
 [sub_resource type="Gradient" id=6]
 offsets = PoolRealArray( 0, 0.493298, 1 )
 colors = PoolColorArray( 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1 )
 
 [sub_resource type="Curve" id=7]
-_data = [ Vector2( 0, 0 ), 0.0, 17.1429, 0, 1, Vector2( 0.0583333, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0.769939 ), -0.244313, 0.0, 1, 0 ]
+max_value = 2.0
+_data = [ Vector2( 0, 2 ), 0.0, 0.0, 0, 0, Vector2( 0.0557692, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0.769939 ), -0.243649, 0.0, 1, 0 ]
 
-[sub_resource type="SphereMesh" id=8]
+[sub_resource type="Curve" id=8]
+_data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 1, Vector2( 1, 0 ), -1.42726, 0.0, 1, 0 ]
+
+[sub_resource type="SphereMesh" id=9]
 radius = 0.01
 height = 0.02
 radial_segments = 16
 rings = 8
 
-[sub_resource type="Curve" id=9]
+[sub_resource type="Curve" id=10]
 max_value = 2.0
 _data = [ Vector2( 0, 1 ), 0.0, 5.8383, 0, 1, Vector2( 0.171283, 2 ), 0.0, 0.0, 0, 0, Vector2( 1, 0.97546 ), -1.2363, 0.0, 1, 0 ]
 
-[sub_resource type="Gradient" id=10]
+[sub_resource type="Gradient" id=11]
 offsets = PoolRealArray( 0, 0.193252, 0.47185, 1 )
 colors = PoolColorArray( 1, 1, 1, 1, 0, 1.25, 1.25, 1, 0, 0.39, 1.25, 1, 0, 0.313726, 1, 0 )
 
-[sub_resource type="Shader" id=11]
+[sub_resource type="Shader" id=12]
 code = "shader_type spatial;
 render_mode unshaded;
 
@@ -104,44 +109,45 @@ void fragment() {
 
 "
 
-[sub_resource type="Gradient" id=12]
+[sub_resource type="Gradient" id=13]
 colors = PoolColorArray( 0.788086, 0.788086, 0.788086, 1, 1, 1, 1, 1 )
 
-[sub_resource type="GradientTexture" id=13]
-gradient = SubResource( 12 )
+[sub_resource type="GradientTexture" id=14]
+gradient = SubResource( 13 )
 
-[sub_resource type="ShaderMaterial" id=14]
-shader = SubResource( 11 )
+[sub_resource type="ShaderMaterial" id=15]
+shader = SubResource( 12 )
 shader_param/ditheringSize = Vector2( 32, 32 )
 shader_param/lightOffset = 0.0
 shader_param/lightSteps = 2.0
 shader_param/lightDirection = Vector3( 0, 0.25, 1 )
 shader_param/ditheringTex = ExtResource( 8 )
-shader_param/lightGradient = SubResource( 13 )
+shader_param/lightGradient = SubResource( 14 )
 
-[sub_resource type="Curve" id=15]
+[sub_resource type="Curve" id=16]
 _data = [ Vector2( 0, 1 ), 0.0, -0.110337, 0, 0, Vector2( 1, 0 ), -1.913, 0.0, 0, 0 ]
 
-[sub_resource type="Gradient" id=16]
+[sub_resource type="Gradient" id=17]
 offsets = PoolRealArray( 0.628834, 1 )
 colors = PoolColorArray( 0.286275, 0.239216, 0.25098, 1, 0.25098, 0.196078, 0.211765, 0 )
 
-[sub_resource type="Curve" id=17]
+[sub_resource type="Curve" id=18]
 max_value = 8.0
 _data = [ Vector2( 0, 8 ), 0.0, 0.0, 0, 1, Vector2( 0.0546647, 8 ), 0.0, 0.0, 0, 0, Vector2( 0.069242, 2.42945 ), 0.0, 0.0, 0, 0, Vector2( 1, 1.34969 ), 0.0, 0.0, 0, 0 ]
 
-[sub_resource type="Gradient" id=18]
+[sub_resource type="Gradient" id=19]
 offsets = PoolRealArray( 0, 0.116564, 0.349693, 1 )
 colors = PoolColorArray( 1, 1, 1, 1, 1, 0.960938, 0, 1, 1, 0, 0, 1, 0.203125, 0, 0, 0 )
 
-[sub_resource type="CapsuleShape2D" id=19]
+[sub_resource type="CapsuleShape2D" id=20]
 radius = 6.0
 height = 2.0
 
-[sub_resource type="CircleShape2D" id=20]
+[sub_resource type="CircleShape2D" id=21]
 radius = 2.0
 
 [node name="Player" type="RigidBody2D"]
+rotation = 0.785398
 gravity_scale = 0.0
 contacts_reported = 4
 contact_monitor = true
@@ -152,10 +158,14 @@ script = ExtResource( 4 )
 [node name="Sprite" type="Sprite" parent="Body"]
 texture = ExtResource( 3 )
 
-[node name="SprView" type="Node" parent="Body"]
+[node name="BodyView" type="Node" parent="Body"]
 script = ExtResource( 1 )
+positionSnap = Vector2( 1, 1 )
 
-[node name="Spr" type="Sprite3D" parent="Body/SprView"]
+[node name="Pivot" type="Spatial" parent="Body/BodyView"]
+transform = Transform( 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0, 1, 0, 0, 0 )
+
+[node name="Spr" type="Sprite3D" parent="Body/BodyView/Pivot"]
 transform = Transform( -1, 1.60933e-20, -1.50996e-07, 0, 1, 1.06581e-13, 1.50996e-07, 1.06581e-13, -1, 0, 0, 0 )
 transparent = false
 alpha_cut = 1
@@ -165,42 +175,44 @@ texture = ExtResource( 3 )
 
 [node name="ParticlesView" type="Node" parent="Particles"]
 script = ExtResource( 1 )
+positionSnap = Vector2( 1, 1 )
 
 [node name="Particles" type="Spatial" parent="Particles/ParticlesView"]
-transform = Transform( -1, 1.60933e-20, -1.50996e-07, 0, 1, 1.06581e-13, 1.50996e-07, 1.06581e-13, -1, 0, 0, 0 )
+transform = Transform( 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0, 1, 0, 0, 0 )
 
 [node name="Thruster" type="MeshInstance" parent="Particles/ParticlesView/Particles"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.082, 0.053 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.077, -0.053 )
 material_override = ExtResource( 7 )
 script = ExtResource( 9 )
 size = Vector3( 1, 1, 1.5 )
 amount = 32
 lifetime = 0.25
-spread = 30.0
 rate = 64.0
 local = true
 gravity = Vector3( 0, 0, 0 )
 transformDir = false
-followDirection = true
 particleMesh = SubResource( 1 )
+followDirection = true
 colorOverLifeGradient = SubResource( 2 )
+sizeOverLifeCurve = SubResource( 3 )
 
 [node name="Explosion" type="MeshInstance" parent="Particles/ParticlesView/Particles"]
 material_override = ExtResource( 11 )
 script = ExtResource( 10 )
 size = Vector3( 10, 10, 10 )
-amount = 16
+amount = 4
 velocity = 2.0
 lifetime = 2.0
+emitting = false
 rate = 0.5
 gravity = Vector3( 0, 4, 0 )
-velocityVariation = SubResource( 3 )
-drag = 10.0
-amountPerc = 1.0
-particleMesh = SubResource( 4 )
-overLifeDrag = SubResource( 5 )
+velocityVariation = SubResource( 4 )
+particleMesh = SubResource( 5 )
 colorOverLifeGradient = SubResource( 6 )
 sizeOverLifeCurve = SubResource( 7 )
+amountPerc = 1.0
+overLifeDrag = SubResource( 8 )
+drag = 10.0
 
 [node name="Thruster_" type="CPUParticles" parent="Particles/ParticlesView/Particles"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.0599136, 0 )
@@ -209,7 +221,7 @@ emitting = false
 amount = 16
 lifetime = 0.5
 speed_scale = 2.0
-mesh = SubResource( 8 )
+mesh = SubResource( 9 )
 emission_shape = 1
 emission_sphere_radius = 0.01
 direction = Vector3( 0, -1, 0 )
@@ -218,18 +230,18 @@ gravity = Vector3( 0, 0, 0 )
 initial_velocity = 1.0
 scale_amount = 3.0
 scale_amount_random = 1.0
-scale_amount_curve = SubResource( 9 )
-color_ramp = SubResource( 10 )
+scale_amount_curve = SubResource( 10 )
+color_ramp = SubResource( 11 )
 
 [node name="ExplosionSmoke_" type="CPUParticles" parent="Particles/ParticlesView/Particles"]
 visible = false
-material_override = SubResource( 14 )
+material_override = SubResource( 15 )
 emitting = false
 amount = 32
 lifetime = 2.0
 explosiveness = 1.0
 local_coords = false
-mesh = SubResource( 8 )
+mesh = SubResource( 9 )
 emission_shape = 1
 emission_sphere_radius = 0.01
 direction = Vector3( 0, -1, 0 )
@@ -240,8 +252,8 @@ initial_velocity_random = 0.5
 damping = 4.0
 scale_amount = 32.0
 scale_amount_random = 0.5
-scale_amount_curve = SubResource( 15 )
-color_ramp = SubResource( 16 )
+scale_amount_curve = SubResource( 16 )
+color_ramp = SubResource( 17 )
 
 [node name="Explosion_" type="CPUParticles" parent="Particles/ParticlesView/Particles"]
 visible = false
@@ -250,7 +262,7 @@ emitting = false
 amount = 32
 explosiveness = 1.0
 local_coords = false
-mesh = SubResource( 8 )
+mesh = SubResource( 9 )
 emission_shape = 1
 emission_sphere_radius = 0.01
 direction = Vector3( 0, -1, 0 )
@@ -261,20 +273,20 @@ initial_velocity_random = 0.5
 damping = 4.0
 scale_amount = 16.0
 scale_amount_random = 0.5
-scale_amount_curve = SubResource( 17 )
-color_ramp = SubResource( 18 )
+scale_amount_curve = SubResource( 18 )
+color_ramp = SubResource( 19 )
 
 [node name="Col" type="CollisionShape2D" parent="."]
 position = Vector2( 0, -1 )
-shape = SubResource( 19 )
+shape = SubResource( 20 )
 
 [node name="Col2" type="CollisionShape2D" parent="."]
 position = Vector2( -6, 6 )
-shape = SubResource( 20 )
+shape = SubResource( 21 )
 
 [node name="Col3" type="CollisionShape2D" parent="."]
 position = Vector2( 6, 6 )
-shape = SubResource( 20 )
+shape = SubResource( 21 )
 
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource( 5 )

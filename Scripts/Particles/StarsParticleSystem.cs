@@ -39,6 +39,8 @@ public class StarsParticleSystem : EmissionParticleSystem
     {
         base.UpdateParticle(particle, delta);
 
+        float pixelSize = ModelViewComponent.pixelSize;
+
         Vector3 camPos = cam.GlobalTransform.origin;
         Vector3 off = camPos;
 
@@ -46,23 +48,23 @@ public class StarsParticleSystem : EmissionParticleSystem
         off.x -= off.x * Mathf.Lerp(parallaxRange.x, parallaxRange.y, par);
         off.y -= off.y * Mathf.Lerp(parallaxRange.x, parallaxRange.y, par);
 
-        off.x += viewSize.x * particle.startPosition.x * 0.01f * .5f;
-        off.y += viewSize.y * particle.startPosition.y * 0.01f * .5f;
+        off.x += viewSize.x * particle.startPosition.x * pixelSize * .5f;
+        off.y += viewSize.y * particle.startPosition.y * pixelSize * .5f;
 
-        while (off.x > camPos.x + viewSize.x * 0.01f * .5f) {
-            off.x -= viewSize.x * 0.01f;
+        while (off.x > camPos.x + viewSize.x * pixelSize * .5f) {
+            off.x -= viewSize.x * pixelSize;
         }
-        while (off.x < camPos.x - viewSize.x * 0.01f * .5f) {
-            off.x += viewSize.x * 0.01f;
+        while (off.x < camPos.x - viewSize.x * pixelSize * .5f) {
+            off.x += viewSize.x * pixelSize;
         }
-        while (off.y > camPos.y + viewSize.y * 0.01f * .5f) {
-            off.y -= viewSize.y * 0.01f;
+        while (off.y > camPos.y + viewSize.y * pixelSize * .5f) {
+            off.y -= viewSize.y * pixelSize;
         }
-        while (off.y < camPos.y - viewSize.y * 0.01f * .5f) {
-            off.y += viewSize.y * 0.01f;
+        while (off.y < camPos.y - viewSize.y * pixelSize * .5f) {
+            off.y += viewSize.y * pixelSize;
         }
 
-        off.z = particle.startPosition.z;
+        off.z = GlobalTransform.origin.z + particle.startPosition.z;
 
         particle.position = off;
     }
