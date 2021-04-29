@@ -16,10 +16,12 @@ public class GameCamera : Camera2D
     public float desiredZoom = 1f;
     public Vector2 desiredPosition;
     public Vector2 currentPosition;
+    public Vector2 velocity;
     public float currentZoom;
 
-    [Export]
-    public float lerpSpeed = 4f;
+    [Export] public float lerpSpeed = 4f;
+    [Export] public float springConstant = 16f;
+    [Export] public float drag = 2f;
 
     public GameCamera()
     {
@@ -67,18 +69,25 @@ public class GameCamera : Camera2D
 
     public override void _PhysicsProcess(float delta)
     {
-        desiredPosition.x = Mathf.Clamp(desiredPosition.x, LimitLeft, LimitRight);
-        desiredPosition.y = Mathf.Clamp(desiredPosition.y, LimitTop, LimitBottom);
         desiredZoom = Mathf.Clamp(desiredZoom, 0.001f, 1f);
-
-        currentPosition = currentPosition.LinearInterpolate(desiredPosition, Mathf.Min(1f, delta * lerpSpeed));
         currentZoom = Mathf.Lerp(currentZoom, desiredZoom, Mathf.Min(1f, delta * lerpSpeed));
+
+        MotionProcess(delta);
+        currentPosition.x = Mathf.Clamp(currentPosition.x, LimitLeft, LimitRight);
+        currentPosition.y = Mathf.Clamp(currentPosition.y, LimitTop, LimitBottom);
 
         GlobalPosition = currentPosition;
 
         ShakeProcess(delta);
 
         ForceUpdateScroll();
+    }
+
+    private void MotionProcess(float delta) {
+        Vector2 acc = (desiredPosition - currentPosition);
+        currentPosition += velocity * delta;
+        velocity += acc * Mathf.Clamp(delta * springConstant, 0f, 1f);
+        velocity -= velocity * Mathf.Clamp(delta * drag, 0f, 1f);
     }
 
     private void ShakeProcess(float delta)

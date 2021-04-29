@@ -17,6 +17,8 @@ uniform float fresnelPower = 2f;
 uniform float fresnelSteps = 2f;
 uniform float fresnelOffset = 0f;
 uniform float noiseFresnelInfluence = .01f;
+uniform float displacementAmountMin = .01f;
+uniform float displacementAmountMax = .05f;
 uniform sampler2D fresnelGradient : hint_albedo;
 uniform sampler2D gradient : hint_albedo;
 
@@ -55,6 +57,14 @@ vec4 Triplanar(sampler2D tex, float texScale, vec3 worldVertex, vec3 worldNormal
 
 void vertex() {
 	time = TIME;
+	
+	vec3 worldVec = (WORLD_MATRIX * vec4(VERTEX, 1f)).xyz;
+	vec3 worldNormal = (WORLD_MATRIX * vec4(NORMAL, 0f)).xyz;
+	
+	float n = Triplanar(noiseTex, noiseScale, worldVec, worldNormal, 1f).r;
+	n = Ease(n, easeCurve);
+	
+	VERTEX += NORMAL * n * mix(displacementAmountMin, displacementAmountMax, Ease(COLOR.r, .5f));
 }
 
 void fragment() {
@@ -77,9 +87,11 @@ void fragment() {
 	col = texture(gradient, vec2(1f - x, 0f));
 	
 	float fresnel = sqrt(1f - dot(NORMAL, VIEW));
-	float nf = 1f - n / alphaFade;
+	float nf = n / alphaFade;
 	fresnel = pow(fresnel, fresnelPower);
 	
+	fresnel += fresnelOffset;
+	fresnel = clamp(fresnel, 0f, 1f);
 	fresnel += nf * noiseFresnelInfluence;
 	
 	fresnel = floor(fresnel * fresnelSteps) / (fresnelSteps - 1f);
@@ -88,11 +100,10 @@ void fragment() {
 	
 	col.a -= n;
 	col.a += alphaFade;
-	col.a = clamp(col.a, 0f, 1f);
 	//col.rgb = vec3(fresnel);
 	//col.a = 1f;
 	
-	ALPHA_SCISSOR = 0.9999f;
+	ALPHA_SCISSOR = .9999;
 	ALBEDO = col.rgb;
 	ALPHA = col.a;
 }
@@ -103,20 +114,19 @@ void fragment() {
 "
 
 [sub_resource type="Gradient" id=2]
-colors = PoolColorArray( 1, 1, 1, 1, 0.78418, 0.78418, 0.78418, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 0.800781, 0.800781, 0.800781, 1 )
 
 [sub_resource type="GradientTexture" id=3]
 gradient = SubResource( 2 )
 
 [sub_resource type="Gradient" id=4]
 offsets = PoolRealArray( 0, 0.123209, 0.406877, 1 )
-colors = PoolColorArray( 1, 1, 1, 1, 0.986328, 1, 0, 1, 1, 0, 0.404297, 1, 0.219727, 0.0366926, 0.123562, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 0.986328, 1, 0, 1, 1, 0, 0.404297, 1, 0.229492, 0.0813532, 0.151661, 1 )
 
 [sub_resource type="GradientTexture" id=5]
 gradient = SubResource( 4 )
 
 [sub_resource type="OpenSimplexNoise" id=6]
-octaves = 1
 
 [sub_resource type="NoiseTexture" id=7]
 seamless = true
@@ -125,14 +135,16 @@ noise = SubResource( 6 )
 [resource]
 shader = SubResource( 1 )
 shader_param/ditheringSize = Vector2( 32, 32 )
-shader_param/noiseScale = 1.0
-shader_param/noiseMotion = Vector3( 0, -0.1, 0 )
+shader_param/noiseScale = 2.0
+shader_param/noiseMotion = Vector3( 0, 0, 0 )
 shader_param/steps = 8.0
-shader_param/easeCurve = -4.0
-shader_param/fresnelPower = 2.0
+shader_param/easeCurve = -2.0
+shader_param/fresnelPower = 4.0
 shader_param/fresnelSteps = 2.0
-shader_param/fresnelOffset = 0.0
-shader_param/noiseFresnelInfluence = 0.5
+shader_param/fresnelOffset = -0.281
+shader_param/noiseFresnelInfluence = 0.566
+shader_param/displacementAmountMin = 0.025
+shader_param/displacementAmountMax = 0.05
 shader_param/ditheringTex = ExtResource( 1 )
 shader_param/noiseTex = SubResource( 7 )
 shader_param/fresnelGradient = SubResource( 3 )

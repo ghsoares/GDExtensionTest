@@ -5,6 +5,7 @@ using System;
 [Tool]
 public class ExplosionParticleSystem : BurstParticleSystem
 {
+    [Export] public Curve sizeVariation;
     [Export] public float velocity = 1f;
     [Export] public Curve velocityVariation;
     [Export] public float drag = 1f;
@@ -13,6 +14,10 @@ public class ExplosionParticleSystem : BurstParticleSystem
     protected override void InitParticle(Particle particle)
     {
         base.InitParticle(particle);
+
+        if (sizeVariation != null) {
+            particle.scale *= sizeVariation.Interpolate(GD.Randf());
+        }
 
         Vector3 vel = Vector3.Down;
         vel = new Quat(new Vector3(
