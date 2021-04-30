@@ -9,7 +9,7 @@
 [ext_resource path="res://default_environment.tres" type="Environment" id=7]
 [ext_resource path="res://Scripts/PlanetDebug.cs" type="Script" id=8]
 
-[sub_resource type="Gradient" id=4]
+[sub_resource type="Gradient" id=1]
 colors = PoolColorArray( 1, 1, 1, 1, 0.827148, 0.827148, 0.827148, 1 )
 
 [node name="Planet" type="Spatial"]
@@ -20,12 +20,12 @@ size = Vector2( 4096, 1024 )
 position = Vector2( 2048, 512 )
 
 [node name="GameCamera" type="Camera2D" parent="."]
+process_priority = 4
 position = Vector2( 2048, 512 )
 current = true
 script = ExtResource( 4 )
 lerpSpeed = 2.0
-springConstant = 4.0
-drag = 1.0
+springConstant = 6.0
 
 [node name="ModelView" type="Node" parent="GameCamera"]
 script = ExtResource( 3 )
@@ -34,7 +34,7 @@ script = ExtResource( 3 )
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 20.48, -5.12, 8 )
 projection = 1
 current = true
-size = 5.81
+size = 2.97
 near = 0.01
 
 [node name="Stars" type="MeshInstance" parent="."]
@@ -42,7 +42,7 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -20 )
 visible = false
 material_override = ExtResource( 6 )
 script = ExtResource( 5 )
-colorRange = SubResource( 4 )
+colorRange = SubResource( 1 )
 parallaxRange = Vector2( 0.25, 0 )
 parallaxLength = 16.0
 

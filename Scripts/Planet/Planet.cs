@@ -42,6 +42,7 @@ public class Planet : Spatial
         Hide();
 
         generator.Generate();
+        GameCamera.instance.SetLimits();
 
         Show();
 

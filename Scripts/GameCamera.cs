@@ -71,10 +71,11 @@ public class GameCamera : Camera2D
     {
         desiredZoom = Mathf.Clamp(desiredZoom, 0.001f, 1f);
         currentZoom = Mathf.Lerp(currentZoom, desiredZoom, Mathf.Min(1f, delta * lerpSpeed));
+        Vector2 viewSize = GetViewport().Size;
 
         MotionProcess(delta);
-        currentPosition.x = Mathf.Clamp(currentPosition.x, LimitLeft, LimitRight);
-        currentPosition.y = Mathf.Clamp(currentPosition.y, LimitTop, LimitBottom);
+        currentPosition.x = Mathf.Clamp(currentPosition.x, LimitLeft + viewSize.x * .5f, LimitRight - viewSize.x * .5f);
+        currentPosition.y = Mathf.Clamp(currentPosition.y, LimitTop + viewSize.y * .5f, LimitBottom - viewSize.y * .5f);
 
         GlobalPosition = currentPosition;
 

@@ -127,6 +127,7 @@ colors = PoolColorArray( 1, 1, 1, 1, 0.986328, 1, 0, 1, 1, 0, 0.404297, 1, 0.229
 gradient = SubResource( 4 )
 
 [sub_resource type="OpenSimplexNoise" id=6]
+octaves = 1
 
 [sub_resource type="NoiseTexture" id=7]
 seamless = true
@@ -144,7 +145,7 @@ shader_param/fresnelSteps = 2.0
 shader_param/fresnelOffset = -0.281
 shader_param/noiseFresnelInfluence = 0.566
 shader_param/displacementAmountMin = 0.025
-shader_param/displacementAmountMax = 0.05
+shader_param/displacementAmountMax = 0.04
 shader_param/ditheringTex = ExtResource( 1 )
 shader_param/noiseTex = SubResource( 7 )
 shader_param/fresnelGradient = SubResource( 3 )

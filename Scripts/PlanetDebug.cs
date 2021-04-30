@@ -40,7 +40,6 @@ public class PlanetDebug : Node {
         if (debugging) {
             GameCamera.instance.desiredPosition = cameraPos;
             GameCamera.instance.desiredZoom = cameraZoom;
-            GD.Print(cameraZoom);
         } else {
             cameraPos = GameCamera.instance.desiredPosition;
             cameraZoom = GameCamera.instance.desiredZoom;
