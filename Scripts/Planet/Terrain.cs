@@ -1,5 +1,7 @@
+using ExtensionMethods.ColorMethods;
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public class Terrain : Spatial
 {
@@ -20,8 +22,8 @@ public class Terrain : Spatial
 
         height = 400f;
         heightOffset = 100f;
-        visualResolution = 1f / 4f;
-        collisionResolution = 1f / 4f;
+        visualResolution = 1f / 8f;
+        collisionResolution = 1f / 8f;
     }
 
     public override void _Ready()
@@ -58,6 +60,7 @@ public class Terrain : Spatial
         return new Vector2(tang, -1f).Normalized();
     }
 
+    /*
     public ImageTexture GenerateTexture()
     {
         Image img = new Image();
@@ -66,7 +69,7 @@ public class Terrain : Spatial
         float resolution = visualResolution;
         int width = Mathf.CeilToInt(planet.totalSize.x * resolution);
 
-        img.Create(width, 1, false, Image.Format.Rf);
+        img.Create(width, 1, false, Image.Format.Rgba8);
         img.Lock();
 
         for (int i = 0; i < width; i++)
@@ -82,34 +85,44 @@ public class Terrain : Spatial
 
         return imgTexture;
     }
+    */
 
     public void BuildMesh() {
         SurfaceTool st = new SurfaceTool();
         st.Begin(Mesh.PrimitiveType.Triangles);
 
         float pixelSize = ModelViewComponent.pixelSize;
+        int width = Mathf.CeilToInt(planet.totalSize.x * visualResolution);
 
-        // First tri
+        for (int i = 0; i < width - 1; i++) {
+            float currX = i / visualResolution;
+            float nxtX = (i+1) / visualResolution;
 
-        st.AddUv(new Vector2(0f, 0f));
-        st.AddVertex(new Vector3(0f, 0f, 0f) * pixelSize);
+            float currY = GetTerrainY(currX);
+            float nxtY = GetTerrainY(nxtX);
 
-        st.AddUv(new Vector2(1f, 1f));
-        st.AddVertex(new Vector3(planet.totalSize.x, -planet.totalSize.y, 0f) * pixelSize);
+            float currUvX = (float)i / (width - 1);
+            float nxtUvX = (float)(i+1) / (width - 1);
 
-        st.AddUv(new Vector2(1f, 1f));
-        st.AddVertex(new Vector3(0f, -planet.totalSize.y, 0f) * pixelSize);
+            float currUvY = currY;
+            float nxtUvY = nxtY;
 
-        // Second tri
+            // First TRI
+            st.AddUv(new Vector2(currUvX, currUvY));
+            st.AddVertex(new Vector3(currX, -currY, 0f) * pixelSize);
+            st.AddUv(new Vector2(nxtUvX, nxtUvY));
+            st.AddVertex(new Vector3(nxtX, -planet.totalSize.y, 0f) * pixelSize);
+            st.AddUv(new Vector2(currUvX, currUvY));
+            st.AddVertex(new Vector3(currX, -planet.totalSize.y, 0f) * pixelSize);
 
-        st.AddUv(new Vector2(1f, 1f));
-        st.AddVertex(new Vector3(planet.totalSize.x, -planet.totalSize.y, 0f) * pixelSize);
-
-        st.AddUv(new Vector2(0f, 0f));
-        st.AddVertex(new Vector3(0f, 0f, 0f) * pixelSize);
-
-        st.AddUv(new Vector2(1f, 0f));
-        st.AddVertex(new Vector3(planet.totalSize.x, 0f, 0f) * pixelSize);
+            // Second TRI
+            st.AddUv(new Vector2(nxtUvX, nxtUvY));
+            st.AddVertex(new Vector3(nxtX, -nxtY, 0f) * pixelSize);
+            st.AddUv(new Vector2(nxtUvX, nxtUvY));
+            st.AddVertex(new Vector3(nxtX, -planet.totalSize.y, 0f) * pixelSize);
+            st.AddUv(new Vector2(currUvX, currUvY));
+            st.AddVertex(new Vector3(currX, -currY, 0f) * pixelSize);
+        }
 
         viewMesh = st.Commit();
     }
@@ -121,14 +134,10 @@ public class Terrain : Spatial
         view.Mesh = viewMesh;
         view.MaterialOverride = material;
 
-        ImageTexture terrainTex = GenerateTexture();
-
         ResourceSaver.Save("res://Models/Terrain.res", viewMesh);
-        ResourceSaver.Save("res://Textures/HeightMap.png", terrainTex);
 
         ShaderMaterial mat = material as ShaderMaterial;
         if (mat != null) {
-            mat.SetShaderParam("terrainHeightMap", terrainTex);
             mat.SetShaderParam("terrainSize", planet.totalSize);
             mat.SetShaderParam("terrainResolution", visualResolution);
             mat.SetShaderParam("pixelSize", ModelViewComponent.pixelSize);

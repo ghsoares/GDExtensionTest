@@ -34,7 +34,7 @@ script = ExtResource( 3 )
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 20.48, -5.12, 8 )
 projection = 1
 current = true
-size = 2.97
+size = 5.81
 near = 0.01
 
 [node name="Stars" type="MeshInstance" parent="."]
@@ -42,9 +42,9 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -20 )
 visible = false
 material_override = ExtResource( 6 )
 script = ExtResource( 5 )
-colorRange = SubResource( 1 )
 parallaxRange = Vector2( 0.25, 0 )
 parallaxLength = 16.0
+colorRange = SubResource( 1 )
 
 [node name="PlanetDebug" type="Node" parent="."]
 process_priority = 2

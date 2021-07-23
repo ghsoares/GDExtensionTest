@@ -11,48 +11,48 @@
 [ext_resource path="res://Materials/Explosion.tres" type="Material" id=11]
 [ext_resource path="res://Scripts/Player/State/PlayerDeadState.cs" type="Script" id=12]
 
-[sub_resource type="SphereMesh" id=9]
+[sub_resource type="SphereMesh" id=1]
 radius = 0.03
 height = 0.06
 radial_segments = 8
 rings = 4
 
-[sub_resource type="Gradient" id=28]
+[sub_resource type="Gradient" id=2]
 offsets = PoolRealArray( 0, 0.147453, 0.520107, 1 )
 colors = PoolColorArray( 1, 1, 1, 1, 0, 0.900391, 1, 1, 0, 0.337891, 1, 1, 0, 0.101961, 1, 0 )
 
-[sub_resource type="Curve" id=29]
+[sub_resource type="Curve" id=3]
 max_value = 2.0
 _data = [ Vector2( 0, 1 ), 0.0, 2.64015, 0, 1, Vector2( 0.130128, 1.34356 ), 0.0, 0.0, 0, 0, Vector2( 1, 0.582822 ), -0.874538, 0.0, 1, 0 ]
 
-[sub_resource type="Curve" id=4]
-_data = [ Vector2( 0, 0.47546 ), 0.0, 0.52454, 0, 1, Vector2( 1, 1 ), 0.52454, 0.0, 1, 0 ]
-
-[sub_resource type="SphereMesh" id=30]
+[sub_resource type="SphereMesh" id=4]
 radius = 0.05
 height = 0.1
 radial_segments = 16
 rings = 8
 
-[sub_resource type="Gradient" id=31]
+[sub_resource type="Gradient" id=5]
 offsets = PoolRealArray( 0, 0.493298, 1 )
 colors = PoolColorArray( 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1 )
 
-[sub_resource type="Curve" id=32]
+[sub_resource type="Curve" id=6]
 max_value = 2.0
 _data = [ Vector2( 0, 0 ), 0.0, 0.0, 0, 0, Vector2( 0.0453795, 2 ), 0.0, 0.0, 0, 0, Vector2( 0.705446, 1.56442 ), -1.32188, -1.32188, 0, 0, Vector2( 1, 0.769939 ), -2.69722, 0.0, 1, 0 ]
 
-[sub_resource type="Curve" id=27]
-_data = [ Vector2( 0, 0.52454 ), 0.0, 0.47546, 0, 1, Vector2( 1, 1 ), 0.47546, 0.0, 1, 0 ]
+[sub_resource type="Curve" id=7]
+_data = [ Vector2( 0, 0.47546 ), 0.0, 0.52454, 0, 1, Vector2( 1, 1 ), 0.52454, 0.0, 1, 0 ]
 
 [sub_resource type="Curve" id=8]
 _data = [ Vector2( 0, 0.54908 ), 0.0, 0.45092, 0, 1, Vector2( 1, 1 ), 0.45092, 0.0, 1, 0 ]
 
-[sub_resource type="CapsuleShape2D" id=33]
+[sub_resource type="Curve" id=9]
+_data = [ Vector2( 0, 0.52454 ), 0.0, 0.47546, 0, 1, Vector2( 1, 1 ), 0.47546, 0.0, 1, 0 ]
+
+[sub_resource type="CapsuleShape2D" id=10]
 radius = 6.0
 height = 2.0
 
-[sub_resource type="CircleShape2D" id=34]
+[sub_resource type="CircleShape2D" id=11]
 radius = 2.0
 
 [node name="Player" type="RigidBody2D"]
@@ -98,11 +98,11 @@ spread = 20.0
 rate = 64.0
 local = true
 gravity = Vector3( 0, 0, 0 )
-transformDir = false
-particleMesh = SubResource( 9 )
-colorOverLifeGradient = SubResource( 28 )
-sizeOverLifeCurve = SubResource( 29 )
+particleMesh = SubResource( 1 )
 followDirection = true
+colorOverLifeGradient = SubResource( 2 )
+sizeOverLifeCurve = SubResource( 3 )
+transformDir = false
 
 [node name="Explosion" type="MeshInstance" parent="Particles/ParticlesView/Particles"]
 material_override = ExtResource( 11 )
@@ -111,27 +111,28 @@ size = Vector3( 6, 6, 6 )
 amount = 16
 velocity = 4.0
 lifetime = 2.0
+emitting = false
 gravity = Vector3( 0, 4, 0 )
-velocityVariation = SubResource( 4 )
-particleMesh = SubResource( 30 )
-colorOverLifeGradient = SubResource( 31 )
-sizeOverLifeCurve = SubResource( 32 )
-sizeVariation = SubResource( 27 )
-drag = 10.0
-overLifeDrag = SubResource( 8 )
+particleMesh = SubResource( 4 )
+colorOverLifeGradient = SubResource( 5 )
+sizeOverLifeCurve = SubResource( 6 )
+velocityVariation = SubResource( 7 )
 amountPerc = 1.0
+overLifeDrag = SubResource( 8 )
+sizeVariation = SubResource( 9 )
+drag = 10.0
 
 [node name="Col" type="CollisionShape2D" parent="."]
 position = Vector2( 0, -1 )
-shape = SubResource( 33 )
+shape = SubResource( 10 )
 
 [node name="Col2" type="CollisionShape2D" parent="."]
 position = Vector2( -6, 6 )
-shape = SubResource( 34 )
+shape = SubResource( 11 )
 
 [node name="Col3" type="CollisionShape2D" parent="."]
 position = Vector2( 6, 6 )
-shape = SubResource( 34 )
+shape = SubResource( 11 )
 
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource( 5 )

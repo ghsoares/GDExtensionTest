@@ -92,7 +92,7 @@ public class PlayerHoverState : State<Player>
 
     private void ParticlesProcess(float delta) {
         float thrusterT = currentThrusterForce / maxThrusterForce;
-        root.thrusterParticleSystem.rate = 32f * thrusterT;
+        root.thrusterParticleSystem.rate = 64f * thrusterT;
     }
 
     public void OnBodyEntered(Node body)

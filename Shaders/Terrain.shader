@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode unshaded, cull_disabled;
+render_mode unshaded;
 
 uniform sampler2D terrainHeightMap;
 uniform vec2 terrainSize = vec2(1024, 640);
@@ -39,9 +39,23 @@ float Ease(float x, float c) {
 	return c == 0f ? 0f : (c > 0f ? curveA : curveB);
 }
 
+float DecodeFloat(vec4 val) {
+	vec4 bitEnc = vec4(1.,255.,65025.,16581375.);
+	vec4 bitDec = 1./bitEnc;
+	return dot(val, bitDec);
+}
+
 float GetTerrainHeight(float x) {
-	float height1 = texture(terrainHeightMap, vec2(x, 0f) / terrainSize).r;
-	float height2 = texture(terrainHeightMap, vec2(x + 1f / terrainResolution, 0f) / terrainSize).r;
+	float uvX = floor(x * terrainResolution) / terrainResolution;
+	//float uvX = x;
+	
+	vec4 encodedHeight1 = texture(terrainHeightMap, vec2(uvX, 0f) / terrainSize);
+	vec4 encodedHeight2 = texture(terrainHeightMap, vec2(uvX + 1f / terrainResolution, 0f) / terrainSize);
+	
+	float height1 = DecodeFloat(encodedHeight1);
+	float height2 = DecodeFloat(encodedHeight2);
+	/*float height1 = encodedHeight1.r;
+	float height2 = encodedHeight2.r;*/
 	float t = fract(x * terrainResolution);
 	float h = mix(height1, height2, t) * terrainSize.y;
 	return h;
@@ -52,7 +66,7 @@ float GetTerrainY(float x) {
 	return terrainSize.y - h;
 }
 
-vec4 GetTerrainColor() {
+vec4 GetTerrainColor(vec2 terrainUV) {
 	float terrainY = GetTerrainY(v.x);
 	float heightDiff = (v.y - terrainY);
 	
@@ -86,7 +100,8 @@ void vertex() {
 }
 
 void fragment() {
-	vec4 col = GetTerrainColor() * COLOR;
+	vec4 col = GetTerrainColor(UV) * COLOR;
+	
 	//vec4 col = vec4(UV, 1f, 1f);
 	ALBEDO = col.rgb;
 	ALPHA = col.a;
