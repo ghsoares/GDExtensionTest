@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=3 uid="uid://duusyyovnp6el"]
+
+[ext_resource type="Texture2D" uid="uid://d4ixenlinwcn1" path="res://icon.svg" id="1_eijxc"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_hcu2r"]
+size = Vector2(0.99, 0.99)
+
+[sub_resource type="Shader" id="Shader_0t5ja"]
+code = "shader_type spatial;
+render_mode unshaded;
+
+uniform sampler2D tex : source_color, filter_nearest;
+
+void fragment() {
+	vec4 col = texture(tex, UV);
+	ALBEDO = col.xyz;
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ejvr7"]
+render_priority = 0
+shader = SubResource("Shader_0t5ja")
+shader_parameter/tex = ExtResource("1_eijxc")
+
+[node name="Chunk" type="MeshInstance3D"]
+mesh = SubResource("QuadMesh_hcu2r")
+surface_material_override/0 = SubResource("ShaderMaterial_ejvr7")

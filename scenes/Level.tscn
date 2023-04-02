@@ -1,0 +1,94 @@
+[gd_scene load_steps=17 format=3 uid="uid://c1j8xm2soicdj"]
+
+[ext_resource type="Script" path="res://scripts/level/Level.gd" id="1_nlqcd"]
+[ext_resource type="Script" path="res://scripts/ship/Ship.gd" id="2_gv5nj"]
+[ext_resource type="Script" path="res://scripts/level/LevelTerrain.gd" id="2_kq0tc"]
+[ext_resource type="Shader" path="res://shaders/Terrain.gdshader" id="3_wb570"]
+[ext_resource type="Script" path="res://scripts/level/LevelCamera.gd" id="4_46cbn"]
+[ext_resource type="Script" path="res://scripts/level/planets/SimplePlanet.gd" id="4_jwgp2"]
+[ext_resource type="Script" path="res://scripts/level/LevelChunkManager.gd" id="5_skfeo"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ny2o6"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_5r6yi"]
+sky_material = SubResource("ProceduralSkyMaterial_ny2o6")
+
+[sub_resource type="Environment" id="Environment_t4b48"]
+background_mode = 1
+sky = SubResource("Sky_5r6yi")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="QuadMesh" id="QuadMesh_i5tax"]
+size = Vector2(3, 6)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hn2t0"]
+shading_mode = 0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_u8c6w"]
+size = Vector3(3, 6, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_fqsvd"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hxtsn"]
+render_priority = 0
+shader = ExtResource("3_wb570")
+shader_parameter/terrain_size = Vector2(4, 4)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_t15i5"]
+frequency = 0.005
+fractal_octaves = 3
+
+[node name="Level" type="Node3D"]
+script = ExtResource("1_nlqcd")
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_t4b48")
+
+[node name="Ships" type="Node3D" parent="."]
+
+[node name="Ship" type="RigidBody3D" parent="Ships"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1024, 0)
+axis_lock_linear_z = true
+axis_lock_angular_x = true
+axis_lock_angular_y = true
+gravity_scale = 0.0
+linear_velocity = Vector3(0, 64, 0)
+script = ExtResource("2_gv5nj")
+
+[node name="Model" type="MeshInstance3D" parent="Ships/Ship"]
+mesh = SubResource("QuadMesh_i5tax")
+surface_material_override/0 = SubResource("StandardMaterial3D_hn2t0")
+
+[node name="Col" type="CollisionShape3D" parent="Ships/Ship"]
+shape = SubResource("BoxShape3D_u8c6w")
+
+[node name="Terrain" type="Node3D" parent="."]
+script = ExtResource("2_kq0tc")
+
+[node name="Chunks" type="Node3D" parent="Terrain"]
+script = ExtResource("5_skfeo")
+chunk_size = 256.0
+chunk_resolution = Vector2i(16, 16)
+chunk_mesh = SubResource("QuadMesh_fqsvd")
+chunk_material = SubResource("ShaderMaterial_hxtsn")
+
+[node name="Planets" type="Node3D" parent="Terrain"]
+
+[node name="SimplePlanet" type="Node" parent="Terrain/Planets"]
+script = ExtResource("4_jwgp2")
+radius = 1000.0
+base_noise = SubResource("FastNoiseLite_t15i5")
+base_noise_range = Vector2(0, 32)
+gravity_fade = Vector2(1024, 2048)
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1024, 33)
+projection = 1
+current = true
+size = 7.2
+near = 0.1
+far = 65.0
+script = ExtResource("4_46cbn")
