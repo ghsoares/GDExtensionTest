@@ -26,6 +26,8 @@ func _ready() -> void:
 	# Initializes all the current planets
 	for planet in planets:
 		planet.initialize()
+	
+	# print(derivative(0.0, 1000.0))
 
 ## Main SDF terrain function
 func sdf(x: float, y: float, max_distance: float = 8.0) -> float:
@@ -46,6 +48,17 @@ func sdf(x: float, y: float, max_distance: float = 8.0) -> float:
 	
 	# Return the distance
 	return d
+
+## Main terrain derivative function
+func derivative(x: float, y: float, max_distance: float = 8.0) -> Vector2:
+	var df: float = 0.01
+	var dc: float = sdf(x, y, max_distance)
+	var dx: float = sdf(x + df, y, max_distance)
+	var dy: float = sdf(x, y + df, max_distance)
+
+	return Vector2(
+		(dx - dc) / df, (dy - dc) / df
+	)
 
 ## Calculate gravity field at position
 func gravity_field(x: float, y: float, max_distance: float = 999999.0) -> Vector2:

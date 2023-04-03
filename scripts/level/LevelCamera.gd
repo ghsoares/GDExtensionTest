@@ -5,7 +5,7 @@ class_name LevelCamera
 var level: Level
 
 ## Current zoom level
-var zoom: float = 64.0
+var zoom: float = 16.0
 
 ## Current viewport size
 var view_size: Vector2 = Vector2.ONE

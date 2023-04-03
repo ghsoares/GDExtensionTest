@@ -50,12 +50,11 @@ environment = SubResource("Environment_t4b48")
 [node name="Ships" type="Node3D" parent="."]
 
 [node name="Ship" type="RigidBody3D" parent="Ships"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1024, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 1100, 0)
 axis_lock_linear_z = true
 axis_lock_angular_x = true
 axis_lock_angular_y = true
 gravity_scale = 0.0
-linear_velocity = Vector3(0, 64, 0)
 script = ExtResource("2_gv5nj")
 
 [node name="Model" type="MeshInstance3D" parent="Ships/Ship"]
@@ -81,7 +80,7 @@ chunk_material = SubResource("ShaderMaterial_hxtsn")
 script = ExtResource("4_jwgp2")
 radius = 1000.0
 base_noise = SubResource("FastNoiseLite_t15i5")
-base_noise_range = Vector2(0, 32)
+base_noise_range = Vector2(0, 128)
 gravity_fade = Vector2(1024, 2048)
 
 [node name="Camera" type="Camera3D" parent="."]
