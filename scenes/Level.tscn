@@ -1,8 +1,9 @@
-[gd_scene load_steps=17 format=3 uid="uid://c1j8xm2soicdj"]
+[gd_scene load_steps=18 format=3 uid="uid://i8w70pgwsw1r"]
 
 [ext_resource type="Script" path="res://scripts/level/Level.gd" id="1_nlqcd"]
-[ext_resource type="Script" path="res://scripts/ship/Ship.gd" id="2_gv5nj"]
+[ext_resource type="Script" path="res://ship/Ship.gd" id="2_gv5nj"]
 [ext_resource type="Script" path="res://scripts/level/LevelTerrain.gd" id="2_kq0tc"]
+[ext_resource type="Script" path="res://scripts/nodes/CollisionShape5D.gd" id="3_b310i"]
 [ext_resource type="Shader" path="res://shaders/Terrain.gdshader" id="3_wb570"]
 [ext_resource type="Script" path="res://scripts/level/LevelCamera.gd" id="4_46cbn"]
 [ext_resource type="Script" path="res://scripts/level/planets/SimplePlanet.gd" id="4_jwgp2"]
@@ -27,8 +28,8 @@ size = Vector2(3, 6)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hn2t0"]
 shading_mode = 0
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_u8c6w"]
-size = Vector3(3, 6, 1)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8gyea"]
+size = Vector2(3, 6)
 
 [sub_resource type="QuadMesh" id="QuadMesh_fqsvd"]
 
@@ -49,20 +50,17 @@ environment = SubResource("Environment_t4b48")
 
 [node name="Ships" type="Node3D" parent="."]
 
-[node name="Ship" type="RigidBody3D" parent="Ships"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 1100, 0)
-axis_lock_linear_z = true
-axis_lock_angular_x = true
-axis_lock_angular_y = true
-gravity_scale = 0.0
+[node name="Ship" type="Node3D" parent="Ships"]
+transform = Transform3D(-1, 8.74228e-08, 0, -8.74228e-08, -1, 0, 0, 0, 1, 16, 1100, 0)
 script = ExtResource("2_gv5nj")
 
 [node name="Model" type="MeshInstance3D" parent="Ships/Ship"]
 mesh = SubResource("QuadMesh_i5tax")
 surface_material_override/0 = SubResource("StandardMaterial3D_hn2t0")
 
-[node name="Col" type="CollisionShape3D" parent="Ships/Ship"]
-shape = SubResource("BoxShape3D_u8c6w")
+[node name="Col" type="Node3D" parent="Ships/Ship"]
+script = ExtResource("3_b310i")
+shape = SubResource("RectangleShape2D_8gyea")
 
 [node name="Terrain" type="Node3D" parent="."]
 script = ExtResource("2_kq0tc")
@@ -81,10 +79,11 @@ script = ExtResource("4_jwgp2")
 radius = 1000.0
 base_noise = SubResource("FastNoiseLite_t15i5")
 base_noise_range = Vector2(0, 128)
+gravity = 20.0
 gravity_fade = Vector2(1024, 2048)
 
 [node name="Camera" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1024, 33)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1100, 33)
 projection = 1
 current = true
 size = 7.2
