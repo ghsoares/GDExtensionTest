@@ -34,9 +34,9 @@ func _init() -> void:
 		body_rid, PhysicsServer2D.BODY_PARAM_ANGULAR_DAMP_MODE, 
 		PhysicsServer2D.BODY_DAMP_MODE_REPLACE
 	)
-	PhysicsServer2D.body_set_state(
-		body_rid, PhysicsServer2D.BODY_STATE_ANGULAR_VELOCITY, deg_to_rad(8.0)
-	)
+	# PhysicsServer2D.body_set_state(
+	# 	body_rid, PhysicsServer2D.BODY_STATE_ANGULAR_VELOCITY, deg_to_rad(8.0)
+	# )
 	# PhysicsServer2D.body_set_state(
 	# 	body_rid, PhysicsServer2D.BODY_STATE_LINEAR_VELOCITY, Vector2(0.0, 32.0)
 	# )

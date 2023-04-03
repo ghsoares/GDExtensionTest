@@ -54,8 +54,8 @@ func _apply_collisions(delta: float) -> void:
 		var tr: Transform2D = target.get_transform_2d()
 
 		# Inverse inertia and mass
-		var inv_inertia: float = body_state.inverse_inertia
 		var inv_mass: float = body_state.inverse_mass
+		var inv_inertia: float = (1.0 / max(size.x, size.y)) * inv_mass
 
 		# For each corner
 		for c in corners:
@@ -77,18 +77,22 @@ func _apply_collisions(delta: float) -> void:
 				var n: Vector2 = terrain.derivative(p.x, p.y).normalized()
 
 				# Impulses
-				var imp_move: Vector2 = n * -d
-				var imp_forc: Vector2 = n * max(-n.dot(v), 0.0)
+				var imp_move: Vector2 = Vector2.ZERO
+				var imp_forc: Vector2 = Vector2.ZERO
+
+				# Slide
+				imp_move += n * -d
+				imp_forc += n * max(-n.dot(v), 0.0)
 
 				# Friction
-				imp_forc += -(v - n * n.dot(v)) * clamp(8.0 * delta, 0.0, 1.0)
+				imp_forc += -(v - n * n.dot(v)) * clamp(0.1 * delta, 0.0, 1.0)
 
 				# Move
 				imp_pos += imp_move
 				imp_rot += inv_inertia * o.cross(imp_move / inv_mass)
 
 				# Velocity
-				imp_lv += imp_forc * inv_mass
+				imp_lv += imp_forc
 				imp_av += inv_inertia * o.cross(imp_forc)
 
 				# Add impulse count
