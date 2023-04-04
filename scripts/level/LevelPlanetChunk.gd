@@ -1,14 +1,8 @@
 extends RefCounted
-class_name LevelChunk
-
-## Parent terrain
-var terrain: LevelTerrain
+class_name LevelPlanetChunk
 
 ## Parent chunk manager
-var chunk_manager: LevelChunkManager
-
-## Parent level
-var level: Level
+var chunk_manager: LevelPlanetChunkManager
 
 ## Chunk index
 var index: Vector2i
@@ -39,38 +33,38 @@ func initialize() -> void:
 	material = material.duplicate()
 
 	# Add instance to world and add geometry
-	var scenario = level.get_world_3d().scenario
+	var scenario = chunk_manager.planet.level.get_world_3d().scenario
 	RenderingServer.instance_set_scenario(instance, scenario)
 	RenderingServer.instance_set_base(instance, mesh.get_rid())
 	RenderingServer.instance_geometry_set_material_override(instance, material.get_rid())
 
 ## Generate this chunk
 func generate() -> void:
+	# Update the texture
+	_update_texture()
+	update_transform()
+
+## Update chunk transform relative to planet transform
+func update_transform() -> void:
 	# Get chunk position and size
 	var size: Vector2 = chunk_manager.get_chunk_size(lod)
 	var pos: Vector2 = Vector2(index.x, index.y) * size
 
-	# Check if chunk is inside sdf range
-	if terrain.intersects(pos, size):
-		_update_texture()
-
-		# Set transform
-		var tr: Transform3D = Transform3D(
-			Basis.IDENTITY.scaled(Vector3(size.x, size.y, 1.0)),
-			Vector3(pos.x, pos.y, 0.0)
-		)
-		RenderingServer.instance_set_transform(
-			instance, 
-			chunk_manager.global_transform * tr
-		)
-	else:
-		RenderingServer.instance_set_transform(
-			instance, 
-			Transform3D().scaled(Vector3.ZERO)
-		)
+	# Set transform
+	var tr: Transform3D = Transform3D(
+		Basis.IDENTITY.scaled(Vector3(size.x, size.y, 1.0)),
+		Vector3(pos.x, pos.y, 0.0)
+	)
+	RenderingServer.instance_set_transform(
+		instance, 
+		chunk_manager.global_transform * tr
+	)
 
 ## Generate the terrain texture
 func _update_texture() -> void:
+	# Get planet
+	var planet: LevelPlanet = chunk_manager.planet
+
 	# Get chunk resolution
 	var res: Vector2i = chunk_manager.chunk_resolution
 
@@ -97,7 +91,7 @@ func _update_texture() -> void:
 			var p: Vector2 = start + size * pf
 
 			# Get sdf
-			var sdf: float = terrain.sdf(p.x, p.y)
+			var sdf: float = planet.distance(p.x, p.y)
 			
 			# Set sdf in image data
 			img_data.encode_float(of, sdf)

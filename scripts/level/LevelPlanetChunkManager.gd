@@ -1,11 +1,8 @@
 extends Node3D
-class_name LevelChunkManager
+class_name LevelPlanetChunkManager
 
-## The parent level of this manager
-var level: Level
-
-## The parent terrain of this manager
-var terrain: LevelTerrain
+## The parent planet of this manager
+var planet: LevelPlanet
 
 ## Current spawned chunks
 var chunks: Dictionary = {}
@@ -34,16 +31,23 @@ var chunks: Dictionary = {}
 ## Called when entering the tree
 func _enter_tree() -> void:
 	# Get the nodes
-	level = get_parent().get_parent()
-	terrain = get_parent()
+	planet = get_parent()
 
 ## Process every frame
 func _process(delta: float) -> void:
 	# Get camera
-	var cam: LevelCamera = level.camera
+	var cam: LevelCamera = planet.level.camera
+
+	# Get planet transform
+	var tr: Transform2D = planet.get_transform_2d()
 
 	# Get global bounds
-	var bounds: AABB = cam.get_global_bounds()
+	var b: AABB = cam.get_global_bounds()
+	var bounds: Rect2 = Rect2(
+		b.position.x, b.position.y,
+		b.size.x, b.size.y
+	)
+	bounds = tr.affine_inverse() * bounds
 
 	# Get min/max camera bounds
 	var min_pos: Vector2 = Vector2(bounds.position.x, bounds.position.y)
@@ -63,6 +67,7 @@ func process_chunks_inside_range(min_pos: Vector2, max_pos: Vector2, lod: int) -
 	var chunk_indexes: Rect2i = get_min_max_chunk(min_pos, max_pos, lod)
 	var min_chunk: Vector2i = chunk_indexes.position
 	var max_chunk: Vector2i = chunk_indexes.size
+	# print(min_chunk, ", ", max_chunk)
 
 	# For each chunk inside camera
 	for iy in range(min_chunk.y, max_chunk.y + 1):
@@ -94,7 +99,7 @@ func process_all_chunks(min_pos: Vector2, max_pos: Vector2, lod: int) -> void:
 		# For each index
 		for index in chunk_keys:
 			# Get chunk
-			var chunk: LevelChunk = chunks[index]
+			var chunk: LevelPlanetChunk = chunks[index]
 
 			# Chunk is too far away
 			if index.x < min_chunk.x - chunk_remove_margin or index.x > max_chunk.x + chunk_remove_margin or index.y < min_chunk.y - chunk_remove_margin or index.y > max_chunk.y + chunk_remove_margin:
@@ -108,6 +113,8 @@ func process_all_chunks(min_pos: Vector2, max_pos: Vector2, lod: int) -> void:
 				# Hide this chunk
 				else:
 					chunk.hide()
+				# Update transform
+				chunk.update_transform()
 
 ## Generate all chunks inside bounds range
 func generate_chunks(min_pos: Vector2, max_pos: Vector2) -> void:
@@ -130,7 +137,7 @@ func generate_chunks(min_pos: Vector2, max_pos: Vector2) -> void:
 		# For each index
 		for index in chunk_keys:
 			# Get chunk
-			var chunk: LevelChunk = chunks[index]
+			var chunk: LevelPlanetChunk = chunks[index]
 
 			# Is inside range
 			if not (index.x < min_chunk.x or index.x > max_chunk.x or index.y < min_chunk.y or index.y > max_chunk.y):
@@ -144,7 +151,7 @@ func get_min_max_chunk(min_pos: Vector2, max_pos: Vector2, lod: int) -> Rect2i:
 
 	# Get min/max chunk index
 	var min_chunk: Vector2i = ((min_pos + chunk_size * 0.5) / chunk_size).floor()
-	var max_chunk: Vector2i = ((max_pos - chunk_size * 0.5) / chunk_size).ceil()
+	var max_chunk: Vector2i = ((max_pos + chunk_size * 0.5) / chunk_size).ceil()
 	min_chunk -= Vector2i.ONE * chunk_margin
 	max_chunk += Vector2i.ONE * chunk_margin
 
@@ -153,10 +160,17 @@ func get_min_max_chunk(min_pos: Vector2, max_pos: Vector2, lod: int) -> Rect2i:
 
 ## Get chunk size at lod
 func get_chunk_size(lod: int) -> Vector2:
-	return Vector2.ONE * (chunk_size * level.pixel_size) * pow(2, lod)
+	return Vector2.ONE * chunk_size * pow(2, lod)
 
 ## Process chunk at position
 func process_chunk(x: int, y: int, lod: int) -> void:
+	# Get chunk position and size
+	var size: Vector2 = get_chunk_size(lod)
+	var pos: Vector2 = Vector2(x, y) * size
+
+	# Check if chunk rect is inside planet bounds
+	if not planet.bounds.intersects(Rect2(pos - size * 0.5, size)): return
+
 	# Get chunks of lod
 	var _chunks = self.chunks.get(lod, null)
 	if _chunks == null:
@@ -168,16 +182,14 @@ func process_chunk(x: int, y: int, lod: int) -> void:
 	var index: Vector2i = Vector2i(x, y)
 
 	# Get chunk
-	var chunk: LevelChunk = chunks.get(index, null)
+	var chunk: LevelPlanetChunk = chunks.get(index, null)
 	if chunk == null:
 		# Create new chunk
-		chunk = LevelChunk.new()
+		chunk = LevelPlanetChunk.new()
 		chunks[index] = chunk
 
 		# Set chunk variables
-		chunk.terrain = terrain
 		chunk.chunk_manager = self
-		chunk.level = level
 		chunk.index = index
 		chunk.lod = lod
 		chunk.mesh = chunk_mesh

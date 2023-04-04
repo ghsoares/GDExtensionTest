@@ -51,20 +51,24 @@ func _notification(what: int) -> void:
 			PhysicsServer2D.body_set_space(
 				body_rid, get_world_2d().space
 			)
-			update_body_transform()
+			__sync_body_transform()
 		NOTIFICATION_EXIT_TREE:
 			# Remove body from world
 			PhysicsServer2D.body_set_space(
 				body_rid, get_world_2d().space
 			)
 		NOTIFICATION_TRANSFORM_CHANGED:
-			update_body_transform()
+			__sync_body_transform()
 
 ## Integrate forces
 func integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 	set_notify_transform(false)
-	set_transform_2d(state.transform)
+	__sync_node_transform()
+	_integrate_forces(state)
 	set_notify_transform(true)
+
+## Override this function to customize forces integration
+func _integrate_forces(state: PhysicsDirectBodyState2D) -> void: pass
 
 ## Adds a collision shape
 func add_collision_shape(shape: RID, tr: Transform2D) -> void:
@@ -95,59 +99,14 @@ func remove_collision_shape(shape: RID) -> void:
 		)
 		shapes.remove_at(idx)
 
-## Update body transform
-func update_body_transform() -> void:
-	set_notify_transform(false)
-	set_transform_3d(global_transform)
-	set_notify_transform(true)
-
-## Gets the global 2D transform
+## Gets the transform in 2D
 func get_transform_2d() -> Transform2D:
-	return Utils.transform_3d_to_2d(global_transform, self.pixel_size)
+	return __body_to_node(get_body_state().transform)
 
-## Gets the global 3D transform
-func get_transform_3d() -> Transform2D:
-	return global_transform
-
-## Sets the global 2D transform
-func set_transform_2d(transform: Transform2D) -> void:
-	# Get transform in 3D and 2D
-	var tr_3d: Transform3D = Utils.transform_2d_to_3d(transform, self.pixel_size)
-	var tr_2d: Transform2D = transform
-
-	# Get body state
-	var state: PhysicsDirectBodyState2D = get_body_state()
-	
-	# Get current transform 3D and 2D
-	var cur_3d: Transform3D = global_transform
-	var cur_2d: Transform2D = state.transform
-
-	# Set position
-	cur_3d.origin.x = tr_3d.origin.x
-	cur_3d.origin.y = tr_3d.origin.y
-	cur_3d.basis.x = tr_3d.basis.x
-	cur_3d.basis.y = tr_3d.basis.y
-
-	# Set the body transform
-	cur_2d = tr_2d
-
-	# Set the transforms
-	global_transform = cur_3d
-	state.transform = cur_2d
-
-## Sets the global 3D transform
-func set_transform_3d(transform: Transform3D) -> void:
-	# Get transform in 2D
-	var tr: Transform2D = Utils.transform_3d_to_2d(transform, self.pixel_size)
-
-	# Get body state
-	var state: PhysicsDirectBodyState2D = get_body_state()
-
-	# Set the body transform
-	state.transform = tr
-
-	# Set the node global transform
-	global_transform = transform
+## Sets the transform in 2D
+func set_transform_2d(tr: Transform2D) -> void:
+	get_body_state().transform = __node_to_body(tr)
+	__sync_node_transform()
 
 ## Gets world 2D
 func get_world_2d() -> World2D:
@@ -157,5 +116,76 @@ func get_world_2d() -> World2D:
 func get_body_state() -> PhysicsDirectBodyState2D:
 	return PhysicsServer2D.body_get_direct_state(body_rid)
 
+## Called to synchronize the body transform to the node transform
+func __sync_node_transform() -> void:
+	var body: PhysicsDirectBodyState2D = get_body_state()
+	var body_tr: Transform2D = body.transform
+	var node_tr: Transform2D = __body_to_node(body_tr)
+	var tr: Transform3D = global_transform
 
+	tr.origin.x = node_tr.origin.x
+	tr.origin.y = node_tr.origin.y
+	tr.basis.x.x = node_tr.x.x
+	tr.basis.x.y = node_tr.x.y
+	tr.basis.y.x = node_tr.y.x
+	tr.basis.y.y = node_tr.y.y
+
+	global_transform = tr
+
+## Called to syncrhonize the node transform to the body transform
+func __sync_body_transform() -> void:
+	var body: PhysicsDirectBodyState2D = get_body_state()
+	var tr: Transform3D = global_transform
+	var node_tr: Transform2D
+
+	node_tr.origin.x = tr.origin.x
+	node_tr.origin.y = tr.origin.y
+	node_tr.x.x = tr.basis.x.x
+	node_tr.x.y = tr.basis.x.y
+	node_tr.y.x = tr.basis.y.x
+	node_tr.y.y = tr.basis.y.y
+
+	var body_tr: Transform2D = __node_to_body(node_tr)
+
+	body.transform = body_tr
+
+## Util function to convert from body space to node space
+func __body_to_node(tr: Transform2D) -> Transform2D:
+	var bx: Vector2 = tr.x
+	var by: Vector2 = tr.y
+	var o:  Vector2 = tr.origin
+	return Transform2D(
+		Vector2(
+			bx.x * pixel_size, 
+			bx.y * pixel_size
+		),
+		Vector2(
+			by.x, 
+			by.y
+		),
+		Vector2(
+			o.x * pixel_size, 
+			o.y * pixel_size
+		)
+	)
+
+## Util function to convert from node space to body space
+func __node_to_body(tr: Transform2D) -> Transform2D:
+	var bx: Vector2 = tr.x
+	var by: Vector2 = tr.y
+	var o:  Vector2 = tr.origin
+	return Transform2D(
+		Vector2(
+			bx.x / pixel_size, 
+			bx.y / pixel_size
+		),
+		Vector2(
+			by.x, 
+			by.y
+		),
+		Vector2(
+			o.x / pixel_size, 
+			o.y / pixel_size,
+		)
+	)
 

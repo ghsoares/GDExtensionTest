@@ -23,7 +23,7 @@ void fragment() {
 	// f = smoothstep(0.1, -0.1, f);
 	
 	ALPHA = step(f, 0.0);
-	ALBEDO = vec3(fract(f / 8.0));
+	ALBEDO = vec3(fract(f / 32.0));
 	
 	float b = min(UV.x, 1.0 - UV.x);
 	b = min(b, min(UV.y, 1.0 - UV.y));

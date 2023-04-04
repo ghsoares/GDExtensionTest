@@ -7,7 +7,7 @@
 [ext_resource type="Shader" path="res://shaders/Terrain.gdshader" id="3_wb570"]
 [ext_resource type="Script" path="res://scripts/level/LevelCamera.gd" id="4_46cbn"]
 [ext_resource type="Script" path="res://scripts/level/planets/SimplePlanet.gd" id="4_jwgp2"]
-[ext_resource type="Script" path="res://scripts/level/LevelChunkManager.gd" id="5_skfeo"]
+[ext_resource type="Script" path="res://scripts/level/LevelPlanetChunkManager.gd" id="6_w6rg6"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ny2o6"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -31,16 +31,16 @@ shading_mode = 0
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8gyea"]
 size = Vector2(3, 6)
 
-[sub_resource type="QuadMesh" id="QuadMesh_fqsvd"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_hxtsn"]
-render_priority = 0
-shader = ExtResource("3_wb570")
-shader_parameter/terrain_size = Vector2(4, 4)
-
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_t15i5"]
 frequency = 0.005
 fractal_octaves = 3
+
+[sub_resource type="QuadMesh" id="QuadMesh_uafbl"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_d16bl"]
+render_priority = 0
+shader = ExtResource("3_wb570")
+shader_parameter/terrain_size = Vector2(4, 4)
 
 [node name="Level" type="Node3D"]
 script = ExtResource("1_nlqcd")
@@ -65,16 +65,9 @@ shape = SubResource("RectangleShape2D_8gyea")
 [node name="Terrain" type="Node3D" parent="."]
 script = ExtResource("2_kq0tc")
 
-[node name="Chunks" type="Node3D" parent="Terrain"]
-script = ExtResource("5_skfeo")
-chunk_size = 256.0
-chunk_resolution = Vector2i(16, 16)
-chunk_mesh = SubResource("QuadMesh_fqsvd")
-chunk_material = SubResource("ShaderMaterial_hxtsn")
+[node name="Planets" type="Node3D" parent="."]
 
-[node name="Planets" type="Node3D" parent="Terrain"]
-
-[node name="SimplePlanet" type="Node" parent="Terrain/Planets"]
+[node name="SimplePlanet" type="Node3D" parent="Planets"]
 script = ExtResource("4_jwgp2")
 radius = 1000.0
 base_noise = SubResource("FastNoiseLite_t15i5")
@@ -82,8 +75,16 @@ base_noise_range = Vector2(0, 128)
 gravity = 20.0
 gravity_fade = Vector2(1024, 2048)
 
+[node name="Chunks" type="Node3D" parent="Planets/SimplePlanet"]
+script = ExtResource("6_w6rg6")
+chunk_size = 8.0
+chunk_resolution = Vector2i(16, 16)
+chunk_margin = 0
+chunk_mesh = SubResource("QuadMesh_uafbl")
+chunk_material = SubResource("ShaderMaterial_d16bl")
+
 [node name="Camera" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1100, 33)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 33)
 projection = 1
 current = true
 size = 7.2

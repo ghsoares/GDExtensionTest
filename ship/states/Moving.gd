@@ -69,7 +69,7 @@ func _apply_collisions(delta: float) -> void:
 			var v: Vector2 = body_state.get_velocity_at_local_position(o)
 
 			# Get distance
-			var d: float = terrain.sdf(p.x, p.y)
+			var d: float = terrain.distance(p.x, p.y)
 
 			# Inside ground
 			if d < 0.0:

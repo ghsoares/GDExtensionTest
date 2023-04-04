@@ -13,10 +13,10 @@ class_name SimplePlanet
 @export var base_noise_range: Vector2 = Vector2(0.0, 16.0)
 
 ## Sample sdf from this planet
-func sdf(x: float, y: float) -> float:
+func distance(x: float, y: float) -> float:
 	# Offset
-	var ox: float = x - center.x
-	var oy: float = y - center.y
+	var ox: float = x
+	var oy: float = y
 
 	# Point distance
 	var d: float = sqrt(
@@ -32,8 +32,8 @@ func sdf(x: float, y: float) -> float:
 	d -= radius
 
 	# Get in circle position
-	var cx: float = center.x + dx * radius
-	var cy: float = center.y + dy * radius
+	var cx: float = dx * radius
+	var cy: float = dy * radius
 
 	# Get height noise (in 0..1 range)
 	var hn: float = base_noise.get_noise_2d(cx, cy) * 0.5 + 0.5
@@ -50,6 +50,6 @@ func get_bounds() -> Rect2:
 	var rad: float = radius + max(base_noise_range.x, base_noise_range.y)
 
 	# Return simple circle bounds
-	return Rect2(center - Vector2(rad, rad), Vector2(rad * 2, rad * 2))
+	return Rect2(-Vector2(rad, rad), Vector2(rad * 2, rad * 2))
 
 
