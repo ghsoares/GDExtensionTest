@@ -1,8 +1,8 @@
-[gd_scene load_steps=18 format=3 uid="uid://i8w70pgwsw1r"]
+[gd_scene load_steps=18 format=3 uid="uid://l25a44ip0pf3"]
 
 [ext_resource type="Script" path="res://scripts/level/Level.gd" id="1_nlqcd"]
-[ext_resource type="Script" path="res://ship/Ship.gd" id="2_gv5nj"]
 [ext_resource type="Script" path="res://scripts/level/LevelTerrain.gd" id="2_kq0tc"]
+[ext_resource type="Script" path="res://scripts/ship/Ship.gd" id="2_loj4o"]
 [ext_resource type="Script" path="res://scripts/nodes/CollisionShape5D.gd" id="3_b310i"]
 [ext_resource type="Shader" path="res://shaders/Terrain.gdshader" id="3_wb570"]
 [ext_resource type="Script" path="res://scripts/level/LevelCamera.gd" id="4_46cbn"]
@@ -51,8 +51,8 @@ environment = SubResource("Environment_t4b48")
 [node name="Ships" type="Node3D" parent="."]
 
 [node name="Ship" type="Node3D" parent="Ships"]
-transform = Transform3D(0.984808, -0.173648, 0, 0.173648, 0.984808, 0, 0, 0, 1, 16, 1100, 0)
-script = ExtResource("2_gv5nj")
+transform = Transform3D(0.173648, -0.984808, 0, 0.984808, 0.173648, 0, 0, 0, 1, 0, 1100, 0)
+script = ExtResource("2_loj4o")
 
 [node name="Model" type="MeshInstance3D" parent="Ships/Ship"]
 mesh = SubResource("QuadMesh_i5tax")
@@ -66,6 +66,7 @@ shape = SubResource("RectangleShape2D_8gyea")
 script = ExtResource("2_kq0tc")
 
 [node name="Planets" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 32)
 
 [node name="SimplePlanet" type="Node3D" parent="Planets"]
 script = ExtResource("4_jwgp2")
@@ -84,7 +85,7 @@ chunk_mesh = SubResource("QuadMesh_uafbl")
 chunk_material = SubResource("ShaderMaterial_d16bl")
 
 [node name="Camera" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 33)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1100, 33)
 projection = 1
 current = true
 size = 7.2

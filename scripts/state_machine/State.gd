@@ -27,11 +27,8 @@ func _exit() -> void: pass
 ## Override this function to change how this state is initialized
 func _initialize() -> void: pass
 
-## Override this function to execute a behaviour every frame
-func _process(delta: float) -> void: pass
-
-## Override this function to execute a behaviour every physics frame
-func _physics_process(delta: float) -> void: pass
+## Override this function to execute a behaviour based on process mode
+func _process(mode: int, delta: float) -> void: pass
 
 ## Query to the target state
 func query(state, reprocess: bool = false) -> State:

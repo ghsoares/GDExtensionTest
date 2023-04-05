@@ -5,7 +5,7 @@ class_name LevelCamera
 var level: Level
 
 ## Current zoom level
-var zoom: float = 128.0
+var zoom: float = 16.0
 
 ## Current viewport size
 var view_size: Vector2 = Vector2.ONE
@@ -25,9 +25,9 @@ func _ready() -> void:
 
 ## Process every frame
 func _process(delta: float) -> void:
-	var t := Time.get_ticks_msec() / 1000.0
-	t = sin(t * TAU / 30.0) * 0.5 + 0.5
-	zoom = pow(2.0, lerp(0.25, 8.0, t))
+	# var t := Time.get_ticks_msec() / 1000.0
+	# t = sin(t * TAU / 30.0) * 0.5 + 0.5
+	# zoom = pow(2.0, lerp(0.25, 8.0, t))
 
 	# Get viewport size
 	view_size = get_viewport().get_visible_rect().size

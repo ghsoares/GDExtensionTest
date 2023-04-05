@@ -7,9 +7,6 @@ var body_rid: RID = RID()
 ## Shapes of this node
 var shapes: Array[RID]
 
-## Pixel size used to convert from 3D to 2D
-@export var pixel_size: float = 1.0
-
 ## Collision layer of this body
 @export_flags_2d_physics var collision_layer: int = 1
 
@@ -156,16 +153,16 @@ func __body_to_node(tr: Transform2D) -> Transform2D:
 	var o:  Vector2 = tr.origin
 	return Transform2D(
 		Vector2(
-			bx.x * pixel_size, 
-			bx.y * pixel_size
+			bx.x, 
+			bx.y
 		),
 		Vector2(
 			by.x, 
 			by.y
 		),
 		Vector2(
-			o.x * pixel_size, 
-			o.y * pixel_size
+			o.x, 
+			o.y
 		)
 	)
 
@@ -176,16 +173,16 @@ func __node_to_body(tr: Transform2D) -> Transform2D:
 	var o:  Vector2 = tr.origin
 	return Transform2D(
 		Vector2(
-			bx.x / pixel_size, 
-			bx.y / pixel_size
+			bx.x, 
+			bx.y
 		),
 		Vector2(
 			by.x, 
 			by.y
 		),
 		Vector2(
-			o.x / pixel_size, 
-			o.y / pixel_size,
+			o.x, 
+			o.y
 		)
 	)
 

@@ -34,7 +34,7 @@ func _notification(what: int) -> void:
 func _update_collision_shape() -> void:
 	if parent:
 		parent.update_collision_shape(
-			shape_rid, Utils.transform_3d_to_2d(transform, parent.pixel_size)
+			shape_rid, Utils.transform_3d_to_2d(transform)
 		)
 
 ## Set the parent collision shape
@@ -44,7 +44,7 @@ func _set_collision_shape() -> void:
 
 	# Set shape in parent
 	if parent:
-		parent.update_collision_shape(shape_rid, Utils.transform_3d_to_2d(transform, parent.pixel_size))
+		parent.update_collision_shape(shape_rid, Utils.transform_3d_to_2d(transform))
 
 
 

@@ -81,8 +81,8 @@ func change_state(to_state: State) -> void:
 	running_state = to_state
 	to_state._enter()
 
-## Process the state machine every frame
-func process(delta: float, transitionate: bool = false) -> void:
+## Process the state machine using notification and delta
+func process(mode: int, delta: float, transitionate: bool = true) -> void:
 	assert(running_state != null, "Current state is null")
 
 	# Has queried state
@@ -93,7 +93,7 @@ func process(delta: float, transitionate: bool = false) -> void:
 	# While needing to reprocess
 	while true:
 		# Process the state
-		running_state._process(delta)
+		running_state._process(mode, delta)
 
 		# Has queried state
 		if queried_state and transitionate:
@@ -106,27 +106,3 @@ func process(delta: float, transitionate: bool = false) -> void:
 		
 		break
 
-# Physics process the current state
-func physics_process(delta: float, transitionate: bool = true) -> void:
-	assert(running_state != null, "Current state is null")
-
-	# Has queried state
-	if queried_state and transitionate:
-		change_state(queried_state)
-		queried_state = null
-
-	# While needing to reprocess
-	while true:
-		# Process the state
-		running_state._physics_process(delta)
-
-		# Has queried state
-		if queried_state and transitionate:
-			change_state(queried_state)
-			queried_state = null
-			# Needs to reprocess
-			if reprocess_state:
-				reprocess_state = false
-				continue
-		
-		break

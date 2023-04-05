@@ -41,6 +41,8 @@ func distance(x: float, y: float) -> float:
 	# Map to base noise range and subtract to distance
 	d -= base_noise_range.x + (base_noise_range.y - base_noise_range.x) * hn
 
+	d = abs(y) - 1050.0
+
 	# Return the result distance
 	return d
 

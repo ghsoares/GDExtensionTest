@@ -59,17 +59,6 @@ func global_derivative(x: float, y: float) -> Vector2:
 		tr.basis.y.x * d.y + tr.basis.y.y * d.y
 	)
 
-## Gets velocity in a global offset from this planet center
-func get_velocity_at_local_point(x: float, y: float) -> Vector2:
-	return velocity + Vector2(angular_velocity * y, angular_velocity * x)
-
-## Gets velocity in a global point
-func get_velocity_at_global_point(x: float, y: float) -> Vector2:
-	var tr: Transform3D = global_transform
-	x -= tr.origin.x
-	y -= tr.origin.y
-	return get_velocity_at_local_point(x, y)
-
 ## Override this function to compute gravity field in a particular position (z = magnitude)
 func gravity_field(x: float, y: float) -> Vector2:
 	# Calculate offset
@@ -106,6 +95,9 @@ func global_gravity_field(x: float, y: float) -> Vector2:
 ## Get the planet local bounds
 func get_bounds() -> Rect2: return Rect2()
 
-
+## Get the planet global bounds
+func get_global_bounds() -> Rect2:
+	var tr: Transform2D = Utils.transform_3d_to_2d(global_transform)
+	return tr * bounds
 
 

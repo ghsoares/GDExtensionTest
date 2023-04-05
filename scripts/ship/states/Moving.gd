@@ -2,25 +2,27 @@ extends ShipState
 class_name ShipMovingState
 
 ## Called every physics frame
-func _physics_process(delta: float) -> void:
+func _process(mode: int, delta: float) -> void:
 	# Process parent state and early return
-	super._physics_process(delta)
+	super._process(mode, delta)
 	if queried(): return
 
-	# Get ship
-	var ship: Ship = target
+	# Integrate forces
+	if mode == ShipStateMachine.ProcessMode.INTEGRATE_FORCES:
+		# Get ship
+		var ship: Ship = target
 
-	# Get current position
-	var pos: Vector2 = ship.get_transform_2d().origin
+		# Get current position
+		var pos: Vector2 = ship.get_transform_2d().origin
 
-	# Get gravitational field
-	var grav: Vector2 = ship.level.terrain.gravity_field(pos.x, pos.y)
+		# Get gravitational field
+		var grav: Vector2 = ship.level.terrain.gravity_field(pos.x, pos.y)
 
-	# Apply planet collisions
-	_apply_collisions(delta)
+		# Apply planet collisions
+		_apply_collisions(delta)
 
-	# Apply gravity
-	apply_central_force(grav)
+		# Apply gravity
+		apply_central_force(grav)
 
 ## Apply collisions
 func _apply_collisions(delta: float) -> void:
@@ -33,12 +35,17 @@ func _apply_collisions(delta: float) -> void:
 	# Number of iterations
 	var iterations: int = 4
 
+	# Delta for each iteration
+	var dt: float = delta / iterations
+
 	# Get each corner
 	var corners: Array[Vector2] = [
 		Vector2(-size.x, -size.y) * 0.5,
 		Vector2( size.x, -size.y) * 0.5,
+		Vector2( size.x,  0.0) * 0.5,
+		Vector2( size.x,  size.y) * 0.5,
 		Vector2(-size.x,  size.y) * 0.5,
-		Vector2( size.x,  size.y) * 0.5
+		Vector2(-size.x,  0.0) * 0.5
 	]
 
 	# For each iteration
@@ -55,7 +62,7 @@ func _apply_collisions(delta: float) -> void:
 
 		# Inverse inertia and mass
 		var inv_mass: float = body_state.inverse_mass
-		var inv_inertia: float = (1.0 / max(size.x, size.y)) * inv_mass
+		var inv_inertia: float = body_state.inverse_inertia
 
 		# For each corner
 		for c in corners:
@@ -65,9 +72,6 @@ func _apply_collisions(delta: float) -> void:
 			# Get offset
 			var o: Vector2 = tr.basis_xform(c)
 
-			# Get velocity
-			var v: Vector2 = body_state.get_velocity_at_local_position(o)
-
 			# Get distance
 			var d: float = terrain.distance(p.x, p.y)
 
@@ -76,25 +80,30 @@ func _apply_collisions(delta: float) -> void:
 				# Get normal
 				var n: Vector2 = terrain.derivative(p.x, p.y).normalized()
 
-				# Impulses
+				# Get velocity
+				var v: Vector2 = body_state.get_velocity_at_local_position(o)
+
+				# Move and force impulse
 				var imp_move: Vector2 = Vector2.ZERO
 				var imp_forc: Vector2 = Vector2.ZERO
 
-				# Slide
+				# Move from ground
 				imp_move += n * -d
+
+				# Slide velocity
 				imp_forc += n * max(-n.dot(v), 0.0)
 
 				# Friction
-				imp_forc += -(v - n * n.dot(v)) * clamp(0.1 * delta, 0.0, 1.0)
-
-				# Move
+				imp_forc += -(v - n * n.dot(v)) * clamp(60.0 * dt, 0.0, 1.0)
+					
+				# Apply to both position and rotation
 				imp_pos += imp_move
-				imp_rot += inv_inertia * o.cross(imp_move / inv_mass)
+				imp_rot += inv_inertia * o.cross(imp_move) / inv_mass
 
-				# Velocity
-				imp_lv += imp_forc
+				# Apply to both linear and angular velocity
+				imp_lv += imp_forc * inv_mass
 				imp_av += inv_inertia * o.cross(imp_forc)
-
+				
 				# Add impulse count
 				imp_count += 1
 		
@@ -111,4 +120,13 @@ func _apply_collisions(delta: float) -> void:
 			tr.y = tr.y.rotated(imp_rot * t)
 			body_state.transform = tr
 
-			
+			imp_lv = Vector2.ZERO
+			imp_av = 0.0
+			imp_pos = Vector2.ZERO
+			imp_rot = 0.0
+			imp_count = 0
+
+
+
+
+

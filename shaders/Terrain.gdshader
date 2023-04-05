@@ -31,6 +31,7 @@ void fragment() {
 	
 	ALPHA = max(ALPHA, b);
 	ALBEDO = mix(ALBEDO, vec3(1.0, 0.0, 0.0), b);
+	ALPHA *= 0.25;
 }
 
 

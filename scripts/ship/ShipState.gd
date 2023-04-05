@@ -5,8 +5,9 @@ class_name ShipState
 var body_state: PhysicsDirectBodyState2D
 
 ## Called every physics frame
-func _physics_process(delta: float) -> void:
-	body_state = target.get_body_state()
+func _process(mode: int, delta: float) -> void:
+	if mode == ShipStateMachine.ProcessMode.INTEGRATE_FORCES:
+		body_state = target.get_body_state()
 
 ## Apply impulse to the ship
 func apply_impulse(o: Vector2, j: Vector2) -> void:

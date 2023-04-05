@@ -20,7 +20,7 @@ func distance(x: float, y: float, max_distance: float = 8.0) -> float:
 	# For each planet
 	for planet in planets:
 		# Get bounds
-		var bounds: Rect2 = planet.bounds
+		var bounds: Rect2 = planet.get_global_bounds()
 
 		# Check if is too far away
 		if bounds.position.x > x + max_distance or bounds.end.x < x - max_distance or bounds.position.y > y + max_distance or bounds.end.y < y - max_distance:

@@ -13,6 +13,7 @@ var state_machine: ShipStateMachine
 ## Initialize this ship
 func _init() -> void:
 	super._init()
+	Engine.time_scale = 1.0
 	# Setup the state machine
 	state_machine = ShipStateMachine.new()
 	state_machine.setup()
@@ -25,10 +26,14 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	state_machine.initialize(self, "moving")
 
+## Called to integrate forces
+func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
+	state_machine.process(ShipStateMachine.ProcessMode.INTEGRATE_FORCES, state.step, false)
+
 ## Called every frame
 func _process(delta: float) -> void:
-	state_machine.process(delta)
+	state_machine.process(ShipStateMachine.ProcessMode.IDLE, delta)
 
 ## Called every physics frame
 func _physics_process(delta: float) -> void:
-	state_machine.physics_process(delta)
+	state_machine.process(ShipStateMachine.ProcessMode.PHYSICS, delta)
