@@ -45,7 +45,7 @@ func derivative(x: float, y: float, max_distance: float = 8.0) -> Vector2:
 	)
 
 ## Calculate gravity field at position
-func gravity_field(x: float, y: float, max_distance: float = 999999.0) -> Vector2:
+func gravity_field(x: float, y: float, mass: float, max_distance: float = 999999.0) -> Vector2:
 	# The total gravity
 	var g: Vector2 = Vector2.ZERO
 
@@ -62,7 +62,7 @@ func gravity_field(x: float, y: float, max_distance: float = 999999.0) -> Vector
 			continue
 		
 		# Sample the gravity
-		g += planet.global_gravity_field(x, y)
+		g += planet.global_gravity_field(x, y, mass)
 
 	# Return the gravity
 	return g

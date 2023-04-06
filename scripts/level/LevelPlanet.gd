@@ -10,11 +10,8 @@ var chunk_manager: LevelPlanetChunkManager
 ## The bounds of this planet
 var bounds: Rect2 = Rect2()
 
-## Planet gravity force
-@export var gravity: float = 9.8
-
-## Planet gravity fade range
-@export var gravity_fade: Vector2 = Vector2(512.0, 1024.0)
+## Planet mass
+@export var mass: float = 1000000.0
 
 ## Called when entering the tree
 func _enter_tree() -> void:
@@ -59,8 +56,8 @@ func global_derivative(x: float, y: float) -> Vector2:
 		tr.basis.y.x * d.y + tr.basis.y.y * d.y
 	)
 
-## Override this function to compute gravity field in a particular position (z = magnitude)
-func gravity_field(x: float, y: float) -> Vector2:
+## Gets compute gravity field in local space
+func gravity_field(x: float, y: float, mass: float) -> Vector2:
 	# Calculate offset
 	var ox: float = -x
 	var oy: float = -y
@@ -73,20 +70,19 @@ func gravity_field(x: float, y: float) -> Vector2:
 	var dy: float = oy / d if d > 0.0 else oy
 
 	# Calculate magnitude
-	var mag: float = (d - gravity_fade.x) / (gravity_fade.y - gravity_fade.x)
-	mag = clamp(1.0 - mag, 0.0, 1.0) * gravity
+	var mag: float = (mass * self.mass) / pow(d, 2.0)
 
 	# Return gravity
 	return Vector2(dx, dy) * mag
 
 ## Gets gravity field in global space
-func global_gravity_field(x: float, y: float) -> Vector2:
+func global_gravity_field(x: float, y: float, mass: float) -> Vector2:
 	var tr: Transform3D = global_transform
 	x -= tr.origin.x
 	y -= tr.origin.y
 	var gx: float = x * tr.basis.x.x + y * tr.basis.x.y
 	var gy: float = x * tr.basis.y.x + y * tr.basis.y.y
-	var g: Vector2 = gravity_field(gx, gy)
+	var g: Vector2 = gravity_field(gx, gy, mass)
 	return Vector2(
 		tr.basis.x.x * g.x + tr.basis.x.y * g.x,
 		tr.basis.y.x * g.y + tr.basis.y.y * g.y

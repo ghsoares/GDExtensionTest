@@ -16,16 +16,21 @@ func _process(mode: int, delta: float) -> void:
 		var pos: Vector2 = ship.get_transform_2d().origin
 
 		# Get gravitational field
-		var grav: Vector2 = ship.level.terrain.gravity_field(pos.x, pos.y)
+		var grav: Vector2 = ship.level.terrain.gravity_field(pos.x, pos.y, target.mass)
+		# print(grav)
 
-		# Apply planet collisions
-		_apply_collisions(delta)
+		# Apply turning and thruster
+		__process_turn(delta)
+		__process_thruster(delta)
 
 		# Apply gravity
 		apply_central_force(grav)
 
+		# Apply planet collisions
+		__apply_planet_collisions(delta)
+
 ## Apply collisions
-func _apply_collisions(delta: float) -> void:
+func __apply_planet_collisions(delta: float) -> void:
 	# Box size
 	var size: Vector2 = target.size
 
@@ -38,12 +43,14 @@ func _apply_collisions(delta: float) -> void:
 	# Delta for each iteration
 	var dt: float = delta / iterations
 
-	# Get each corner
+	# Each corner local position
 	var corners: Array[Vector2] = [
 		Vector2(-size.x, -size.y) * 0.5,
 		Vector2( size.x, -size.y) * 0.5,
+		Vector2( size.x,  0.0) * 0.5,
 		Vector2( size.x,  size.y) * 0.5,
-		Vector2(-size.x,  size.y) * 0.5
+		Vector2(-size.x,  size.y) * 0.5,
+		Vector2(-size.x,  0.0) * 0.5
 	]
 
 	# Number of corners
@@ -85,8 +92,9 @@ func _apply_collisions(delta: float) -> void:
 
 			# Inside ground
 			if d < 0.0:
-				# Get normal
+				# Get normal and tangent
 				var n: Vector2 = terrain.derivative(p.x, p.y).normalized()
+				var tg: Vector2 = Vector2(n.y, -n.x)
 
 				# Calculate normal mass, to apply to impulse force
 				var rn: float = o.dot(n)
@@ -106,8 +114,15 @@ func _apply_collisions(delta: float) -> void:
 				# Slide velocity
 				imp_forc += n * max(-n.dot(v), 0.0) * iterations * 1.0
 
-				# Friction
-				imp_forc += -(v - n * n.dot(v)) * min(-8.0 * dt, 1.0)
+				# Get tangential velocity
+				var tgv: float = tg.dot(v)
+
+				# Static friction
+				if abs(tgv) < 1.0:
+					imp_forc += tg * -tgv
+				# Dynamic friction
+				else:
+					imp_forc += tg * -tgv * clamp(8.0 * delta, 0.0, 1.0)
 					
 				# Apply to both position and rotation
 				imp_pos += imp_move
@@ -142,5 +157,76 @@ func _apply_collisions(delta: float) -> void:
 			imp_rot = 0.0
 			imp_count = 0
 
+	# if contact_bitmap == 3:
+	# 	print("On Ground!")
+
 	# print(Utils.int_to_bin_string(contact_bitmap, 4, false))
+
+## Update turning forces
+func __process_turn(delta: float) -> void:
+	# Get turn input
+	var input_turn: float = target.input_turn
+
+	# Get body
+	var body: PhysicsDirectBodyState2D = target.get_body_state()
+
+	# Get turning acceleration
+	var turn_acc: float = target.turning_acceleration * -input_turn * delta
+	turn_acc = deg_to_rad(turn_acc)
+
+	# Get turning decceleration
+	var turn_dec: float = target.turning_decceleration * delta
+	turn_dec = deg_to_rad(turn_dec)
+
+	# Get max turning speed
+	var max_turn_speed: float = target.max_turning_speed
+	max_turn_speed = deg_to_rad(max_turn_speed)
+
+	# Apply decceleration
+	body.angular_velocity += clamp(-body.angular_velocity, -turn_dec, turn_dec)
+
+	# Turn left
+	if turn_acc < 0.0:
+		body.angular_velocity += clamp(-max_turn_speed - body.angular_velocity, turn_acc, 0.0)
+	# Turn right
+	elif turn_acc > 0.0:
+		body.angular_velocity += clamp(max_turn_speed - body.angular_velocity, 0.0, turn_acc)
+	
+	# # Get desired angular velocity
+	# var desired: float = target.max_turning_speed * -input_turn
+	# desired = deg_to_rad(desired)
+
+	# # Get angular acceleration
+	# var acc: float = target.turning_acceleration * delta
+	# acc = deg_to_rad(acc)
+
+	# # Apply acceleration
+	# body.angular_velocity += clamp(
+	# 	desired - body.angular_velocity, 
+	# 	-acc, 
+	# 	acc
+	# )
+
+## Update thruster forces
+func __process_thruster(delta: float) -> void:
+	# Get thruster input
+	var input_thruster: float = target.input_thruster
+
+	# Get body
+	var body: PhysicsDirectBodyState2D = target.get_body_state()
+
+	# Get thruster force acceleration
+	var thrf_acc: float = target.thruster_acceleration * input_thruster * delta
+
+	# Apply thruster force acceleration
+	target.thruster_force = clamp(
+		target.thruster_force + thrf_acc,
+		0.0, target.max_thruster_force
+	)
+	
+	# Get thruster force
+	var force: Vector2 = body.transform.y * target.thruster_force
+
+	# Apply thruster force
+	body.apply_central_force(force)
 

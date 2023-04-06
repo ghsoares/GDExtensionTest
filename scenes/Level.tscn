@@ -51,8 +51,9 @@ environment = SubResource("Environment_t4b48")
 [node name="Ships" type="Node3D" parent="."]
 
 [node name="Ship" type="Node3D" parent="Ships"]
-transform = Transform3D(0.984808, -0.173648, 0, 0.173648, 0.984808, 0, 0, 0, 1, 0, 1100, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1200, 0)
 script = ExtResource("2_loj4o")
+turning_acceleration = 360.0
 
 [node name="Model" type="MeshInstance3D" parent="Ships/Ship"]
 mesh = SubResource("QuadMesh_i5tax")
@@ -73,18 +74,16 @@ script = ExtResource("4_jwgp2")
 radius = 1000.0
 base_noise = SubResource("FastNoiseLite_t15i5")
 base_noise_range = Vector2(0, 128)
-gravity = 20.0
-gravity_fade = Vector2(1024, 2048)
 
 [node name="Chunks" type="Node3D" parent="Planets/SimplePlanet"]
 script = ExtResource("6_w6rg6")
 chunk_size = 8.0
-chunk_resolution = Vector2i(16, 16)
+chunk_resolution = Vector2i(20, 20)
 chunk_margin = 0
 chunk_mesh = SubResource("QuadMesh_uafbl")
 chunk_material = SubResource("ShaderMaterial_d16bl")
 
-[node name="Camera" type="Camera3D" parent="."]
+[node name="Camera" type="Camera3D" parent="." node_paths=PackedStringArray("target")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1100, 33)
 projection = 1
 current = true
@@ -92,3 +91,4 @@ size = 7.2
 near = 0.1
 far = 65.0
 script = ExtResource("4_46cbn")
+target = NodePath("../Ships/Ship")
