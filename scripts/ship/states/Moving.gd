@@ -122,7 +122,7 @@ func __apply_planet_collisions(delta: float) -> void:
 					imp_forc += tg * -tgv
 				# Dynamic friction
 				else:
-					imp_forc += tg * -tgv * clamp(8.0 * delta, 0.0, 1.0)
+					imp_forc += tg * -tgv * clamp(1.0 * delta, 0.0, 1.0)
 					
 				# Apply to both position and rotation
 				imp_pos += imp_move
@@ -170,13 +170,15 @@ func __process_turn(delta: float) -> void:
 	# Get body
 	var body: PhysicsDirectBodyState2D = target.get_body_state()
 
-	# Get turning acceleration
-	var turn_acc: float = target.turning_acceleration * -input_turn * delta
-	turn_acc = deg_to_rad(turn_acc)
-
 	# Get turning decceleration
-	var turn_dec: float = target.turning_decceleration * delta
-	turn_dec = deg_to_rad(turn_dec)
+	var turn_dec: float = target.turning_decceleration
+
+	# Get turning acceleration
+	var turn_acc: float = target.turning_acceleration + turn_dec
+
+	# Convert acceleration and decceleration
+	turn_acc = deg_to_rad(turn_acc * -input_turn * delta)
+	turn_dec = deg_to_rad(turn_dec * delta)
 
 	# Get max turning speed
 	var max_turn_speed: float = target.max_turning_speed

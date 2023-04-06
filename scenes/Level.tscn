@@ -53,7 +53,9 @@ environment = SubResource("Environment_t4b48")
 [node name="Ship" type="Node3D" parent="Ships"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1200, 0)
 script = ExtResource("2_loj4o")
+max_turning_speed = 360.0
 turning_acceleration = 360.0
+turning_decceleration = 180.0
 
 [node name="Model" type="MeshInstance3D" parent="Ships/Ship"]
 mesh = SubResource("QuadMesh_i5tax")
@@ -74,11 +76,12 @@ script = ExtResource("4_jwgp2")
 radius = 1000.0
 base_noise = SubResource("FastNoiseLite_t15i5")
 base_noise_range = Vector2(0, 128)
+mass = 1.5e+06
 
 [node name="Chunks" type="Node3D" parent="Planets/SimplePlanet"]
 script = ExtResource("6_w6rg6")
 chunk_size = 8.0
-chunk_resolution = Vector2i(20, 20)
+chunk_resolution = Vector2i(32, 32)
 chunk_margin = 0
 chunk_mesh = SubResource("QuadMesh_uafbl")
 chunk_material = SubResource("ShaderMaterial_d16bl")
