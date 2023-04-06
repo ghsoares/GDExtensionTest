@@ -37,11 +37,13 @@ func distance(x: float, y: float) -> float:
 
 	# Get height noise (in 0..1 range)
 	var hn: float = base_noise.get_noise_2d(cx, cy) * 0.5 + 0.5
+	var ht: float = clamp(1.0 - (-d - max(abs(base_noise_range.x), abs(base_noise_range.y))) / 512.0, 0.0, 1.0)
+	ht = pow(ht, 2.0)
 
 	# Map to base noise range and subtract to distance
-	d -= base_noise_range.x + (base_noise_range.y - base_noise_range.x) * hn
+	d -= base_noise_range.x + (base_noise_range.y - base_noise_range.x) * hn * ht
 
-	d = abs(y) - 1050.0
+	# d = abs(y) - 1050.0
 
 	# Return the result distance
 	return d

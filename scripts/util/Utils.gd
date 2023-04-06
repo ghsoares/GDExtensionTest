@@ -24,3 +24,30 @@ static func transform_2d_to_3d(tr: Transform2D, pixel_size: float = 1.0) -> Tran
 		Vector3(o.x, o.y, 0.0) * pixel_size
 	)
 
+## Converts an integer into binary string
+static func int_to_bin_string(num: int, padding: int = 0, big_endian: bool = true) -> String:
+	var b: String = ""
+	var size: int = 0
+
+	while num > 0:
+		if big_endian:
+			b = str(num & 1) + b
+		else:
+			b = b + str(num & 1)
+		num = num >> 1
+		size += 1
+	
+	if padding > 0:
+		var rem: int = padding - size
+		if rem > 0:
+			if big_endian:
+				b = "0".repeat(rem) + b
+			else:
+				b = b + "0".repeat(rem)
+		elif rem < 0:
+			if rem:
+				b = b.substr(-rem)
+			else:
+				b = b.substr(0, b.length() + rem)
+
+	return b

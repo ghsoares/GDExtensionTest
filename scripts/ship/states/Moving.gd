@@ -42,11 +42,15 @@ func _apply_collisions(delta: float) -> void:
 	var corners: Array[Vector2] = [
 		Vector2(-size.x, -size.y) * 0.5,
 		Vector2( size.x, -size.y) * 0.5,
-		Vector2( size.x,  0.0) * 0.5,
 		Vector2( size.x,  size.y) * 0.5,
-		Vector2(-size.x,  size.y) * 0.5,
-		Vector2(-size.x,  0.0) * 0.5
+		Vector2(-size.x,  size.y) * 0.5
 	]
+
+	# Number of corners
+	var count: int = corners.size()
+
+	# Contact bitmap
+	var contact_bitmap: int = 0
 
 	# For each iteration
 	for i in iterations:
@@ -56,6 +60,7 @@ func _apply_collisions(delta: float) -> void:
 		var imp_pos: Vector2 = Vector2.ZERO
 		var imp_rot: float = 0.0
 		var imp_count: int = 0
+		contact_bitmap = 0
 
 		# Get transform
 		var tr: Transform2D = target.get_transform_2d()
@@ -65,7 +70,10 @@ func _apply_collisions(delta: float) -> void:
 		var inv_inertia: float = body_state.inverse_inertia
 
 		# For each corner
-		for c in corners:
+		for j in count:
+			# Get corner
+			var c: Vector2 = corners[j]
+
 			# Get point
 			var p: Vector2 = tr * c
 			
@@ -80,6 +88,11 @@ func _apply_collisions(delta: float) -> void:
 				# Get normal
 				var n: Vector2 = terrain.derivative(p.x, p.y).normalized()
 
+				# Calculate normal mass, to apply to impulse force
+				var rn: float = o.dot(n)
+				var kn: float = inv_mass + inv_inertia * (o.dot(o) - rn * rn)
+				var nm: float = 1.0 / kn
+
 				# Get velocity
 				var v: Vector2 = body_state.get_velocity_at_local_position(o)
 
@@ -88,25 +101,28 @@ func _apply_collisions(delta: float) -> void:
 				var imp_forc: Vector2 = Vector2.ZERO
 
 				# Move from ground
-				imp_move += n * -d
+				imp_move += n * -d * nm
 
 				# Slide velocity
-				imp_forc += n * max(-n.dot(v), 0.0)
+				imp_forc += n * max(-n.dot(v), 0.0) * iterations * 1.0
 
 				# Friction
-				imp_forc += -(v - n * n.dot(v)) * clamp(60.0 * dt, 0.0, 1.0)
+				imp_forc += -(v - n * n.dot(v)) * min(-8.0 * dt, 1.0)
 					
 				# Apply to both position and rotation
 				imp_pos += imp_move
 				imp_rot += inv_inertia * o.cross(imp_move) / inv_mass
 
 				# Apply to both linear and angular velocity
-				imp_lv += imp_forc * inv_mass
-				imp_av += inv_inertia * o.cross(imp_forc)
+				imp_lv += imp_forc * nm
+				imp_av += inv_inertia * o.cross(imp_forc * nm)
 				
 				# Add impulse count
 				imp_count += 1
-		
+
+				# Set corner bitmap
+				contact_bitmap |= 1 << j
+
 		# Has impulse to apply
 		if imp_count > 0:
 			# Impulse factor
@@ -126,7 +142,5 @@ func _apply_collisions(delta: float) -> void:
 			imp_rot = 0.0
 			imp_count = 0
 
-
-
-
+	# print(Utils.int_to_bin_string(contact_bitmap, 4, false))
 
