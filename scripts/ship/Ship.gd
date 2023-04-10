@@ -4,8 +4,11 @@ class_name Ship
 ## Current level
 var level: Level
 
-## This ship's state machine
+## This ship state machine
 var state_machine: ShipStateMachine
+
+## This ship fuel
+var fuel: float = 0.0
 
 ## Current thruster force
 var thruster_force: float = 0.0
@@ -18,6 +21,12 @@ var input_thruster: float = 0.0
 
 ## Size of this ship (in meters)
 @export var size: Vector2 = Vector2(3.0, 6.0)
+
+## Max fuel
+@export var max_fuel: float = 1000.0
+
+## Fuel/force usage ratio
+@export var fuel_usage_ratio: float = 1.0
 
 ## Max thruster force (in meters)
 @export var max_thruster_force: float = 50.0
@@ -45,7 +54,10 @@ func _enter_tree() -> void:
 
 ## Called when ready
 func _ready() -> void:
-	state_machine.initialize(self, "moving")
+	# Set fuel to max
+	fuel = max_fuel
+
+	state_machine.initialize(self, "hovering")
 
 ## Called to integrate forces
 func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:

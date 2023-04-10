@@ -20,6 +20,8 @@ var planets: Array[LevelPlanet]
 
 ## Called when entering the tree
 func _enter_tree() -> void:
+	randomize()
+
 	# Get the nodes
 	terrain = $Terrain
 	camera = $Camera

@@ -7,25 +7,25 @@ var planet: LevelPlanet
 ## Current spawned chunks
 var chunks: Dictionary = {}
 
-## Chunk size in pixels
+## Chunk size in meters
 @export var chunk_size: float = 32.0
 
-## Chunk resolution
+## Chunk resolution (used for the SDF map)
 @export var chunk_resolution: Vector2i = Vector2i(8, 8)
 
-## Chunk margin
+## Chunk margin (chunks generated outside the view)
 @export var chunk_margin: int = 1
 
-## Chunk remove margin
+## Chunk remove margin (how many chunks outside the view to be removed)
 @export var chunk_remove_margin: int = 3
 
-## Lod remove margin
+## Lod remove margin (how many LOD levels to a entire level to be removed)
 @export var lod_remove_margin: int = 2
 
-## Chunk mesh
+## Chunk mesh (simple geometry of the chunk)
 @export var chunk_mesh: Mesh
 
-## Chunk material
+## Chunk material (visual of the chunk)
 @export var chunk_material: Material
 
 ## Called when entering the tree
@@ -56,27 +56,28 @@ func _process(delta: float) -> void:
 	# Get current lod
 	var lodf: float = log(cam.curr_zoom) / log(2.0)
 	var lod: int = floor(lodf)
-	lodf = lodf - lod
+	lodf -= lod
 
 	process_chunks_inside_range(min_pos, max_pos, lod)
-	process_all_chunks(min_pos, max_pos, lod)
+	process_all_chunks(min_pos, max_pos, lod, lodf)
 	
 ## Process chunks inside bounds range with lod
 func process_chunks_inside_range(min_pos: Vector2, max_pos: Vector2, lod: int) -> void:
-	# Get min/max chunk
-	var chunk_indexes: Rect2i = get_min_max_chunk(min_pos, max_pos, lod)
-	var min_chunk: Vector2i = chunk_indexes.position
-	var max_chunk: Vector2i = chunk_indexes.size
-	# print(min_chunk, ", ", max_chunk)
+	# Process one higher
+	for i in 2:
+		# Get min/max chunk
+		var chunk_indexes: Rect2i = get_min_max_chunk(min_pos, max_pos, lod + i)
+		var min_chunk: Vector2i = chunk_indexes.position
+		var max_chunk: Vector2i = chunk_indexes.size
 
-	# For each chunk inside camera
-	for iy in range(min_chunk.y, max_chunk.y + 1):
-		for ix in range(min_chunk.x, max_chunk.x + 1):
-			# Process this chunk
-			process_chunk(ix, iy, lod)
+		# For each chunk inside camera
+		for iy in range(min_chunk.y, max_chunk.y + 1):
+			for ix in range(min_chunk.x, max_chunk.x + 1):
+				# Process this chunk
+				process_chunk(ix, iy, lod + i)
 
 ## Process all chunks with lod and eliminate those outside bounds range
-func process_all_chunks(min_pos: Vector2, max_pos: Vector2, lod: int) -> void:
+func process_all_chunks(min_pos: Vector2, max_pos: Vector2, lod: int, lodf: float) -> void:
 	# Get lod keys
 	var lod_keys: Array = chunks.keys()
 
@@ -93,6 +94,11 @@ func process_all_chunks(min_pos: Vector2, max_pos: Vector2, lod: int) -> void:
 		# Get lod difference
 		var lod_dif: float = l - lod
 
+		# Get chunk transparency
+		var a: float = 0.0
+		if lod_dif == 0: a = clamp(1.0 - (lodf - 0.5) / 0.5, 0.0, 1.0)
+		elif lod_dif == 1: a = clamp(lodf / 0.5, 0.0, 1.0)
+
 		# Get chunk keys
 		var chunk_keys: Array = chunks.keys()
 
@@ -101,14 +107,17 @@ func process_all_chunks(min_pos: Vector2, max_pos: Vector2, lod: int) -> void:
 			# Get chunk
 			var chunk: LevelPlanetChunk = chunks[index]
 
+			# Set chunk transparency
+			chunk.set_transparency(a)
+
 			# Chunk is too far away
 			if index.x < min_chunk.x - chunk_remove_margin or index.x > max_chunk.x + chunk_remove_margin or index.y < min_chunk.y - chunk_remove_margin or index.y > max_chunk.y + chunk_remove_margin:
 				# print("Deleted Chunk index (%s, %s) lod %s" % [index.x, index.y, l])
 				chunk.delete()
 				chunks.erase(index)
 			else:
-				# Is current lod
-				if lod_dif == 0:
+				# Is current lod (or one higher)
+				if lod_dif == 0 or lod_dif == 1:
 					chunk.show()
 				# Hide this chunk
 				else:
@@ -163,7 +172,7 @@ func get_chunk_size(lod: int) -> Vector2:
 	return Vector2.ONE * chunk_size * pow(2, lod)
 
 ## Process chunk at position
-func process_chunk(x: int, y: int, lod: int) -> void:
+func process_chunk(x: int, y: int, lod: float) -> void:
 	# Get chunk position and size
 	var size: Vector2 = get_chunk_size(lod)
 	var pos: Vector2 = Vector2(x, y) * size
@@ -200,4 +209,3 @@ func process_chunk(x: int, y: int, lod: int) -> void:
 
 		# Generate the chunk
 		chunk.generate()
-

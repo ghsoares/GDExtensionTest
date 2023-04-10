@@ -125,6 +125,46 @@ func air_density(x: float, y: float, max_distance: float = -1.0) -> float:
 	# Return the gravity
 	return dens
 
+## Get nearest landing spot at position
+func landing_spot(x: float, y: float, max_distance: float = -1.0) -> LevelPlanetLanding:
+	# Get planets
+	var planets: Array[LevelPlanet] = level.planets
+
+	# Nearest landing
+	var spot: LevelPlanetLanding = null
+	var dst: float = 0.0
+
+	# For each planet
+	for planet in planets:
+		# Get bounds
+		var bounds: Rect2 = planet.get_global_bounds()
+
+		# Check if is too far away
+		if max_distance >= 0.0 and (bounds.position.x > x + max_distance or bounds.end.x < x - max_distance or bounds.position.y > y + max_distance or bounds.end.y < y - max_distance):
+			continue
+		
+		# Get the nearest landing spot
+		var l: LevelPlanetLanding = planet.global_landing_spot(x, y)
+
+		if l:
+			# Get position
+			var pos: Vector3 = l.global_transform.origin
+
+			# Get offset
+			var ox: float = pos.x - x
+			var oy: float = pos.y - y
+
+			# Get distance
+			var d: float = pow(ox, 2.0) + pow(oy, 2.0)
+
+			# Is current closest
+			if spot == null or d < dst:
+				spot = l
+				dst = d
+
+	# Return the gravity
+	return spot
+
 ## Check if bounds is intersecting
 func intersects(start: Vector2, size: Vector2) -> bool:
 	var r: Rect2 = Rect2(start, size)

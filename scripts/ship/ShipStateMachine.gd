@@ -9,5 +9,7 @@ enum ProcessMode {
 ## Setup this state machine
 func setup() -> void:
 	# Add the states
-	add_state("moving", ShipMovingState.new())
+	add_state("hovering", ShipHoveringState.new())
+	add_state("landed", ShipLandedState.new())
+	add_state("exploded", ShipExplodedState.new())
 

@@ -75,16 +75,19 @@ func add_collision_shape(shape: RID, tr: Transform2D) -> void:
 	shapes.append(shape)
 
 ## Update collision shape placement
-func update_collision_shape(shape: RID, tr: Transform2D) -> void:
+func update_collision_shape(shape: RID, tr: Transform2D, disabled: bool) -> void:
 	var idx: int = shapes.find(shape)
 	if idx == -1:
 		PhysicsServer2D.body_add_shape(
-			body_rid, shape, tr
+			body_rid, shape, tr, disabled
 		)
 		shapes.append(shape)
 	else:
 		PhysicsServer2D.body_set_shape_transform(
 			body_rid, idx, tr
+		)
+		PhysicsServer2D.body_set_shape_disabled(
+			body_rid, idx, disabled
 		)
 
 ## Removes a collision shape

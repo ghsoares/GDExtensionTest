@@ -124,7 +124,10 @@ func _physics_process(delta: float) -> void:
 	if dst != INF:
 		# Get desired zoom
 		target_zoom = clamp((dst - near_distance) / far_distance, 0.0, 1.0)
-		target_zoom = near_zoom + (far_zoom - near_zoom) * target_zoom
+		var z1: float = near_zoom
+		var z2: float = far_zoom
+		target_zoom = z1 + (z2 - z1) * target_zoom
+		# target_zoom = pow(2.0, target_zoom)
 	# Too far away
 	else:
 		target_zoom = far_zoom

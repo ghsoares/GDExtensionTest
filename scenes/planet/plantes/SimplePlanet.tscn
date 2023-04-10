@@ -1,0 +1,72 @@
+[gd_scene load_steps=13 format=3 uid="uid://csxgpxrxsef8s"]
+
+[ext_resource type="Script" path="res://scripts/level/planet/planets/SimplePlanet.gd" id="1_vxr0h"]
+[ext_resource type="Script" path="res://scripts/level/planet/LevelPlanetChunkManager.gd" id="2_a0iq3"]
+[ext_resource type="Shader" path="res://shaders/terrain/Simple.gdshader" id="3_lxljc"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_t15i5"]
+frequency = 1.0
+fractal_octaves = 3
+fractal_lacunarity = 3.0
+
+[sub_resource type="QuadMesh" id="QuadMesh_uafbl"]
+
+[sub_resource type="Gradient" id="Gradient_4u757"]
+colors = PackedColorArray(0.0470588, 0.121569, 0.14902, 1, 0.0784314, 0.858824, 0.352941, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_pwngt"]
+gradient = SubResource("Gradient_4u757")
+
+[sub_resource type="Gradient" id="Gradient_5ohn7"]
+offsets = PackedFloat32Array(0, 0.95)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_8fkwr"]
+gradient = SubResource("Gradient_5ohn7")
+width = 64
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_d04y0"]
+domain_warp_enabled = true
+domain_warp_amplitude = 256.0
+domain_warp_frequency = 0.02
+domain_warp_fractal_type = 2
+domain_warp_fractal_octaves = 2
+domain_warp_fractal_lacunarity = 2.0
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_k5exm"]
+seamless = true
+noise = SubResource("FastNoiseLite_d04y0")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_d16bl"]
+render_priority = 0
+shader = ExtResource("3_lxljc")
+shader_parameter/terrain_size = Vector2(4, 4)
+shader_parameter/transparency = 1.0
+shader_parameter/transform = null
+shader_parameter/noise_tiling = 4096.0
+shader_parameter/noise_steps = 8.0
+shader_parameter/ground_fade = 256.0
+shader_parameter/ground_min = -0.5
+shader_parameter/ground_max = 0.2
+shader_parameter/noise_color = SubResource("NoiseTexture2D_k5exm")
+shader_parameter/gradient_color = SubResource("GradientTexture1D_pwngt")
+shader_parameter/gradient_ground = SubResource("GradientTexture1D_8fkwr")
+
+[node name="SimplePlanet" type="Node3D"]
+script = ExtResource("1_vxr0h")
+radius = 5000.0
+base_noise = SubResource("FastNoiseLite_t15i5")
+base_noise_range = Vector2(0, 512)
+surface = 5000.0
+gravity = 20.0
+atmosphere_density = 0.25
+
+[node name="Chunks" type="Node3D" parent="."]
+script = ExtResource("2_a0iq3")
+chunk_size = 8.0
+chunk_resolution = Vector2i(32, 32)
+chunk_margin = 0
+chunk_mesh = SubResource("QuadMesh_uafbl")
+chunk_material = SubResource("ShaderMaterial_d16bl")
+
+[node name="Landings" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)

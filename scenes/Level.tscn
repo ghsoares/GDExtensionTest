@@ -1,11 +1,11 @@
-[gd_scene load_steps=13 format=3 uid="uid://ci1iuwueysdi4"]
+[gd_scene load_steps=14 format=3 uid="uid://c6dx7qlch51dd"]
 
 [ext_resource type="Script" path="res://scripts/level/Level.gd" id="1_nlqcd"]
 [ext_resource type="Script" path="res://scripts/level/LevelTerrain.gd" id="2_kq0tc"]
 [ext_resource type="Script" path="res://scripts/ship/Ship.gd" id="2_loj4o"]
 [ext_resource type="Script" path="res://scripts/nodes/CollisionShape5D.gd" id="3_b310i"]
 [ext_resource type="Script" path="res://scripts/level/LevelCamera.gd" id="4_46cbn"]
-[ext_resource type="PackedScene" uid="uid://dhwmsse7wqg5o" path="res://scenes/Planets/BasePlanet.tscn" id="5_2ebml"]
+[ext_resource type="PackedScene" uid="uid://csxgpxrxsef8s" path="res://scenes/planet/plantes/SimplePlanet.tscn" id="5_2ebml"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ny2o6"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -27,6 +27,9 @@ size = Vector2(6, 6)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hn2t0"]
 shading_mode = 0
 
+[sub_resource type="QuadMesh" id="QuadMesh_ddhii"]
+size = Vector2(8, 256)
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8gyea"]
 size = Vector2(6, 6)
 
@@ -41,11 +44,18 @@ environment = SubResource("Environment_t4b48")
 [node name="Ship" type="Node3D" parent="Ships"]
 script = ExtResource("2_loj4o")
 size = Vector2(6, 6)
-max_turning_speed = 360.0
-turning_acceleration = 360.0
+fuel_usage_ratio = 0.1
+max_turning_speed = 180.0
+thruster_acceleration = 25.0
+turning_acceleration = 180.0
 
 [node name="Model" type="MeshInstance3D" parent="Ships/Ship"]
 mesh = SubResource("QuadMesh_i5tax")
+surface_material_override/0 = SubResource("StandardMaterial3D_hn2t0")
+
+[node name="Model2" type="MeshInstance3D" parent="Ships/Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 128, -0.1)
+mesh = SubResource("QuadMesh_ddhii")
 surface_material_override/0 = SubResource("StandardMaterial3D_hn2t0")
 
 [node name="Col" type="Node3D" parent="Ships/Ship"]
@@ -56,25 +66,24 @@ shape = SubResource("RectangleShape2D_8gyea")
 script = ExtResource("2_kq0tc")
 
 [node name="Planets" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 32)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 500)
 
-[node name="BasePlanet" parent="Planets" instance=ExtResource("5_2ebml")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5200, 0)
+[node name="SimplePlanet" parent="Planets" instance=ExtResource("5_2ebml")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5512, 0)
 
 [node name="Camera" type="Node3D" parent="."]
 script = ExtResource("4_46cbn")
-spring_force = 128.0
+spring_force = 256.0
 zoom_lerp = 2.0
 far_zoom = 1024.0
 near_distance = 64.0
 far_distance = 2048.0
 
 [node name="Pivot" type="Node3D" parent="Camera"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 33)
 
 [node name="Camera" type="Camera3D" parent="Camera/Pivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1000)
 projection = 1
 current = true
 size = 7.2
-near = 0.1
-far = 65.0
+far = 2000.0

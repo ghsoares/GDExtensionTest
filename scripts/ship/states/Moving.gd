@@ -1,36 +1,39 @@
 extends ShipState
 class_name ShipMovingState
 
+## Current contact bitmask
+var contact_bitmask: int = 0
+
 ## Called every physics frame
 func _process(mode: int, delta: float) -> void:
 	# Process parent state and early return
 	super._process(mode, delta)
 	if queried(): return
 
-	# Integrate forces
-	if mode == ShipStateMachine.ProcessMode.INTEGRATE_FORCES:
-		# Get ship
-		var ship: Ship = target
+	# Process differently based on update mode
+	match mode:
+		ShipStateMachine.ProcessMode.INTEGRATE_FORCES:
+			# Get ship
+			var ship: Ship = target
 
-		# Get current position
-		var pos: Vector2 = ship.get_transform_2d().origin
+			# Get current position
+			var pos: Vector2 = ship.get_transform_2d().origin
 
-		# Get gravitational field
-		var grav: Vector2 = ship.level.terrain.gravity_field(pos.x, pos.y)
+			# Get gravitational field
+			var grav: Vector2 = ship.level.terrain.gravity_field(pos.x, pos.y)
 
-		# Apply turning and thruster
-		__process_turn(delta)
-		__process_thruster(delta)
+			# Apply gravity
+			apply_central_force(grav)
 
-		# Apply gravity
-		apply_central_force(grav)
+			# Apply drag
+			__apply_drag(delta)
 
-		# Apply planet collisions
-		__apply_planet_collisions(delta)
-
+			# Apply planet collisions
+			__apply_planet_collisions(delta)
+			
 ## Apply collisions
 func __apply_planet_collisions(delta: float) -> void:
-	# Box size
+	# Ship size
 	var size: Vector2 = target.size
 
 	# Terrain
@@ -46,17 +49,12 @@ func __apply_planet_collisions(delta: float) -> void:
 	var corners: Array[Vector2] = [
 		Vector2(-size.x, -size.y) * 0.5,
 		Vector2( size.x, -size.y) * 0.5,
-		Vector2( size.x,  0.0) * 0.5,
 		Vector2( size.x,  size.y) * 0.5,
-		Vector2(-size.x,  size.y) * 0.5,
-		Vector2(-size.x,  0.0) * 0.5
+		Vector2(-size.x,  size.y) * 0.5
 	]
 
 	# Number of corners
 	var count: int = corners.size()
-
-	# Contact bitmap
-	var contact_bitmap: int = 0
 
 	# For each iteration
 	for i in iterations:
@@ -66,7 +64,7 @@ func __apply_planet_collisions(delta: float) -> void:
 		var imp_pos: Vector2 = Vector2.ZERO
 		var imp_rot: float = 0.0
 		var imp_count: int = 0
-		contact_bitmap = 0
+		contact_bitmask = 0
 
 		# Get transform
 		var tr: Transform2D = target.get_transform_2d()
@@ -125,7 +123,7 @@ func __apply_planet_collisions(delta: float) -> void:
 					
 				# Apply to both position and rotation
 				imp_pos += imp_move
-				imp_rot += inv_inertia * o.cross(imp_move) / inv_mass
+				imp_rot += nm * o.cross(imp_move) / inv_mass
 
 				# Apply to both linear and angular velocity
 				imp_lv += imp_forc * nm
@@ -135,7 +133,7 @@ func __apply_planet_collisions(delta: float) -> void:
 				imp_count += 1
 
 				# Set corner bitmap
-				contact_bitmap |= 1 << j
+				contact_bitmask |= 1 << j
 
 		# Has impulse to apply
 		if imp_count > 0:
@@ -161,10 +159,10 @@ func __apply_planet_collisions(delta: float) -> void:
 
 	# print(Utils.int_to_bin_string(contact_bitmap, 4, false))
 
-## Update turning forces
-func __process_turn(delta: float) -> void:
-	# Get turn input
-	var input_turn: float = target.input_turn
+## Apply drag forces 
+func __apply_drag(delta: float) -> void:
+	# Ship size
+	var size: Vector2 = target.size
 
 	# Get body
 	var body: PhysicsDirectBodyState2D = target.get_body_state()
@@ -176,60 +174,42 @@ func __process_turn(delta: float) -> void:
 	var air_dens: float = terrain.air_density(
 		body.transform.origin.x, 
 		body.transform.origin.y
-	)
-
-	# Get turning acceleration
-	var turn_acc: float = target.turning_acceleration
-
-	# Convert acceleration and decceleration
-	turn_acc = deg_to_rad(turn_acc * -input_turn * delta)
-
-	# Get max turning speed
-	var max_turn_speed: float = target.max_turning_speed
-	max_turn_speed = deg_to_rad(max_turn_speed)
-
-	# Apply turn drag
-	body.angular_velocity += -body.angular_velocity * clamp(air_dens * delta, 0.0, 1.0)
-
-	# Turn left
-	if turn_acc < 0.0:
-		body.angular_velocity += clamp(-max_turn_speed - body.angular_velocity, turn_acc, 0.0)
-	# Turn right
-	elif turn_acc > 0.0:
-		body.angular_velocity += clamp(max_turn_speed - body.angular_velocity, 0.0, turn_acc)
-
-## Update thruster forces
-func __process_thruster(delta: float) -> void:
-	# Get thruster input
-	var input_thruster: float = target.input_thruster
-
-	# Get body
-	var body: PhysicsDirectBodyState2D = target.get_body_state()
-
-	# Get terrain
-	var terrain: LevelTerrain = target.level.terrain
-
-	# Get air density
-	var air_dens: float = terrain.air_density(
-		body.transform.origin.x, 
-		body.transform.origin.y
-	)
-
-	# Get thruster force acceleration
-	var thrf_acc: float = target.thruster_acceleration * input_thruster * delta
-
-	# Apply thruster force acceleration
-	target.thruster_force = clamp(
-		target.thruster_force + thrf_acc,
-		0.0, target.max_thruster_force
 	)
 	
-	# Get thruster force
-	var force: Vector2 = body.transform.y * target.thruster_force
+	# Each corner local position
+	var corners: Array[Vector2] = [
+		Vector2(-size.x, -size.y) * 0.5,
+		Vector2( size.x, -size.y) * 0.5,
+		Vector2( size.x,  size.y) * 0.5,
+		Vector2(-size.x,  size.y) * 0.5
+	]
 
-	# Apply drag
-	body.linear_velocity += -body.linear_velocity * clamp(air_dens * delta, 0.0, 1.0)
+	# Total impulses
+	var imp_lv: Vector2 = Vector2.ZERO
+	var imp_av: float = 0.0
 
-	# Apply thruster force
-	body.linear_velocity += force * body.inverse_mass * delta
+	# Get transform
+	var tr: Transform2D = body.transform
+
+	# For each corner
+	for c in corners:
+		# Get offset
+		var o: Vector2 = tr.basis_xform(c)
+
+		# Get velocity
+		var v1: Vector2 = body.linear_velocity
+		var v2: Vector2 = body.get_velocity_at_local_position(o)
+
+		# Drag force
+		var f1: Vector2 = -v1 * clamp(air_dens * delta, 0.0, 1.0)
+		var f2: Vector2 = -v2 * clamp(air_dens * delta, 0.0, 1.0)
+
+		# Apply impulses
+		imp_lv += f1 * body.inverse_mass
+		imp_av += o.cross(f2) * body.inverse_inertia
+	
+	# Apply forces
+	body.linear_velocity += imp_lv * (1.0 / corners.size())
+	body.angular_velocity += imp_av * (1.0 / corners.size())
+
 

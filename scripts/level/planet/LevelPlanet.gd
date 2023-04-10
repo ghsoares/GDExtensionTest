@@ -7,8 +7,14 @@ var level: Level
 ## The chunk manager of this planet
 var chunk_manager: LevelPlanetChunkManager
 
-## The bounds of this planet
-var bounds: Rect2 = Rect2()
+## The landing spots root
+var landings_root: Node3D
+
+## The landing spots of this planet
+var landings: Array[LevelPlanetLanding]
+
+## Landing scene
+var landing_scene: PackedScene = ResourceLoader.load("res://scenes/planet/PlanetLanding.tscn")
 
 ## Planet surface distance from center
 @export var surface: float = 2000.0
@@ -29,10 +35,28 @@ var bounds: Rect2 = Rect2()
 func _enter_tree() -> void:
 	# Get nodes
 	chunk_manager = $Chunks
+	landings_root = $Landings
 
 ## Initialize this planet
 func initialize() -> void:
-	bounds = get_bounds()
+	generate()
+
+	# Get the landing transforms
+	var spots: Array[LevelPlanetLanding] = landing_spots()
+
+	# For each spot, add the landing
+	for spot in spots:
+		# Add as child of landings root
+		landings_root.add_child(spot)
+
+		# Add landing
+		landings.append(spot)
+
+## Override this function to generate the planet (spawn extra things, etc.)
+func generate() -> void: pass
+
+## Override this function to generate a array of landing transforms
+func landing_spots() -> Array[LevelPlanetLanding]: return []
 
 ## Override this function to compute distance in a particular local position
 func distance(x: float, y: float) -> float:
@@ -104,6 +128,31 @@ func air_density(x: float, y: float) -> float:
 	# Return density
 	return dens
 
+## Gets the closest landing spot 
+func landing_spot(x: float, y: float) -> LevelPlanetLanding:
+	# Closest spot and it's distance squared
+	var spot: LevelPlanetLanding = null
+	var dst: float = 0.0
+
+	# For each landing spot
+	for l in landings:
+		# Get position
+		var pos: Vector3 = l.transform.origin
+
+		# Get offset
+		var ox: float = pos.x - x
+		var oy: float = pos.y - y
+
+		# Get distance
+		var d: float = pow(ox, 2.0) + pow(oy, 2.0)
+
+		# Is current closest
+		if spot == null or d < dst:
+			spot = l
+			dst = d
+
+	return spot
+
 ## Gets gravity field in global space
 func global_gravity_field(x: float, y: float) -> Vector2:
 	var tr: Transform3D = global_transform
@@ -126,17 +175,26 @@ func global_air_density(x: float, y: float) -> float:
 	var gy: float = x * tr.basis.y.x + y * tr.basis.y.y
 	return air_density(gx, gy)
 
+## Gets the closest landing spot in global space
+func global_landing_spot(x: float, y: float) -> LevelPlanetLanding:
+	var tr: Transform3D = global_transform
+	x -= tr.origin.x
+	y -= tr.origin.y
+	var gx: float = x * tr.basis.x.x + y * tr.basis.x.y
+	var gy: float = x * tr.basis.y.x + y * tr.basis.y.y
+	return landing_spot(gx, gy)
+
 ## Get the planet local bounds
 func get_bounds() -> Rect2: return Rect2()
 
 ## Get the planet global bounds
 func get_global_bounds() -> Rect2:
 	var tr: Transform2D = Utils.transform_3d_to_2d(global_transform)
-	return tr * bounds
+	return tr * get_bounds()
 
 ## Override this function for quick bounds intersections
 func intersects(pos: Vector2, size: Vector2) -> bool:
-	return Rect2(pos, size).intersects(bounds)
+	return Rect2(pos, size).intersects(get_bounds())
 
 
 

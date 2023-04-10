@@ -73,7 +73,7 @@ func change_state(to_state: State) -> void:
 
 	# Exits the current state
 	if running_state != null:
-		running_state.next_state = to_state
+		running_state.next = to_state
 		running_state._exit()
 
 	# Enters the new state

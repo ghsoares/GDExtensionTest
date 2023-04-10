@@ -12,8 +12,28 @@ class_name SimplePlanet
 ## Planet base noise range
 @export var base_noise_range: Vector2 = Vector2(0.0, 16.0)
 
+## Planet base noise period
+@export var base_noise_period: float = 1024.0
+
+## Number of easy landings
+@export var easy_landing_count: int = 16
+
+## Number of medium landings
+@export var medium_landing_count: int = 8
+
+## Number of hard landings
+@export var hard_landing_count: int = 4
+
+## Generate this planet
+func generate() -> void:
+	# Set base noise seed
+	base_noise.seed = randi()
+
 ## Sample sdf from this planet
 func distance(x: float, y: float) -> float:
+	# Get nearest landing spot
+	var landing: LevelPlanetLanding = landing_spot(x, y)
+
 	# Offset
 	var ox: float = x
 	var oy: float = y
@@ -36,17 +56,112 @@ func distance(x: float, y: float) -> float:
 	var cy: float = dy * radius
 
 	# Get height noise (in 0..1 range)
-	var hn: float = base_noise.get_noise_2d(cx, cy) * 0.5 + 0.5
-	var ht: float = clamp(1.0 - (-d - max(abs(base_noise_range.x), abs(base_noise_range.y))) / 512.0, 0.0, 1.0)
-	ht = pow(ht, 2.0)
+	var hn: float = base_noise.get_noise_2d(cx / base_noise_period, cy / base_noise_period) * 0.5 + 0.5
 
 	# Map to base noise range and subtract to distance
-	d -= base_noise_range.x + (base_noise_range.y - base_noise_range.x) * hn * ht
+	d -= base_noise_range.x + (base_noise_range.y - base_noise_range.x) * hn
 
-	# d = abs(y) - 1050.0
+	# Has a landing spot
+	if landing != null:
+		# Local transform
+		var lox: float = x - landing.transform.origin.x
+		var loy: float = y - landing.transform.origin.y
+		var lx: float = lox * landing.transform.basis.x.x + loy * landing.transform.basis.x.y
+		var ly: float = lox * landing.transform.basis.y.x + loy * landing.transform.basis.y.y
+
+		# Get the size
+		var s: float = landing.size
+
+		# Add terrain bellow
+		d = min(
+			d, max(abs(lx) - (s * 0.5 - min(ly, 0.0) + 8.0), ly)
+		)
+
+		# Remove terrain above
+		d = max(
+			d, -max(abs(lx) - (s * 0.5 - min(-ly, 0.0) + 8.0), -ly)
+		)
 
 	# Return the result distance
 	return d
+
+## Get landing spots
+func landing_spots() -> Array[LevelPlanetLanding]:
+	var spots: Array[LevelPlanetLanding] = []
+
+	# Get total spots
+	var total: int = easy_landing_count + medium_landing_count + hard_landing_count
+	spots.resize(total)
+
+	# Each dificulty count
+	var easy: int = easy_landing_count
+	var medium: int = medium_landing_count
+	var hard: int = hard_landing_count
+
+	# For each spot
+	for i in total:
+		# Instantiate the landing
+		var landing: LevelPlanetLanding = landing_scene.instantiate()
+
+		# Get rotation in the planet
+		var a: float = (i / float(total)) * TAU
+
+		# Normalized direction
+		var dx: float = cos(a)
+		var dy: float = sin(a)
+
+		# Get in circle position
+		var cx: float = dx * radius
+		var cy: float = dy * radius
+
+		# Get height noise (in 0..1 range)
+		var hn: float = base_noise.get_noise_2d(cx / base_noise_period, cy / base_noise_period) * 0.5 + 0.5
+		
+		# Get height
+		var h: float = base_noise_range.x + (base_noise_range.y - base_noise_range.x) * hn
+
+		# Get position
+		var px: float = cx + dx * h
+		var py: float = cy + dy * h
+
+		# Get up and right direction
+		var up: Vector2 = Vector2(dx, dy).normalized()
+		var rg: Vector2 = Vector2(dy, -dx)
+
+		# Set landing transform
+		landing.transform.origin.x = px
+		landing.transform.origin.y = py
+		landing.transform.basis.x.x = rg.x
+		landing.transform.basis.x.y = rg.y
+		landing.transform.basis.y.x = up.x
+		landing.transform.basis.y.y = up.y
+
+		# Pick a random dificulty
+		while true:
+			var pick: int = randi() % 3
+
+			if pick == 0 and easy == 0: continue
+			if pick == 1 and medium == 0: continue
+			if pick == 2 and hard == 0: continue
+
+			# Set the landing size based on dificulty
+			match pick:
+				0: 
+					landing.size = 16.0
+					hard -= 1
+				1: 
+					landing.size = 32.0
+					medium -= 1
+				2: 
+					landing.size = 64.0
+					easy -= 1
+
+			break
+
+		# Add to array
+		spots[i] = landing
+	
+	return spots
 
 ## Get the planet bounds
 func get_bounds() -> Rect2:

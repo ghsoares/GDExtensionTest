@@ -23,6 +23,9 @@ var instance: RID
 var img: Image
 var tex: RID
 
+## Chunk local transform
+var tr: Transform3D
+
 ## Is visible
 var is_visible: bool
 
@@ -40,7 +43,7 @@ func initialize() -> void:
 
 ## Generate this chunk
 func generate() -> void:
-	# Update the texture
+	# Update the transform and texture
 	_update_texture()
 	update_transform()
 
@@ -51,14 +54,19 @@ func update_transform() -> void:
 	var pos: Vector2 = Vector2(index.x, index.y) * size
 
 	# Set transform
-	var tr: Transform3D = Transform3D(
-		Basis.IDENTITY.scaled(Vector3(size.x, size.y, 1.0)),
+	tr = Transform3D(
+		Basis.from_scale(Vector3(size.x, size.y, 1.0)),
 		Vector3(pos.x, pos.y, 0.0)
 	)
 	RenderingServer.instance_set_transform(
 		instance, 
 		chunk_manager.global_transform * tr
 	)
+	RenderingServer.material_set_param(material.get_rid(), "transform", tr)
+
+## Set the chunk transparency
+func set_transparency(a: float) -> void:
+	RenderingServer.material_set_param(material.get_rid(), "transparency", a)
 
 ## Generate the terrain texture
 func _update_texture() -> void:
