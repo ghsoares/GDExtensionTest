@@ -10,8 +10,20 @@ var chunk_manager: LevelPlanetChunkManager
 ## The bounds of this planet
 var bounds: Rect2 = Rect2()
 
-## Planet mass
-@export var mass: float = 1000000.0
+## Planet surface distance from center
+@export var surface: float = 2000.0
+
+## Planet surface fade distance
+@export var surface_fade: float = 2000.0
+
+## Planet gravity force
+@export var gravity: float = 10.0
+
+## Planet gravity fade distance
+@export var gravity_fade: float = 4000.0
+
+## Planet atmosphere density (used for speed drag)
+@export var atmosphere_density: float = 1.0
 
 ## Called when entering the tree
 func _enter_tree() -> void:
@@ -56,8 +68,8 @@ func global_derivative(x: float, y: float) -> Vector2:
 		tr.basis.y.x * d.y + tr.basis.y.y * d.y
 	)
 
-## Gets compute gravity field in local space
-func gravity_field(x: float, y: float, mass: float) -> Vector2:
+## Gets gravity field in local space
+func gravity_field(x: float, y: float) -> Vector2:
 	# Calculate offset
 	var ox: float = -x
 	var oy: float = -y
@@ -70,23 +82,49 @@ func gravity_field(x: float, y: float, mass: float) -> Vector2:
 	var dy: float = oy / d if d > 0.0 else oy
 
 	# Calculate magnitude
-	var mag: float = (mass * self.mass) / pow(d, 2.0)
+	var mag: float = gravity
+	mag *= 1.0 - clamp((d - surface) / gravity_fade, 0.0, 1.0)
 
 	# Return gravity
 	return Vector2(dx, dy) * mag
 
+## Gets air density in local space
+func air_density(x: float, y: float) -> float:
+	# Calculate offset
+	var ox: float = -x
+	var oy: float = -y
+	
+	# Calculate distance
+	var d: float = sqrt(pow(ox, 2.0) + pow(oy, 2.0))
+
+	# Calculate density
+	var dens: float = atmosphere_density
+	dens *= 1.0 - clamp((d - surface) / surface_fade, 0.0, 1.0)
+
+	# Return density
+	return dens
+
 ## Gets gravity field in global space
-func global_gravity_field(x: float, y: float, mass: float) -> Vector2:
+func global_gravity_field(x: float, y: float) -> Vector2:
 	var tr: Transform3D = global_transform
 	x -= tr.origin.x
 	y -= tr.origin.y
 	var gx: float = x * tr.basis.x.x + y * tr.basis.x.y
 	var gy: float = x * tr.basis.y.x + y * tr.basis.y.y
-	var g: Vector2 = gravity_field(gx, gy, mass)
+	var g: Vector2 = gravity_field(gx, gy)
 	return Vector2(
 		tr.basis.x.x * g.x + tr.basis.x.y * g.x,
 		tr.basis.y.x * g.y + tr.basis.y.y * g.y
 	)
+
+## Gets density in global space
+func global_air_density(x: float, y: float) -> float:
+	var tr: Transform3D = global_transform
+	x -= tr.origin.x
+	y -= tr.origin.y
+	var gx: float = x * tr.basis.x.x + y * tr.basis.x.y
+	var gy: float = x * tr.basis.y.x + y * tr.basis.y.y
+	return air_density(gx, gy)
 
 ## Get the planet local bounds
 func get_bounds() -> Rect2: return Rect2()
@@ -95,5 +133,10 @@ func get_bounds() -> Rect2: return Rect2()
 func get_global_bounds() -> Rect2:
 	var tr: Transform2D = Utils.transform_3d_to_2d(global_transform)
 	return tr * bounds
+
+## Override this function for quick bounds intersections
+func intersects(pos: Vector2, size: Vector2) -> bool:
+	return Rect2(pos, size).intersects(bounds)
+
 
 

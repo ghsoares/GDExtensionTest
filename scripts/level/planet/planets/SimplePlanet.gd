@@ -56,4 +56,20 @@ func get_bounds() -> Rect2:
 	# Return simple circle bounds
 	return Rect2(-Vector2(rad, rad), Vector2(rad * 2, rad * 2))
 
+## Check if bounds intersects
+func intersects(pos: Vector2, size: Vector2) -> bool:
+	# Get planet radius
+	var rad: float = radius + max(base_noise_range.x, base_noise_range.y)
 
+	var cdx: float = abs(pos.x + size.x * 0.5)
+	var cdy: float = abs(pos.y + size.y * 0.5)
+
+	if cdx > size.x * 0.5 + rad: return false
+	if cdy > size.y * 0.5 + rad: return false
+
+	if cdx <= size.x * 0.5: return true
+	if cdy <= size.y * 0.5: return true
+
+	var dsq: float = pow(cdx - size.x * 0.5, 2.0) + pow(cdy - size.y * 0.5, 2.0)
+
+	return dsq <= rad * rad

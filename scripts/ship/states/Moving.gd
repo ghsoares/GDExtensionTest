@@ -16,8 +16,7 @@ func _process(mode: int, delta: float) -> void:
 		var pos: Vector2 = ship.get_transform_2d().origin
 
 		# Get gravitational field
-		var grav: Vector2 = ship.level.terrain.gravity_field(pos.x, pos.y, target.mass)
-		# print(grav)
+		var grav: Vector2 = ship.level.terrain.gravity_field(pos.x, pos.y)
 
 		# Apply turning and thruster
 		__process_turn(delta)
@@ -122,7 +121,7 @@ func __apply_planet_collisions(delta: float) -> void:
 					imp_forc += tg * -tgv
 				# Dynamic friction
 				else:
-					imp_forc += tg * -tgv * clamp(1.0 * delta, 0.0, 1.0)
+					imp_forc += tg * -tgv * clamp(32.0 * delta, 0.0, 1.0)
 					
 				# Apply to both position and rotation
 				imp_pos += imp_move
@@ -170,22 +169,27 @@ func __process_turn(delta: float) -> void:
 	# Get body
 	var body: PhysicsDirectBodyState2D = target.get_body_state()
 
-	# Get turning decceleration
-	var turn_dec: float = target.turning_decceleration
+	# Get terrain
+	var terrain: LevelTerrain = target.level.terrain
+
+	# Get air density
+	var air_dens: float = terrain.air_density(
+		body.transform.origin.x, 
+		body.transform.origin.y
+	)
 
 	# Get turning acceleration
-	var turn_acc: float = target.turning_acceleration + turn_dec
+	var turn_acc: float = target.turning_acceleration
 
 	# Convert acceleration and decceleration
 	turn_acc = deg_to_rad(turn_acc * -input_turn * delta)
-	turn_dec = deg_to_rad(turn_dec * delta)
 
 	# Get max turning speed
 	var max_turn_speed: float = target.max_turning_speed
 	max_turn_speed = deg_to_rad(max_turn_speed)
 
-	# Apply decceleration
-	body.angular_velocity += clamp(-body.angular_velocity, -turn_dec, turn_dec)
+	# Apply turn drag
+	body.angular_velocity += -body.angular_velocity * clamp(air_dens * delta, 0.0, 1.0)
 
 	# Turn left
 	if turn_acc < 0.0:
@@ -193,21 +197,6 @@ func __process_turn(delta: float) -> void:
 	# Turn right
 	elif turn_acc > 0.0:
 		body.angular_velocity += clamp(max_turn_speed - body.angular_velocity, 0.0, turn_acc)
-	
-	# # Get desired angular velocity
-	# var desired: float = target.max_turning_speed * -input_turn
-	# desired = deg_to_rad(desired)
-
-	# # Get angular acceleration
-	# var acc: float = target.turning_acceleration * delta
-	# acc = deg_to_rad(acc)
-
-	# # Apply acceleration
-	# body.angular_velocity += clamp(
-	# 	desired - body.angular_velocity, 
-	# 	-acc, 
-	# 	acc
-	# )
 
 ## Update thruster forces
 func __process_thruster(delta: float) -> void:
@@ -216,6 +205,15 @@ func __process_thruster(delta: float) -> void:
 
 	# Get body
 	var body: PhysicsDirectBodyState2D = target.get_body_state()
+
+	# Get terrain
+	var terrain: LevelTerrain = target.level.terrain
+
+	# Get air density
+	var air_dens: float = terrain.air_density(
+		body.transform.origin.x, 
+		body.transform.origin.y
+	)
 
 	# Get thruster force acceleration
 	var thrf_acc: float = target.thruster_acceleration * input_thruster * delta
@@ -229,6 +227,9 @@ func __process_thruster(delta: float) -> void:
 	# Get thruster force
 	var force: Vector2 = body.transform.y * target.thruster_force
 
+	# Apply drag
+	body.linear_velocity += -body.linear_velocity * clamp(air_dens * delta, 0.0, 1.0)
+
 	# Apply thruster force
-	body.apply_central_force(force)
+	body.linear_velocity += force * body.inverse_mass * delta
 

@@ -1,13 +1,11 @@
-[gd_scene load_steps=18 format=3 uid="uid://l25a44ip0pf3"]
+[gd_scene load_steps=13 format=3 uid="uid://ci1iuwueysdi4"]
 
 [ext_resource type="Script" path="res://scripts/level/Level.gd" id="1_nlqcd"]
 [ext_resource type="Script" path="res://scripts/level/LevelTerrain.gd" id="2_kq0tc"]
 [ext_resource type="Script" path="res://scripts/ship/Ship.gd" id="2_loj4o"]
 [ext_resource type="Script" path="res://scripts/nodes/CollisionShape5D.gd" id="3_b310i"]
-[ext_resource type="Shader" path="res://shaders/Terrain.gdshader" id="3_wb570"]
 [ext_resource type="Script" path="res://scripts/level/LevelCamera.gd" id="4_46cbn"]
-[ext_resource type="Script" path="res://scripts/level/planets/SimplePlanet.gd" id="4_jwgp2"]
-[ext_resource type="Script" path="res://scripts/level/LevelPlanetChunkManager.gd" id="6_w6rg6"]
+[ext_resource type="PackedScene" uid="uid://dhwmsse7wqg5o" path="res://scenes/Planets/BasePlanet.tscn" id="5_2ebml"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ny2o6"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -19,28 +17,18 @@ sky_material = SubResource("ProceduralSkyMaterial_ny2o6")
 [sub_resource type="Environment" id="Environment_t4b48"]
 background_mode = 1
 sky = SubResource("Sky_5r6yi")
-tonemap_mode = 2
+tonemap_mode = 3
 glow_enabled = true
+glow_blend_mode = 1
 
 [sub_resource type="QuadMesh" id="QuadMesh_i5tax"]
-size = Vector2(3, 6)
+size = Vector2(6, 6)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hn2t0"]
 shading_mode = 0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8gyea"]
-size = Vector2(3, 6)
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_t15i5"]
-frequency = 0.005
-fractal_octaves = 3
-
-[sub_resource type="QuadMesh" id="QuadMesh_uafbl"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_d16bl"]
-render_priority = 0
-shader = ExtResource("3_wb570")
-shader_parameter/terrain_size = Vector2(4, 4)
+size = Vector2(6, 6)
 
 [node name="Level" type="Node3D"]
 script = ExtResource("1_nlqcd")
@@ -51,11 +39,10 @@ environment = SubResource("Environment_t4b48")
 [node name="Ships" type="Node3D" parent="."]
 
 [node name="Ship" type="Node3D" parent="Ships"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1200, 0)
 script = ExtResource("2_loj4o")
+size = Vector2(6, 6)
 max_turning_speed = 360.0
 turning_acceleration = 360.0
-turning_decceleration = 180.0
 
 [node name="Model" type="MeshInstance3D" parent="Ships/Ship"]
 mesh = SubResource("QuadMesh_i5tax")
@@ -71,27 +58,23 @@ script = ExtResource("2_kq0tc")
 [node name="Planets" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 32)
 
-[node name="SimplePlanet" type="Node3D" parent="Planets"]
-script = ExtResource("4_jwgp2")
-radius = 1000.0
-base_noise = SubResource("FastNoiseLite_t15i5")
-base_noise_range = Vector2(0, 128)
-mass = 1.5e+06
+[node name="BasePlanet" parent="Planets" instance=ExtResource("5_2ebml")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5200, 0)
 
-[node name="Chunks" type="Node3D" parent="Planets/SimplePlanet"]
-script = ExtResource("6_w6rg6")
-chunk_size = 8.0
-chunk_resolution = Vector2i(32, 32)
-chunk_margin = 0
-chunk_mesh = SubResource("QuadMesh_uafbl")
-chunk_material = SubResource("ShaderMaterial_d16bl")
+[node name="Camera" type="Node3D" parent="."]
+script = ExtResource("4_46cbn")
+spring_force = 128.0
+zoom_lerp = 2.0
+far_zoom = 1024.0
+near_distance = 64.0
+far_distance = 2048.0
 
-[node name="Camera" type="Camera3D" parent="." node_paths=PackedStringArray("target")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1100, 33)
+[node name="Pivot" type="Node3D" parent="Camera"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 33)
+
+[node name="Camera" type="Camera3D" parent="Camera/Pivot"]
 projection = 1
 current = true
 size = 7.2
 near = 0.1
 far = 65.0
-script = ExtResource("4_46cbn")
-target = NodePath("../Ships/Ship")

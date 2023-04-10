@@ -54,7 +54,7 @@ func _process(delta: float) -> void:
 	var max_pos: Vector2 = Vector2(bounds.end.x, bounds.end.y)
 
 	# Get current lod
-	var lodf: float = log(cam.zoom) / log(2.0)
+	var lodf: float = log(cam.curr_zoom) / log(2.0)
 	var lod: int = floor(lodf)
 	lodf = lodf - lod
 
@@ -169,7 +169,7 @@ func process_chunk(x: int, y: int, lod: int) -> void:
 	var pos: Vector2 = Vector2(x, y) * size
 
 	# Check if chunk rect is inside planet bounds
-	if not planet.bounds.intersects(Rect2(pos - size * 0.5, size)): return
+	if not planet.intersects(pos - size * 0.5, size): return
 
 	# Get chunks of lod
 	var _chunks = self.chunks.get(lod, null)

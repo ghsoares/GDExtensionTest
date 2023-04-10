@@ -20,18 +20,17 @@ void fragment() {
 	float f = texture(terrain_texture, pix / texSize).r;
 	#endif
 	
-	// f = smoothstep(0.1, -0.1, f);
-	
+	// ALPHA = smoothstep(0.5, -0.5, f);
 	ALPHA = step(f, 0.0);
-	ALBEDO = vec3(fract(f / 32.0));
 	
-	float b = min(UV.x, 1.0 - UV.x);
+	// ALBEDO = vec3(fract(f / 32.0));
+	
+	/*float b = min(UV.x, 1.0 - UV.x);
 	b = min(b, min(UV.y, 1.0 - UV.y));
 	b = step(b, 0.01);
 	
-	ALPHA = max(ALPHA, b);
-	ALBEDO = mix(ALBEDO, vec3(1.0, 0.0, 0.0), b);
-	ALPHA *= 0.25;
+	ALPHA = max(ALPHA, b * 0.1);
+	ALBEDO = mix(ALBEDO, vec3(1.0, 0.0, 0.0), b);*/
 }
 
 

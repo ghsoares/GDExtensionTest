@@ -12,6 +12,9 @@ var camera: LevelCamera
 ## The planets root
 var planets_root: Node3D
 
+## The level ship
+var ship: Ship
+
 ## The level planets
 var planets: Array[LevelPlanet]
 
@@ -21,10 +24,12 @@ func _enter_tree() -> void:
 	terrain = $Terrain
 	camera = $Camera
 	planets_root = $Planets
+	ship = $Ships/Ship
 	planets.assign(planets_root.get_children())
 
 ## Called when ready
 func _ready() -> void:
+	# Initialize all currently added planets
 	for planet in planets:
 		planet.level = self
 		planet.initialize()

@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://d2q2gmuiilgbd"]
 
-[ext_resource type="PackedScene" uid="uid://c1j8xm2soicdj" path="res://scenes/Level.tscn" id="1_707qk"]
+[ext_resource type="PackedScene" uid="uid://ci1iuwueysdi4" path="res://scenes/Level.tscn" id="1_707qk"]
 
 [node name="LevelRenderer" type="Control"]
 layout_mode = 3

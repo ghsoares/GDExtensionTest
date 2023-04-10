@@ -31,12 +31,6 @@ var input_thruster: float = 0.0
 ## Turning acceleration
 @export var turning_acceleration: float = 90.0
 
-## Turning decceleration
-@export var turning_decceleration: float = 90.0
-
-## Mass of the ship
-@export var mass: float = 10.0
-
 ## Initialize this ship
 func _init() -> void:
 	super._init()
