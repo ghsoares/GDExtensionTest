@@ -11,7 +11,11 @@ var chunk_manager: LevelPlanetChunkManager
 var landings_root: Node3D
 
 ## The landing spots of this planet
-var landings: Array[LevelPlanetLanding]
+#var landings: Array[LevelPlanetLanding]
+var landings: QuadTree
+
+## Number of landings
+var landing_count: int
 
 ## Landing scene
 var landing_scene: PackedScene = ResourceLoader.load("res://scenes/planet/PlanetLanding.tscn")
@@ -44,13 +48,21 @@ func initialize() -> void:
 	# Get the landing transforms
 	var spots: Array[LevelPlanetLanding] = landing_spots()
 
+	# Create landings quad tree
+	landings = QuadTree.new(get_bounds(), 4, 4)
+
 	# For each spot, add the landing
 	for spot in spots:
 		# Add as child of landings root
 		landings_root.add_child(spot)
 
-		# Add landing
-		landings.append(spot)
+		# Add landing to the landings quad tree
+		landings.append(
+			Vector2(spot.transform.origin.x, spot.transform.origin.y),
+			spot
+		)
+	
+	# landing_count = landings.size()
 
 ## Override this function to generate the planet (spawn extra things, etc.)
 func generate() -> void: pass
@@ -129,10 +141,15 @@ func air_density(x: float, y: float) -> float:
 	return dens
 
 ## Gets the closest landing spot 
-func landing_spot(x: float, y: float) -> LevelPlanetLanding:
+func landing_spot(x: float, y: float, max_size: float = 512.0) -> LevelPlanetLanding:
 	# Closest spot and it's distance squared
 	var spot: LevelPlanetLanding = null
 	var dst: float = 0.0
+
+	# Get landings
+	var landings: Array = self.landings.get_inside(
+		Rect2(x - max_size * 0.5, y - max_size * 0.5, max_size, max_size)
+	)
 
 	# For each landing spot
 	for l in landings:

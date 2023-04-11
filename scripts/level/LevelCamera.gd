@@ -75,11 +75,6 @@ func _enter_tree() -> void:
 	target_transform = curr_transform
 	target_zoom = curr_zoom
 
-## On ready
-func _ready() -> void:
-	# Get viewport size
-	view_size = get_viewport().get_visible_rect().size
-
 ## Process every physics frame
 func _physics_process(delta: float) -> void:
 	# Get ship and it's transform
@@ -153,23 +148,80 @@ func _physics_process(delta: float) -> void:
 	# Set current transform position
 	curr_transform.origin = target_transform.origin
 
+	# Get time
+	var time: float = Time.get_ticks_msec() / 1000.0
+
+	# # Set origin manually
+	# curr_zoom = 50.0
+	# curr_transform.origin.x = cos(time * TAU / 500.0) * 32.0 * curr_zoom
+	# curr_transform.origin.y = -5512.0 + sin(time * TAU / 500.0) * 32.0 * curr_zoom
+	# curr_transform.basis = Basis.IDENTITY
+	# curr_offset = Vector2.ZERO
+
 ## Process every frame
 func _process(delta: float) -> void:
-	# Set camera transform
-	global_transform = curr_transform
-	global_transform.origin.x += curr_offset.x * curr_zoom
-	global_transform.origin.y += curr_offset.y * curr_zoom
+	# Get viewport
+	var view: Viewport = get_viewport()
 
-	# Set camera size
-	if camera.keep_aspect == Camera3D.KEEP_HEIGHT:
-		camera.size = view_size.y * curr_zoom * pixel_size
-	else:
-		camera.size = view_size.x * curr_zoom * pixel_size
+	# Get viewport size
+	view_size = view.get_visible_rect().size
+
+	# Get aspect size
+	var asize: float = view_size.y if camera.keep_aspect == Camera3D.KEEP_HEIGHT else view_size.x
+
+	# Camera transform
+	var tr: Transform3D = get_camera_transform()
+
+	# Set camera size and get snap
+	camera.size = asize * curr_zoom * pixel_size
+
+	# Get camera snap
+	var snap: float = get_camera_snap()
+
+	# # Snap the transform (relative to rotation)
+	# tr.origin = tr.basis.inverse() * tr.origin
+	# tr.origin.x = floor(tr.origin.x / snap) * snap
+	# tr.origin.y = floor(tr.origin.y / snap) * snap
+	# tr.origin = tr.basis * tr.origin
+
+	# Set camera transform
+	global_transform = tr
+	# curr_zoom = 128.0
+
+## Get camera snap
+func get_camera_snap() -> float:
+	# Get viewport
+	var view: Viewport = get_viewport()
+
+	# Get viewport size
+	view_size = view.get_visible_rect().size
+
+	# Get viewport pixel size
+	var view_pixel_size: Vector2 = view.size if view is SubViewport else view.get_visible_rect().size
+
+	# Get aspect size
+	var asize: float = view_size.y if camera.keep_aspect == Camera3D.KEEP_HEIGHT else view_size.x
+	var psize: float = view_pixel_size.y if camera.keep_aspect == Camera3D.KEEP_HEIGHT else view_pixel_size.x
+
+	# Get pixel scale
+	var scale: float = asize / psize
+
+	# Return snap
+	return scale * curr_zoom * pixel_size
+
+## Get camera global transform
+func get_camera_transform() -> Transform3D:
+	# Get transform
+	var tr: Transform3D = curr_transform
+	tr.origin.x += curr_offset.x * curr_zoom
+	tr.origin.y += curr_offset.y * curr_zoom
+
+	return tr
 
 ## Get camera global bounds
 func get_global_bounds() -> AABB:
 	# Get transform
-	var tr: Transform3D = global_transform
+	var tr: Transform3D = get_camera_transform()
 
 	# Get size
 	var size: Vector3 = Vector3(

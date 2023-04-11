@@ -56,9 +56,12 @@ func _process(mode: int, delta: float) -> void:
 				# Get local ship transform to landing
 				tr = tr.affine_inverse() * body.transform
 
+				# Get distance
+				var dist: float = abs(tr.origin.x) - landing.size * 0.5 - target.size.x * 0.5
+
 				# Too far away from landing, crashed
-				if abs(tr.origin.x) > 5.0:
-					print("Too far away: %s" % abs(tr.origin.x))
+				if dist > 0.0:
+					print("Too far away: %s" % dist)
 					query("exploded")
 					return
 					
@@ -72,11 +75,26 @@ func _process(mode: int, delta: float) -> void:
 					return
 					
 				# Get score
-				var score: float = clamp(1.0 - (abs(a) - 2.0) / 13.0, 0.0, 1.0)
-				score += clamp(1.0 - (spd - 4.0) / 12.0, 0.0, 1.0)
+				var score: float = remap(abs(a), 2.0, 15.0, 5.0, 0.0)
+				score += remap(spd, 4.0, 16.0, 5.0, 0.0)
+				score = clamp(score / 2.0, 0.0, 5.0)
 
-				print(round((score / 2.0) * 1000.0) / 10.0)
+				# Superb score
+				if (abs(a) < 3.0 and spd < 2.0):
+					print("Suberb!")
+					score *= 2.0
 				
+				# Multiply by 100
+				score *= 100
+				
+				# Multiply by landing score multiplier
+				score *= landing.score_multiplier
+
+				# Round to the nearest 10
+				score = round(score / 10.0) * 10.0
+				
+				print(score, ", x", landing.score_multiplier)
+
 				# Landed
 				query("landed")
 

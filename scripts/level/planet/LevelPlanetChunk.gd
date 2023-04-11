@@ -29,6 +29,15 @@ var tr: Transform3D
 ## Is visible
 var is_visible: bool
 
+## Current generation task
+var task_id: int = -1
+
+## Queried generation
+var generation_queried: bool = false
+
+## Finished generation
+var generation_finished: bool = false
+
 ## Initialize this chunk
 func initialize() -> void:
 	# Allocate resources
@@ -41,11 +50,30 @@ func initialize() -> void:
 	RenderingServer.instance_set_base(instance, mesh.get_rid())
 	RenderingServer.instance_geometry_set_material_override(instance, material.get_rid())
 
-## Generate this chunk
-func generate() -> void:
-	# Update the transform and texture
-	_update_texture()
-	update_transform()
+## Update this chunk
+func update() -> void:
+	# # Check if generation finished
+	# if task_id != -1 and generation_finished:
+	# 	task_id = -1
+	# 	generation_finished = false
+
+	# 	# Queried to generate again
+	# 	if generation_queried:
+	# 		generation_queried = false
+	# 		query_generate()
+	pass
+
+## Query this chunk to generate
+func query_generate() -> void:
+	# Is currently generating
+	if task_id != -1: generation_queried = true
+	else:
+		# Call the task
+		task_id = ThreadPool.queue_task(
+			_update_texture
+			# false, 
+			# "Chunk_%s_%s_generation" % [index.x, index.y]
+		)
 
 ## Update chunk transform relative to planet transform
 func update_transform() -> void:
@@ -88,6 +116,8 @@ func _update_texture() -> void:
 	var pos: Vector2 = Vector2(index.x, index.y) * size
 	var start: Vector2 = pos - size * 0.5
 
+	var start_time: int = Time.get_ticks_msec()
+
 	# For each pixel in resolution
 	for iy in res.y + 3:
 		for ix in res.x + 3:
@@ -100,9 +130,12 @@ func _update_texture() -> void:
 
 			# Get sdf
 			var sdf: float = planet.distance(p.x, p.y)
+			# var sdf: float = -1.0
 			
 			# Set sdf in image data
 			img_data.encode_float(of, sdf)
+	
+	# print(Time.get_ticks_msec() - start_time)
 
 	# Create image
 	if not img:
@@ -119,6 +152,9 @@ func _update_texture() -> void:
 	# Set texture in material
 	RenderingServer.material_set_param(material.get_rid(), "terrain_texture", tex)
 	RenderingServer.material_set_param(material.get_rid(), "terrain_size", Vector2(res.x, res.y))
+
+	# Finished generation
+	generation_finished = true
 
 ## Delete this chunk
 func delete() -> void:

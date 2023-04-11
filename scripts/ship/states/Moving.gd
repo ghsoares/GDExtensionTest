@@ -4,6 +4,9 @@ class_name ShipMovingState
 ## Current contact bitmask
 var contact_bitmask: int = 0
 
+## Current contact positions
+var contact_positions: Array[Vector2] = []
+
 ## Called every physics frame
 func _process(mode: int, delta: float) -> void:
 	# Process parent state and early return
@@ -56,6 +59,9 @@ func __apply_planet_collisions(delta: float) -> void:
 	# Number of corners
 	var count: int = corners.size()
 
+	# Resize contact positions
+	contact_positions.resize(count)
+
 	# For each iteration
 	for i in iterations:
 		# Total impulses
@@ -80,6 +86,9 @@ func __apply_planet_collisions(delta: float) -> void:
 
 			# Get point
 			var p: Vector2 = tr * c
+
+			# Set contact position
+			contact_positions[j] = p
 			
 			# Get offset
 			var o: Vector2 = tr.basis_xform(c)

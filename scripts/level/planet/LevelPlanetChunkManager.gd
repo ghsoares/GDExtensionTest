@@ -110,6 +110,9 @@ func process_all_chunks(min_pos: Vector2, max_pos: Vector2, lod: int, lodf: floa
 			# Set chunk transparency
 			chunk.set_transparency(a)
 
+			# Update chunk
+			chunk.update()
+
 			# Chunk is too far away
 			if index.x < min_chunk.x - chunk_remove_margin or index.x > max_chunk.x + chunk_remove_margin or index.y < min_chunk.y - chunk_remove_margin or index.y > max_chunk.y + chunk_remove_margin:
 				# print("Deleted Chunk index (%s, %s) lod %s" % [index.x, index.y, l])
@@ -207,5 +210,8 @@ func process_chunk(x: int, y: int, lod: float) -> void:
 		# Initialize the chunk
 		chunk.initialize()
 
+		# Set the chunk transform
+		chunk.update_transform()
+
 		# Generate the chunk
-		chunk.generate()
+		chunk.query_generate()

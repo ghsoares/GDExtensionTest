@@ -51,3 +51,14 @@ static func int_to_bin_string(num: int, padding: int = 0, big_endian: bool = tru
 				b = b.substr(0, b.length() + rem)
 
 	return b
+
+static func smoothmin(a: float, b: float, k: float) -> float:
+	var h: float = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0)
+	return (b + (a - b) * h) - k * h * (1.0 - h)
+
+static func smoothmax(a: float, b: float, k: float) -> float:
+	return smoothmin(a, b, -k)
+
+static func remap(val: float, a0: float, a1: float, b0: float, b1: float) -> float:
+	return b0 + (b1 - b0) * ((val - a0) / (a1 - a0))
+

@@ -32,7 +32,7 @@ func generate() -> void:
 ## Sample sdf from this planet
 func distance(x: float, y: float) -> float:
 	# Get nearest landing spot
-	var landing: LevelPlanetLanding = landing_spot(x, y)
+	var landing: LevelPlanetLanding = landing_spot(x, y, 256.0)
 
 	# Offset
 	var ox: float = x
@@ -48,18 +48,16 @@ func distance(x: float, y: float) -> float:
 	var dx: float = ox / d if d > 0.0 else ox
 	var dy: float = oy / d if d > 0.0 else oy
 
-	# Convert point distance to sdf
-	d -= radius
-
 	# Get in circle position
 	var cx: float = dx * radius
 	var cy: float = dy * radius
 
+	# Get height
+	var h: float = radius
+
 	# Get height noise (in 0..1 range)
 	var hn: float = base_noise.get_noise_2d(cx / base_noise_period, cy / base_noise_period) * 0.5 + 0.5
-
-	# Map to base noise range and subtract to distance
-	d -= base_noise_range.x + (base_noise_range.y - base_noise_range.x) * hn
+	h += base_noise_range.x + (base_noise_range.y - base_noise_range.x) * hn
 
 	# Has a landing spot
 	if landing != null:
@@ -72,15 +70,18 @@ func distance(x: float, y: float) -> float:
 		# Get the size
 		var s: float = landing.size
 
-		# Add terrain bellow
-		d = min(
-			d, max(abs(lx) - (s * 0.5 - min(ly, 0.0) + 8.0), ly)
-		)
+		# Get local height
+		var lh: float = landing.transform.basis.y.dot(landing.transform.origin)
 
-		# Remove terrain above
-		d = max(
-			d, -max(abs(lx) - (s * 0.5 - min(-ly, 0.0) + 8.0), -ly)
-		)
+		# Get landing height interpolation factor
+		var hf: float = clamp(1.0 - (abs(lx) - s) / 32.0, 0.0, 1.0)
+		hf = ease(hf, -2.0)
+
+		# Interpolate height
+		h = lerp(h, lh, hf)
+	
+	# Subtract from height
+	d -= h
 
 	# Return the result distance
 	return d
@@ -119,6 +120,7 @@ func landing_spots() -> Array[LevelPlanetLanding]:
 		
 		# Get height
 		var h: float = base_noise_range.x + (base_noise_range.y - base_noise_range.x) * hn
+		# h += 64.0
 
 		# Get position
 		var px: float = cx + dx * h
@@ -147,20 +149,23 @@ func landing_spots() -> Array[LevelPlanetLanding]:
 			# Set the landing size based on dificulty
 			match pick:
 				0: 
-					landing.size = 16.0
+					landing.size = 8.0
+					landing.score_multiplier = 3.0
 					hard -= 1
 				1: 
-					landing.size = 32.0
+					landing.size = 12.0
+					landing.score_multiplier = 2.0
 					medium -= 1
 				2: 
-					landing.size = 64.0
+					landing.size = 16.0
+					landing.score_multiplier = 1.0
 					easy -= 1
 
 			break
 
 		# Add to array
 		spots[i] = landing
-	
+
 	return spots
 
 ## Get the planet bounds

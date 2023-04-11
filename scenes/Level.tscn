@@ -28,7 +28,7 @@ size = Vector2(6, 6)
 shading_mode = 0
 
 [sub_resource type="QuadMesh" id="QuadMesh_ddhii"]
-size = Vector2(8, 256)
+size = Vector2(2, 64)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8gyea"]
 size = Vector2(6, 6)
@@ -54,7 +54,7 @@ mesh = SubResource("QuadMesh_i5tax")
 surface_material_override/0 = SubResource("StandardMaterial3D_hn2t0")
 
 [node name="Model2" type="MeshInstance3D" parent="Ships/Ship"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 128, -0.1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 32, -0.1)
 mesh = SubResource("QuadMesh_ddhii")
 surface_material_override/0 = SubResource("StandardMaterial3D_hn2t0")
 

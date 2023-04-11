@@ -42,6 +42,7 @@ shader = ExtResource("3_lxljc")
 shader_parameter/terrain_size = Vector2(4, 4)
 shader_parameter/transparency = 1.0
 shader_parameter/transform = null
+shader_parameter/noise_size = Vector2(512, 512)
 shader_parameter/noise_tiling = 4096.0
 shader_parameter/noise_steps = 8.0
 shader_parameter/ground_fade = 256.0
@@ -64,7 +65,6 @@ atmosphere_density = 0.25
 script = ExtResource("2_a0iq3")
 chunk_size = 8.0
 chunk_resolution = Vector2i(32, 32)
-chunk_margin = 0
 chunk_mesh = SubResource("QuadMesh_uafbl")
 chunk_material = SubResource("ShaderMaterial_d16bl")
 
