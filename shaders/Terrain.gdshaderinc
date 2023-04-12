@@ -2,7 +2,7 @@
 
 uniform sampler2D terrain_texture : source_color, filter_linear;
 uniform vec2 terrain_size = vec2(4.0);
-uniform float transparency = 1.0;
+uniform vec4 color: source_color = vec4(1.0);
 uniform mat4 transform;
 
 TEXTURE_BICUBIC_DEFINE(terrainTextureBicubic)

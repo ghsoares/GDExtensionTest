@@ -28,6 +28,7 @@ class_name SimplePlanet
 func generate() -> void:
 	# Set base noise seed
 	base_noise.seed = randi()
+	base_noise.seed = 260418639
 
 ## Sample sdf from this planet
 func distance(x: float, y: float) -> float:

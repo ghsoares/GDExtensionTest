@@ -75,8 +75,13 @@ func _enter_tree() -> void:
 	target_transform = curr_transform
 	target_zoom = curr_zoom
 
+	# Update the camera
+	__update_camera()
+	print("Initialized!")
+
 ## Process every physics frame
 func _physics_process(delta: float) -> void:
+	
 	# Get ship and it's transform
 	var ship: Ship = level.ship
 	var ship_tr: Transform3D = ship.global_transform
@@ -122,7 +127,7 @@ func _physics_process(delta: float) -> void:
 		var z1: float = near_zoom
 		var z2: float = far_zoom
 		target_zoom = z1 + (z2 - z1) * target_zoom
-		# target_zoom = pow(2.0, target_zoom)
+		#target_zoom = pow(target_zoom, 2.0)
 	# Too far away
 	else:
 		target_zoom = far_zoom
@@ -151,6 +156,9 @@ func _physics_process(delta: float) -> void:
 	# Get time
 	var time: float = Time.get_ticks_msec() / 1000.0
 
+	# curr_zoom = 512.0
+	# curr_offset = Vector2.ZERO
+
 	# # Set origin manually
 	# curr_zoom = 50.0
 	# curr_transform.origin.x = cos(time * TAU / 500.0) * 32.0 * curr_zoom
@@ -160,6 +168,10 @@ func _physics_process(delta: float) -> void:
 
 ## Process every frame
 func _process(delta: float) -> void:
+	__update_camera()
+
+## Internally update camera
+func __update_camera() -> void:
 	# Get viewport
 	var view: Viewport = get_viewport()
 
@@ -187,6 +199,7 @@ func _process(delta: float) -> void:
 	# Set camera transform
 	global_transform = tr
 	# curr_zoom = 128.0
+	pass
 
 ## Get camera snap
 func get_camera_snap() -> float:

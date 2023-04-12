@@ -28,6 +28,8 @@ var chunks: Dictionary = {}
 ## Chunk material (visual of the chunk)
 @export var chunk_material: Material
 
+var first: bool = true
+
 ## Called when entering the tree
 func _enter_tree() -> void:
 	# Get the nodes
@@ -42,6 +44,11 @@ func _exit_tree() -> void:
 
 ## Process every frame
 func _process(delta: float) -> void:
+	# if first: 
+	# 	first = false
+	# 	return
+	# first = false
+
 	# Get camera
 	var cam: LevelCamera = planet.level.camera
 
@@ -65,11 +72,12 @@ func _process(delta: float) -> void:
 	var lod: int = floor(lodf)
 	lodf -= lod
 
-	process_chunks_inside_range(min_pos, max_pos, lod)
-	process_all_chunks(min_pos, max_pos, lod, lodf)
+	generate_chunks_inside_bounds(min_pos, max_pos, lod)
+	remove_chunks_outside_bounds(min_pos, max_pos, lod)
+	update_all_chunks(min_pos, max_pos, lod, lodf)
 	
-## Process chunks inside bounds range with lod
-func process_chunks_inside_range(min_pos: Vector2, max_pos: Vector2, lod: int) -> void:
+## Generate chunks inside bounds with lod
+func generate_chunks_inside_bounds(min_pos: Vector2, max_pos: Vector2, lod: int) -> void:
 	# Process one higher
 	for i in 2:
 		# Get min/max chunk
@@ -81,10 +89,10 @@ func process_chunks_inside_range(min_pos: Vector2, max_pos: Vector2, lod: int) -
 		for iy in range(min_chunk.y, max_chunk.y + 1):
 			for ix in range(min_chunk.x, max_chunk.x + 1):
 				# Process this chunk
-				process_chunk(ix, iy, lod + i)
+				generate_chunk_if_not_exists(ix, iy, lod + i)
 
-## Process all chunks with lod and eliminate those outside bounds range
-func process_all_chunks(min_pos: Vector2, max_pos: Vector2, lod: int, lodf: float) -> void:
+## Remove chunks outside bounds range
+func remove_chunks_outside_bounds(min_pos: Vector2, max_pos: Vector2, lod: int) -> void:
 	# Get lod keys
 	var lod_keys: Array = chunks.keys()
 
@@ -101,20 +109,19 @@ func process_all_chunks(min_pos: Vector2, max_pos: Vector2, lod: int, lodf: floa
 		# Get lod difference
 		var lod_dif: float = l - lod
 
-		# Get chunk transparency
-		var a: float = 0.0
-		if lod_dif == 0: a = clamp(1.0 - (lodf - 0.5) / 0.5, 0.0, 1.0)
-		elif lod_dif == 1: a = clamp(lodf / 0.5, 0.0, 1.0)
-
 		# Get chunk keys
 		var chunk_keys: Array = chunks.keys()
 
 		# Remove entire level
 		if lod_dif < -lod_remove_margin or lod_dif > lod_remove_margin + 1:
+			# if l == 3: print(chunk_keys)
 			# For each index
 			for index in chunk_keys:
 				# Get chunk
 				var chunk: LevelPlanetChunk = chunks[index]
+
+				# Already queried for deletion
+				if chunk.deletion_queried: continue
 
 				# Query for deletion
 				chunk.query_delete()
@@ -124,29 +131,65 @@ func process_all_chunks(min_pos: Vector2, max_pos: Vector2, lod: int, lodf: floa
 				# Get chunk
 				var chunk: LevelPlanetChunk = chunks[index]
 
-				# Set chunk transparency
-				chunk.set_transparency(a)
-
-				# Update chunk
-				chunk.update()
+				# Is already queried for deletion
+				if chunk.deletion_queried: continue
 
 				# Chunk is too far away
 				if index.x < min_chunk.x - chunk_remove_margin or index.x > max_chunk.x + chunk_remove_margin or index.y < min_chunk.y - chunk_remove_margin or index.y > max_chunk.y + chunk_remove_margin:
-					# print("Deleted Chunk index (%s, %s) lod %s" % [index.x, index.y, l])
 					chunk.query_delete()
-					chunks.erase(index)
-				else:
-					# Is current lod (or one higher)
-					if lod_dif == 0 or lod_dif == 1:
-						chunk.show()
-					# Hide this chunk
-					else:
-						chunk.hide()
-					# Update transform
-					chunk.update_transform()
 
-## Generate all chunks inside bounds range
-func generate_chunks(min_pos: Vector2, max_pos: Vector2) -> void:
+## Update all chunks with lod and eliminate those outside bounds range
+func update_all_chunks(min_pos: Vector2, max_pos: Vector2, lod: int, lodf: float) -> void:
+	# Get lod keys
+	var lod_keys: Array = chunks.keys()
+
+	# For each lod
+	for l in lod_keys:
+		# Get chunks
+		var chunks: Dictionary = self.chunks[l]
+
+		# Get lod difference
+		var lod_dif: float = l - lod
+
+		# Get chunk transparency
+		var a: float = 0.0
+		if lod_dif == 0: a = clamp(1.0 - lodf, 0.0, 1.0) # clamp(1.0 - (lodf - 0.5) / 0.5, 0.0, 1.0)
+		elif lod_dif == 1: a = clamp(lodf, 0.0, 1.0)
+		a = ease(clamp(a / 0.5, 0.0, 1.0), -2.0)
+
+		# Get chunk keys
+		var chunk_keys: Array = chunks.keys()
+
+		# For each index
+		for index in chunk_keys:
+			# Get chunk
+			var chunk: LevelPlanetChunk = chunks[index]
+
+			# Set chunk transparency
+			chunk.set_transparency(a)
+
+			# Update chunk
+			chunk.update()
+
+			# Is not alive anymore
+			if not chunk.alive:
+				chunks.erase(index)
+			else:
+				# Is current lod (or one higher)
+				if lod_dif == 0 or lod_dif == 1:
+					chunk.show()
+				# Hide this chunk
+				else:
+					chunk.hide()
+				
+				# Set lod factor
+				chunk.lodf = lod + lodf
+				
+				# Update transform
+				chunk.update_transform()
+
+## Re-generate all chunks inside bounds range
+func regenerate_chunks_inside_bounds(min_pos: Vector2, max_pos: Vector2) -> void:
 	# Get lod keys
 	var lod_keys: Array = chunks.keys()
 
@@ -191,8 +234,8 @@ func get_min_max_chunk(min_pos: Vector2, max_pos: Vector2, lod: int) -> Rect2i:
 func get_chunk_size(lod: int) -> Vector2:
 	return Vector2.ONE * chunk_size * pow(2, lod)
 
-## Process chunk at position
-func process_chunk(x: int, y: int, lod: int) -> void:
+## Generate chunk at lod and index if doesn't exist already
+func generate_chunk_if_not_exists(x: int, y: int, lod: int) -> void:
 	# Get chunk position and size
 	var size: Vector2 = get_chunk_size(lod)
 	var pos: Vector2 = Vector2(x, y) * size
@@ -223,26 +266,13 @@ func process_chunk(x: int, y: int, lod: int) -> void:
 		chunk.lod = lod
 		chunk.mesh = chunk_mesh
 		chunk.material = chunk_material
-		
-		# Connect deleted signal
-		chunk.deleted.connect(self.on_chunk_deleted)
 
 		# Initialize the chunk
 		chunk.initialize()
 
-		# Set the chunk transform
-		chunk.update_transform()
-
 		# Generate the chunk
 		chunk.query_generate()
 
-## Called when a chunk is deleted
-func on_chunk_deleted(lod: int, index: Vector2i) -> void:
-	# Get level
-	var level: Dictionary = chunks[lod]
-
-	# Remove from level
-	if level.erase(index):
-		# print("Deleted chunk at LOD %s index %s" % [lod, index])
-		pass
+		# Set the chunk transform
+		chunk.update_transform()
 

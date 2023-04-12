@@ -75,3 +75,4 @@ func _process(delta: float) -> void:
 ## Called every physics frame
 func _physics_process(delta: float) -> void:
 	state_machine.process(ShipStateMachine.ProcessMode.PHYSICS, delta)
+	# print(get_body_state().transform.origin)

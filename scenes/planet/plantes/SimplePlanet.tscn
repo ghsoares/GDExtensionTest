@@ -40,7 +40,7 @@ noise = SubResource("FastNoiseLite_d04y0")
 render_priority = 0
 shader = ExtResource("3_lxljc")
 shader_parameter/terrain_size = Vector2(4, 4)
-shader_parameter/transparency = 1.0
+shader_parameter/color = Color(1, 1, 1, 1)
 shader_parameter/transform = null
 shader_parameter/noise_size = Vector2(512, 512)
 shader_parameter/noise_tiling = 4096.0
@@ -63,8 +63,9 @@ atmosphere_density = 0.25
 
 [node name="Chunks" type="Node3D" parent="."]
 script = ExtResource("2_a0iq3")
+chunk_size = 800.0
 chunk_resolution = Vector2i(32, 32)
-lod_remove_margin = 0
+lod_remove_margin = 1
 chunk_mesh = SubResource("QuadMesh_uafbl")
 chunk_material = SubResource("ShaderMaterial_d16bl")
 

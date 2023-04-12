@@ -23,6 +23,7 @@ void vertex() {
 
 void fragment() {
 	float a = sample_terrain(UV);
+	// a = 1.0;
 	ALPHA = step(a, 0.0);
 	
 	float n = noiseTextureBicubic(noise_color, (pos.xy / noise_tiling) * noise_size, noise_size).r;
@@ -32,20 +33,22 @@ void fragment() {
 	n = floor(n * noise_steps) / noise_steps;
 	
 	vec4 c = texture(gradient_color, vec2(n));
+	//c.xyz = vec3(1.0);
 	
 	ALBEDO = c.xyz;
 	
-	float sqa = min(min(UV.x, 1.0 - UV.x), min(UV.y, 1.0 - UV.y));
+	/*float sqa = min(min(UV.x, 1.0 - UV.x), min(UV.y, 1.0 - UV.y));
 	
 	vec4 square = vec4(
-		1.0, 0.0, 0.0, 
+		1.0, 1.0, 1.0, 
 		step(sqa - 0.01, 0.0)
 	);
 	
 	ALBEDO.xyz = mix(ALBEDO.xyz, square.xyz, square.a);
-	ALPHA = mix(ALPHA, square.a, square.a);
+	ALPHA = mix(ALPHA, square.a, square.a);*/
 	
-	ALPHA *= transparency;
+	ALBEDO *= color.rgb;
+	ALPHA *= color.a;
 }
 
 

@@ -42,6 +42,7 @@ environment = SubResource("Environment_t4b48")
 [node name="Ships" type="Node3D" parent="."]
 
 [node name="Ship" type="Node3D" parent="Ships"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5512, 0)
 script = ExtResource("2_loj4o")
 size = Vector2(6, 6)
 fuel_usage_ratio = 0.1
@@ -69,13 +70,14 @@ script = ExtResource("2_kq0tc")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 500)
 
 [node name="SimplePlanet" parent="Planets" instance=ExtResource("5_2ebml")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5512, 0)
 
 [node name="Camera" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3000, 0)
 script = ExtResource("4_46cbn")
 spring_force = 256.0
 zoom_lerp = 2.0
-far_zoom = 2048.0
+near_zoom = 32.0
+far_zoom = 6400.0
 near_distance = 64.0
 far_distance = 2048.0
 

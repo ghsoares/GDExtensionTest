@@ -10,6 +10,9 @@ var index: Vector2i
 ## Chunk lod
 var lod: int
 
+## Current lod factor
+var lodf: float
+
 ## Chunk quad mesh
 var mesh: Mesh
 
@@ -27,7 +30,7 @@ var tex: RID
 var tr: Transform3D
 
 ## Is visible
-var is_visible: bool
+var is_visible: bool = true
 
 ## Current generation task
 var task_id: int = -1
@@ -41,11 +44,15 @@ var generation_queried: bool = false
 ## Finished generation
 var generation_finished: bool = false
 
-## Signal emited when this chunk is deleted
-signal deleted(lod: int, index: Vector2i)
+## Is this chunk alive
+var alive: bool = true
 
 ## Initialize this chunk
 func initialize() -> void:
+	# Get chunk position and size
+	var size: Vector2 = chunk_manager.get_chunk_size(lod)
+	var pos: Vector2 = Vector2(index.x, index.y) * size
+
 	# Allocate resources
 	instance = RenderingServer.instance_create()
 	material = material.duplicate()
@@ -55,6 +62,12 @@ func initialize() -> void:
 	RenderingServer.instance_set_scenario(instance, scenario)
 	RenderingServer.instance_set_base(instance, mesh.get_rid())
 	RenderingServer.instance_geometry_set_material_override(instance, material.get_rid())
+
+	# Set transform
+	tr = Transform3D(
+		Basis.from_scale(Vector3(size.x, size.y, 1.0)),
+		Vector3(pos.x, pos.y, 0.0)
+	)
 
 ## Update this chunk
 func update() -> void:
@@ -69,13 +82,15 @@ func update() -> void:
 			query_generate()
 		# Queried to delete
 		if deletion_queried:
-			deletion_queried = false
 			_delete()
 
 ## Query this chunk to generate
 func query_generate() -> void:
 	# Already queried to generate
 	if generation_queried: return
+
+	# Is queried to delete
+	if deletion_queried: return
 	
 	# Is currently generating
 	if task_id != -1: generation_queried = true
@@ -83,26 +98,36 @@ func query_generate() -> void:
 		# Call the task
 		task_id = ThreadPool.queue_task(_update_texture)
 
+## Query to delete this chunk
+func query_delete() -> void:
+	# Already queried to delete
+	if deletion_queried: return
+
+	# Is generating
+	if task_id != -1:
+		deletion_queried = true
+	else:
+		_delete()
+
 ## Update chunk transform relative to planet transform
 func update_transform() -> void:
-	# Get chunk position and size
-	var size: Vector2 = chunk_manager.get_chunk_size(lod)
-	var pos: Vector2 = Vector2(index.x, index.y) * size
-
-	# Set transform
-	tr = Transform3D(
-		Basis.from_scale(Vector3(size.x, size.y, 1.0)),
-		Vector3(pos.x, pos.y, 0.0)
-	)
 	RenderingServer.instance_set_transform(
 		instance, 
-		chunk_manager.global_transform * tr
+		chunk_manager.global_transform * 
+		tr * Transform3D().translated(Vector3(0.0, 0.0, lod - lodf - 1.0))
 	)
 	RenderingServer.material_set_param(material.get_rid(), "transform", tr)
 
 ## Set the chunk transparency
 func set_transparency(a: float) -> void:
-	RenderingServer.material_set_param(material.get_rid(), "transparency", a)
+	# Get current color
+	var color: Color = RenderingServer.material_get_param(material.get_rid(), "color")
+
+	# Set only the transparent part
+	color.a = a
+
+	# Set the color back
+	RenderingServer.material_set_param(material.get_rid(), "color", color)
 
 ## Generate the terrain texture
 func _update_texture() -> void:
@@ -163,21 +188,14 @@ func _update_texture() -> void:
 ## Delete this chunk
 func _delete() -> void:
 	# Dealocate resources
+	RenderingServer.instance_set_scenario(instance, RID())
 	RenderingServer.free_rid(tex)
 	RenderingServer.free_rid(instance)
+	
+	instance = RID()
+	tex = RID()
 
-	deleted.emit(lod, index)
-
-## Query to delete this chunk
-func query_delete() -> void:
-	# Already queried to delete
-	if deletion_queried: return
-
-	# Is generating
-	if task_id != -1:
-		deletion_queried = true
-	else:
-		_delete()
+	alive = false
 	
 ## Show this chunk
 func show() -> void:
