@@ -7,8 +7,8 @@ var planet: LevelPlanet
 ## Current spawned chunks
 var chunks: Dictionary = {}
 
-## Chunk size in meters
-@export var chunk_size: float = 32.0
+## Chunk size in pixels
+@export var chunk_size: float = 1024.0
 
 ## Chunk resolution (used for the SDF map)
 @export var chunk_resolution: Vector2i = Vector2i(8, 8)
@@ -33,6 +33,13 @@ func _enter_tree() -> void:
 	# Get the nodes
 	planet = get_parent()
 
+## Called when exiting the tree
+func _exit_tree() -> void:
+	# Delete all chunks
+	for level in chunks.values():
+		for chunk in level.values():
+			chunk.query_delete()
+
 ## Process every frame
 func _process(delta: float) -> void:
 	# Get camera
@@ -54,7 +61,7 @@ func _process(delta: float) -> void:
 	var max_pos: Vector2 = Vector2(bounds.end.x, bounds.end.y)
 
 	# Get current lod
-	var lodf: float = log(cam.curr_zoom) / log(2.0)
+	var lodf: float = log(cam.curr_zoom * cam.pixel_size) / log(2.0)
 	var lod: int = floor(lodf)
 	lodf -= lod
 
@@ -102,31 +109,41 @@ func process_all_chunks(min_pos: Vector2, max_pos: Vector2, lod: int, lodf: floa
 		# Get chunk keys
 		var chunk_keys: Array = chunks.keys()
 
-		# For each index
-		for index in chunk_keys:
-			# Get chunk
-			var chunk: LevelPlanetChunk = chunks[index]
+		# Remove entire level
+		if lod_dif < -lod_remove_margin or lod_dif > lod_remove_margin + 1:
+			# For each index
+			for index in chunk_keys:
+				# Get chunk
+				var chunk: LevelPlanetChunk = chunks[index]
 
-			# Set chunk transparency
-			chunk.set_transparency(a)
+				# Query for deletion
+				chunk.query_delete()
+		else:
+			# For each index
+			for index in chunk_keys:
+				# Get chunk
+				var chunk: LevelPlanetChunk = chunks[index]
 
-			# Update chunk
-			chunk.update()
+				# Set chunk transparency
+				chunk.set_transparency(a)
 
-			# Chunk is too far away
-			if index.x < min_chunk.x - chunk_remove_margin or index.x > max_chunk.x + chunk_remove_margin or index.y < min_chunk.y - chunk_remove_margin or index.y > max_chunk.y + chunk_remove_margin:
-				# print("Deleted Chunk index (%s, %s) lod %s" % [index.x, index.y, l])
-				chunk.delete()
-				chunks.erase(index)
-			else:
-				# Is current lod (or one higher)
-				if lod_dif == 0 or lod_dif == 1:
-					chunk.show()
-				# Hide this chunk
+				# Update chunk
+				chunk.update()
+
+				# Chunk is too far away
+				if index.x < min_chunk.x - chunk_remove_margin or index.x > max_chunk.x + chunk_remove_margin or index.y < min_chunk.y - chunk_remove_margin or index.y > max_chunk.y + chunk_remove_margin:
+					# print("Deleted Chunk index (%s, %s) lod %s" % [index.x, index.y, l])
+					chunk.query_delete()
+					chunks.erase(index)
 				else:
-					chunk.hide()
-				# Update transform
-				chunk.update_transform()
+					# Is current lod (or one higher)
+					if lod_dif == 0 or lod_dif == 1:
+						chunk.show()
+					# Hide this chunk
+					else:
+						chunk.hide()
+					# Update transform
+					chunk.update_transform()
 
 ## Generate all chunks inside bounds range
 func generate_chunks(min_pos: Vector2, max_pos: Vector2) -> void:
@@ -175,7 +192,7 @@ func get_chunk_size(lod: int) -> Vector2:
 	return Vector2.ONE * chunk_size * pow(2, lod)
 
 ## Process chunk at position
-func process_chunk(x: int, y: int, lod: float) -> void:
+func process_chunk(x: int, y: int, lod: int) -> void:
 	# Get chunk position and size
 	var size: Vector2 = get_chunk_size(lod)
 	var pos: Vector2 = Vector2(x, y) * size
@@ -206,6 +223,9 @@ func process_chunk(x: int, y: int, lod: float) -> void:
 		chunk.lod = lod
 		chunk.mesh = chunk_mesh
 		chunk.material = chunk_material
+		
+		# Connect deleted signal
+		chunk.deleted.connect(self.on_chunk_deleted)
 
 		# Initialize the chunk
 		chunk.initialize()
@@ -215,3 +235,14 @@ func process_chunk(x: int, y: int, lod: float) -> void:
 
 		# Generate the chunk
 		chunk.query_generate()
+
+## Called when a chunk is deleted
+func on_chunk_deleted(lod: int, index: Vector2i) -> void:
+	# Get level
+	var level: Dictionary = chunks[lod]
+
+	# Remove from level
+	if level.erase(index):
+		# print("Deleted chunk at LOD %s index %s" % [lod, index])
+		pass
+

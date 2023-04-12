@@ -75,7 +75,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5512, 0)
 script = ExtResource("4_46cbn")
 spring_force = 256.0
 zoom_lerp = 2.0
-far_zoom = 1024.0
+far_zoom = 2048.0
 near_distance = 64.0
 far_distance = 2048.0
 

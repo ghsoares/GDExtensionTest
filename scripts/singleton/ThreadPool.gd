@@ -91,13 +91,7 @@ func __initialize_pool() -> void:
 	finished = false
 
 	# Get number of threads
-	var count: int = ProjectSettings.get_setting("threading/thread_pool/max_threads", 0)
-
-	# Automatic thread count
-	if count == 0:
-		count = OS.get_processor_count()
-	
-	count = 4
+	var count: int = ProjectSettings.get_setting("threading/thread_pool/max_threads", 4)
 
 	# Create the pool
 	pool.resize(count)
@@ -117,6 +111,10 @@ func __finalize_pool() -> void:
 	# Execute each task
 	for th in pool:
 		task_wait.post()
+	
+	# Wait for each task
+	for th in pool:
+		th.wait_to_finish()
 	
 	# Clear the tasks
 	task_lock.lock()

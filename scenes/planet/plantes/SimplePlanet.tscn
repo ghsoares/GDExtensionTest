@@ -63,8 +63,8 @@ atmosphere_density = 0.25
 
 [node name="Chunks" type="Node3D" parent="."]
 script = ExtResource("2_a0iq3")
-chunk_size = 8.0
 chunk_resolution = Vector2i(32, 32)
+lod_remove_margin = 0
 chunk_mesh = SubResource("QuadMesh_uafbl")
 chunk_material = SubResource("ShaderMaterial_d16bl")
 
