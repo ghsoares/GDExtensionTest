@@ -81,7 +81,6 @@ func _enter_tree() -> void:
 
 ## Process every physics frame
 func _physics_process(delta: float) -> void:
-	
 	# Get ship and it's transform
 	var ship: Ship = level.ship
 	var ship_tr: Transform3D = ship.global_transform
@@ -127,7 +126,6 @@ func _physics_process(delta: float) -> void:
 		var z1: float = near_zoom
 		var z2: float = far_zoom
 		target_zoom = z1 + (z2 - z1) * target_zoom
-		#target_zoom = pow(target_zoom, 2.0)
 	# Too far away
 	else:
 		target_zoom = far_zoom

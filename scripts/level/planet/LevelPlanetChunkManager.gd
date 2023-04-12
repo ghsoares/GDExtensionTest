@@ -74,12 +74,12 @@ func _process(delta: float) -> void:
 
 	generate_chunks_inside_bounds(min_pos, max_pos, lod)
 	remove_chunks_outside_bounds(min_pos, max_pos, lod)
-	update_all_chunks(min_pos, max_pos, lod, lodf)
+	update_all_chunks(delta, min_pos, max_pos, lod, lodf)
 	
 ## Generate chunks inside bounds with lod
 func generate_chunks_inside_bounds(min_pos: Vector2, max_pos: Vector2, lod: int) -> void:
 	# Process one higher
-	for i in 2:
+	for i in 1:
 		# Get min/max chunk
 		var chunk_indexes: Rect2i = get_min_max_chunk(min_pos, max_pos, lod + i)
 		var min_chunk: Vector2i = chunk_indexes.position
@@ -103,33 +103,35 @@ func remove_chunks_outside_bounds(min_pos: Vector2, max_pos: Vector2, lod: int) 
 		var min_chunk: Vector2i = chunk_indexes.position
 		var max_chunk: Vector2i = chunk_indexes.size
 
-		# Get chunks
-		var chunks: Dictionary = self.chunks[l]
+		# Get level chunks
+		var level: Dictionary = self.chunks[l]
 
 		# Get lod difference
 		var lod_dif: float = l - lod
 
 		# Get chunk keys
-		var chunk_keys: Array = chunks.keys()
+		var chunk_keys: Array = level.keys()
 
 		# Remove entire level
 		if lod_dif < -lod_remove_margin or lod_dif > lod_remove_margin + 1:
-			# if l == 3: print(chunk_keys)
 			# For each index
 			for index in chunk_keys:
 				# Get chunk
-				var chunk: LevelPlanetChunk = chunks[index]
+				var chunk: LevelPlanetChunk = level[index]
 
 				# Already queried for deletion
 				if chunk.deletion_queried: continue
 
 				# Query for deletion
 				chunk.query_delete()
+
+				# Instant deletion
+				if not chunk.alive: level.erase(index)
 		else:
 			# For each index
 			for index in chunk_keys:
 				# Get chunk
-				var chunk: LevelPlanetChunk = chunks[index]
+				var chunk: LevelPlanetChunk = level[index]
 
 				# Is already queried for deletion
 				if chunk.deletion_queried: continue
@@ -138,50 +140,41 @@ func remove_chunks_outside_bounds(min_pos: Vector2, max_pos: Vector2, lod: int) 
 				if index.x < min_chunk.x - chunk_remove_margin or index.x > max_chunk.x + chunk_remove_margin or index.y < min_chunk.y - chunk_remove_margin or index.y > max_chunk.y + chunk_remove_margin:
 					chunk.query_delete()
 
+					# Instant deletion
+					if not chunk.alive: level.erase(index)				
+
 ## Update all chunks with lod and eliminate those outside bounds range
-func update_all_chunks(min_pos: Vector2, max_pos: Vector2, lod: int, lodf: float) -> void:
+func update_all_chunks(delta: float, min_pos: Vector2, max_pos: Vector2, lod: int, lodf: float) -> void:
 	# Get lod keys
 	var lod_keys: Array = chunks.keys()
 
 	# For each lod
 	for l in lod_keys:
-		# Get chunks
-		var chunks: Dictionary = self.chunks[l]
+		# Get lod level chunks
+		var level: Dictionary = chunks[l]
 
 		# Get lod difference
 		var lod_dif: float = l - lod
 
-		# Get chunk transparency
-		var a: float = 0.0
-		if lod_dif == 0: a = clamp(1.0 - lodf, 0.0, 1.0) # clamp(1.0 - (lodf - 0.5) / 0.5, 0.0, 1.0)
-		elif lod_dif == 1: a = clamp(lodf, 0.0, 1.0)
-		a = ease(clamp(a / 0.5, 0.0, 1.0), -2.0)
-
 		# Get chunk keys
-		var chunk_keys: Array = chunks.keys()
+		var chunk_keys: Array = level.keys()
 
 		# For each index
 		for index in chunk_keys:
 			# Get chunk
-			var chunk: LevelPlanetChunk = chunks[index]
+			var chunk: LevelPlanetChunk = level[index]
 
-			# Set chunk transparency
-			chunk.set_transparency(a)
+			# Set chunk visibilty
+			chunk.is_visible = lod_dif == 0
 
 			# Update chunk
-			chunk.update()
+			chunk.update(delta)
 
 			# Is not alive anymore
 			if not chunk.alive:
-				chunks.erase(index)
+				assert(level.erase(index), "Couldn't erase the chunk")
+				assert(not level.has(index), "Bugggg")
 			else:
-				# Is current lod (or one higher)
-				if lod_dif == 0 or lod_dif == 1:
-					chunk.show()
-				# Hide this chunk
-				else:
-					chunk.hide()
-				
 				# Set lod factor
 				chunk.lodf = lod + lodf
 				

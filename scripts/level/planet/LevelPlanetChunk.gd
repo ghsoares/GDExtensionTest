@@ -32,6 +32,12 @@ var tr: Transform3D
 ## Is visible
 var is_visible: bool = true
 
+## Internal fade factor
+var _fade: float = 0.0
+
+## Color of the chunk
+var color: Color = Color.WHITE
+
 ## Current generation task
 var task_id: int = -1
 
@@ -70,7 +76,36 @@ func initialize() -> void:
 	)
 
 ## Update this chunk
-func update() -> void:
+func update(delta: float) -> void:
+	# Fade-in and fade-out time (in secs)
+	var fade_in: float = 0.25
+	var fade_out: float = 0.25
+
+	# Show
+	if is_visible:
+		if _fade < 1.0:
+			_fade += min((1 + fade_in) - _fade, delta / fade_in)
+		else: _fade = 1.0 + fade_in
+	# Hide
+	else:
+		if _fade > 1.0:
+			_fade += max(-_fade, -delta)
+		else:
+			_fade += max(-_fade, -delta / fade_out)
+
+	# Result fade
+	var f: float = clamp(_fade, 0.0, 1.0)
+	f = ease(f, -2.0)
+	
+	# Set material coor
+	RenderingServer.material_set_param(
+		material.get_rid(), "color", 
+		color * Color(1.0, 1.0, 1.0, f)
+	)
+
+	# Set visible to false when fade is equal zero
+	RenderingServer.instance_set_visible(instance, _fade > 0.0)
+
 	# Check if generation finished
 	if task_id != -1 and generation_finished:
 		task_id = -1
@@ -117,17 +152,6 @@ func update_transform() -> void:
 		tr * Transform3D().translated(Vector3(0.0, 0.0, lod - lodf - 1.0))
 	)
 	RenderingServer.material_set_param(material.get_rid(), "transform", tr)
-
-## Set the chunk transparency
-func set_transparency(a: float) -> void:
-	# Get current color
-	var color: Color = RenderingServer.material_get_param(material.get_rid(), "color")
-
-	# Set only the transparent part
-	color.a = a
-
-	# Set the color back
-	RenderingServer.material_set_param(material.get_rid(), "color", color)
 
 ## Generate the terrain texture
 func _update_texture() -> void:

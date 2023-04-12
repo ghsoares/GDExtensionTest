@@ -77,7 +77,7 @@ script = ExtResource("4_46cbn")
 spring_force = 256.0
 zoom_lerp = 2.0
 near_zoom = 32.0
-far_zoom = 6400.0
+far_zoom = 4096.0
 near_distance = 64.0
 far_distance = 2048.0
 

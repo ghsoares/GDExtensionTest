@@ -37,7 +37,8 @@ void fragment() {
 	
 	ALBEDO = c.xyz;
 	
-	/*float sqa = min(min(UV.x, 1.0 - UV.x), min(UV.y, 1.0 - UV.y));
+	#ifdef DEBUG_RECT
+	float sqa = min(min(UV.x, 1.0 - UV.x), min(UV.y, 1.0 - UV.y));
 	
 	vec4 square = vec4(
 		1.0, 1.0, 1.0, 
@@ -45,7 +46,8 @@ void fragment() {
 	);
 	
 	ALBEDO.xyz = mix(ALBEDO.xyz, square.xyz, square.a);
-	ALPHA = mix(ALPHA, square.a, square.a);*/
+	ALPHA = mix(ALPHA, square.a, square.a);
+	#endif
 	
 	ALBEDO *= color.rgb;
 	ALPHA *= color.a;
