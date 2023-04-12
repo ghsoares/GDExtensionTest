@@ -132,7 +132,7 @@ func __apply_planet_collisions(delta: float) -> void:
 					
 				# Apply to both position and rotation
 				imp_pos += imp_move
-				imp_rot += nm * o.cross(imp_move) / inv_mass
+				imp_rot += inv_inertia * o.cross(imp_move / nm)
 
 				# Apply to both linear and angular velocity
 				imp_lv += imp_forc * nm

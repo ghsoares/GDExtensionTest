@@ -70,14 +70,13 @@ func _enter_tree() -> void:
 	# Set current and target variables
 	linear_velocity = Vector2.ZERO
 	curr_transform = global_transform
-	curr_zoom = 512.0
+	curr_zoom = 4.0
 	target_velocity = Vector2.ZERO
 	target_transform = curr_transform
 	target_zoom = curr_zoom
 
 	# Update the camera
 	__update_camera()
-	print("Initialized!")
 
 ## Process every physics frame
 func _physics_process(delta: float) -> void:
@@ -183,7 +182,7 @@ func __update_camera() -> void:
 	var tr: Transform3D = get_camera_transform()
 
 	# Set camera size and get snap
-	camera.size = asize * curr_zoom * pixel_size
+	camera.size = asize * curr_zoom
 
 	# Get camera snap
 	var snap: float = get_camera_snap()
@@ -196,36 +195,18 @@ func __update_camera() -> void:
 
 	# Set camera transform
 	global_transform = tr
-	# curr_zoom = 128.0
-	pass
 
 ## Get camera snap
 func get_camera_snap() -> float:
-	# Get viewport
-	var view: Viewport = get_viewport()
-
-	# Get viewport size
-	view_size = view.get_visible_rect().size
-
-	# Get viewport pixel size
-	var view_pixel_size: Vector2 = view.size if view is SubViewport else view.get_visible_rect().size
-
-	# Get aspect size
-	var asize: float = view_size.y if camera.keep_aspect == Camera3D.KEEP_HEIGHT else view_size.x
-	var psize: float = view_pixel_size.y if camera.keep_aspect == Camera3D.KEEP_HEIGHT else view_pixel_size.x
-
-	# Get pixel scale
-	var scale: float = asize / psize
-
 	# Return snap
-	return scale * curr_zoom * pixel_size
+	return 1.0 * curr_zoom
 
 ## Get camera global transform
 func get_camera_transform() -> Transform3D:
 	# Get transform
 	var tr: Transform3D = curr_transform
-	tr.origin.x += curr_offset.x * curr_zoom
-	tr.origin.y += curr_offset.y * curr_zoom
+	tr.origin.x += curr_offset.x * curr_zoom / pixel_size
+	tr.origin.y += curr_offset.y * curr_zoom / pixel_size
 
 	return tr
 
@@ -237,7 +218,7 @@ func get_global_bounds() -> AABB:
 	# Get size
 	var size: Vector3 = Vector3(
 		view_size.x, view_size.y, 0.0
-	) * curr_zoom * pixel_size
+	) * curr_zoom
 
 	# Get local AABB
 	var aabb: AABB = AABB(-size * 0.5, size)

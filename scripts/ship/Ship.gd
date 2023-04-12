@@ -23,19 +23,19 @@ var input_thruster: float = 0.0
 @export var size: Vector2 = Vector2(3.0, 6.0)
 
 ## Max fuel
-@export var max_fuel: float = 1000.0
+@export var max_fuel: float = 40000.0
 
 ## Fuel/force usage ratio
 @export var fuel_usage_ratio: float = 1.0
 
 ## Max thruster force (in meters)
-@export var max_thruster_force: float = 50.0
+@export var max_thruster_force: float = 1000.0
 
 ## Max turning speed (in meters/second)
 @export var max_turning_speed: float = 90.0
 
 ## Thruster acceleration
-@export var thruster_acceleration: float = 50.0
+@export var thruster_acceleration: float = 250.0
 
 ## Turning acceleration
 @export var turning_acceleration: float = 90.0

@@ -54,16 +54,18 @@ shader_parameter/gradient_ground = SubResource("GradientTexture1D_8fkwr")
 
 [node name="SimplePlanet" type="Node3D"]
 script = ExtResource("1_vxr0h")
-radius = 5000.0
+radius = 16000.0
 base_noise = SubResource("FastNoiseLite_t15i5")
-base_noise_range = Vector2(0, 512)
-surface = 5000.0
-gravity = 20.0
+base_noise_range = Vector2(0, 2000)
+base_noise_period = 4000.0
+surface = 16000.0
+surface_fade = 8000.0
+gravity = 200.0
+gravity_fade = 12000.0
 atmosphere_density = 0.25
 
 [node name="Chunks" type="Node3D" parent="."]
 script = ExtResource("2_a0iq3")
-chunk_size = 800.0
 chunk_resolution = Vector2i(32, 32)
 lod_remove_margin = 1
 chunk_mesh = SubResource("QuadMesh_uafbl")

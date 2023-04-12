@@ -150,17 +150,17 @@ func landing_spots() -> Array[LevelPlanetLanding]:
 			# Set the landing size based on dificulty
 			match pick:
 				0: 
-					landing.size = 8.0
-					landing.score_multiplier = 3.0
-					hard -= 1
+					landing.size = 72.0
+					landing.score_multiplier = 1.0
+					easy -= 1
 				1: 
-					landing.size = 12.0
+					landing.size = 54.0
 					landing.score_multiplier = 2.0
 					medium -= 1
 				2: 
-					landing.size = 16.0
-					landing.score_multiplier = 1.0
-					easy -= 1
+					landing.size = 40.0
+					landing.score_multiplier = 3.0
+					hard -= 1
 
 			break
 

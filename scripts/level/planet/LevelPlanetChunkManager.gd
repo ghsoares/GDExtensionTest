@@ -68,7 +68,7 @@ func _process(delta: float) -> void:
 	var max_pos: Vector2 = Vector2(bounds.end.x, bounds.end.y)
 
 	# Get current lod
-	var lodf: float = log(cam.curr_zoom * cam.pixel_size) / log(2.0)
+	var lodf: float = log(cam.curr_zoom) / log(2.0)
 	var lod: int = floor(lodf)
 	lodf -= lod
 

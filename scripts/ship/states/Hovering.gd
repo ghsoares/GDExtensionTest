@@ -33,7 +33,7 @@ func _process(mode: int, delta: float) -> void:
 				var spd: float = body.linear_velocity.length()
 
 				# Too fast, crashed
-				if spd > 16.0:
+				if spd > 64.0:
 					print("Too fast: %s" % spd)
 					query("exploded")
 					return
@@ -76,11 +76,11 @@ func _process(mode: int, delta: float) -> void:
 					
 				# Get score
 				var score: float = remap(abs(a), 2.0, 15.0, 5.0, 0.0)
-				score += remap(spd, 4.0, 16.0, 5.0, 0.0)
+				score += remap(spd, 16.0, 64.0, 5.0, 0.0)
 				score = clamp(score / 2.0, 0.0, 5.0)
 
 				# Superb score
-				if (abs(a) < 3.0 and spd < 2.0):
+				if (abs(a) < 3.0 and spd < 4.0):
 					print("Suberb!")
 					score *= 2.0
 				

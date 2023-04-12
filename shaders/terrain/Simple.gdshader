@@ -37,6 +37,7 @@ void fragment() {
 	
 	ALBEDO = c.xyz;
 	
+	// #define DEBUG_RECT
 	#ifdef DEBUG_RECT
 	float sqa = min(min(UV.x, 1.0 - UV.x), min(UV.y, 1.0 - UV.y));
 	
