@@ -174,7 +174,7 @@ func __update_camera() -> void:
 
 	# Get viewport size
 	view_size = view.get_visible_rect().size
-
+	
 	# Get aspect size
 	var asize: float = view_size.y if camera.keep_aspect == Camera3D.KEEP_HEIGHT else view_size.x
 
