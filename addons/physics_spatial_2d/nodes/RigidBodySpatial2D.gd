@@ -41,30 +41,134 @@ class RigidBodySpatial2DInOut:
 var m_contact_monitor: ContactMonitor = null
 
 # -- Public variables --
-@export var mass: float = 1.0
-@export var inertia: float = 0.0
-@export var center_of_mass_mode: CenterOfMassMode = CenterOfMassMode.AUTO
-@export var physics_material_override: PhysicsMaterial
-@export var gravity_scale: float = 1.0
+@export var mass: float = 1.0:
+	get: return mass
+	set(value):
+		assert(value > 0)
+		mass = value
+		PhysicsServer2D.body_set_param(m_rid, PhysicsServer2D.BODY_PARAM_MASS, mass)
+
+@export var inertia: float = 0.0:
+	get: return inertia
+	set(value):
+		assert(value >= 0)
+		inertia = value
+		PhysicsServer2D.body_set_param(m_rid, PhysicsServer2D.BODY_PARAM_INERTIA, inertia)
+
+@export var center_of_mass_mode: CenterOfMassMode = CenterOfMassMode.AUTO:
+	get: return center_of_mass_mode
+	set(value):
+		if center_of_mass_mode == value: return
+		center_of_mass_mode = value
+
+		match center_of_mass_mode:
+			CenterOfMassMode.AUTO:
+				center_of_mass = Vector2()
+				PhysicsServer2D.body_reset_mass_properties(m_rid)
+				if inertia != 0.0:
+					PhysicsServer2D.body_set_param(m_rid, PhysicsServer2D.BODY_PARAM_INERTIA, inertia)
+			CenterOfMassMode.CUSTOM:
+				PhysicsServer2D.body_set_param(m_rid, PhysicsServer2D.BODY_PARAM_CENTER_OF_MASS, center_of_mass)
+
+@export var center_of_mass: Vector2 = Vector2.ZERO:
+	get: return center_of_mass
+	set(value):
+		if center_of_mass == value: return
+
+		assert(center_of_mass_mode == CenterOfMassMode.CUSTOM)
+		center_of_mass = value
+
+		PhysicsServer2D.body_set_param(m_rid, PhysicsServer2D.BODY_PARAM_CENTER_OF_MASS, center_of_mass)
+
+@export var physics_material_override: PhysicsMaterial:
+	get: return physics_material_override
+	set(value):
+		if physics_material_override:
+			if physics_material_override.changed.is_connected(__reload_physics_characteristics):
+				physics_material_override.changed.disconnect(__reload_physics_characteristics)
+		
+		physics_material_override = value
+
+		if physics_material_override:
+			physics_material_override.changed.connect(__reload_physics_characteristics)
+		
+		__reload_physics_characteristics()
+
+@export var gravity_scale: float = 1.0:
+	get: return gravity_scale
+	set(value):
+		gravity_scale = value
+		PhysicsServer2D.body_set_param(m_rid, PhysicsServer2D.BODY_PARAM_GRAVITY_SCALE, gravity_scale)
+
 @export var custom_integrator: bool = false
 @export var continuous_cd: CCDMode = CCDMode.DISABLED
 @export var max_contacts_reported: int = 0
 @export var contact_monitor: bool = false
 @export var sleeping: bool = false
 @export var can_sleep: bool = false
-@export var lock_rotation: bool = false
-@export var freeze: bool = false 
-@export var freeze_mode: FreezeMode = FreezeMode.STATIC
+@export var lock_rotation: bool = false:
+	get: return lock_rotation
+	set(value):
+		if lock_rotation == value: return
+		
+		lock_rotation = value
+		_apply_body_mode()
+
+@export var freeze: bool = false:
+	get: return freeze
+	set(value):
+		if freeze == value: return
+		
+		freeze = value
+		_apply_body_mode()
+
+@export var freeze_mode: FreezeMode = FreezeMode.STATIC:
+	get: return freeze_mode
+	set(value):
+		if freeze_mode == value: return
+		
+		freeze_mode = value
+		_apply_body_mode()
 
 @export_group("Linear", "linear_")
-@export var linear_velocity: Vector2 = Vector2.ZERO
-@export var linear_damp_mode: DampMode = DampMode.COMBINE
-@export var linear_damp: float = 0.0
+@export var linear_velocity: Vector2 = Vector2.ZERO:
+	get: return linear_velocity
+	set(value):
+		linear_velocity = value
+		PhysicsServer2D.body_set_state(m_rid, PhysicsServer2D.BODY_STATE_LINEAR_VELOCITY, linear_velocity)
+
+@export var linear_damp_mode: DampMode = DampMode.COMBINE:
+	get: return linear_damp_mode
+	set(value):
+		linear_damp_mode = value
+		PhysicsServer2D.body_set_param(m_rid, PhysicsServer2D.BODY_PARAM_LINEAR_DAMP_MODE, linear_damp_mode)
+
+@export var linear_damp: float = 0.0:
+	get: return linear_damp
+	set(value):
+		assert(value >= -1)
+		linear_damp = value
+		PhysicsServer2D.body_set_param(m_rid, PhysicsServer2D.BODY_PARAM_LINEAR_DAMP, linear_damp)
 
 @export_group("Angular", "angular_")
-@export var angular_velocity: float = 0.0
-@export var angular_damp_mode: DampMode = DampMode.COMBINE
-@export var angular_damp: float = 0.0
+@export var angular_velocity: float = 0.0:
+	get: return angular_velocity
+	set(value):
+		angular_velocity = value
+		PhysicsServer2D.body_set_state(m_rid, PhysicsServer2D.BODY_STATE_ANGULAR_VELOCITY, angular_velocity)
+
+@export var angular_damp_mode: DampMode = DampMode.COMBINE:
+	get: return angular_damp_mode
+	set(value):
+		angular_damp_mode = value
+		PhysicsServer2D.body_set_param(m_rid, PhysicsServer2D.BODY_PARAM_ANGULAR_DAMP_MODE, angular_damp_mode)
+
+@export var angular_damp: float = 0.0:
+	get: return angular_damp
+	set(value):
+		assert(value >= -1)
+		angular_damp = value
+		PhysicsServer2D.body_set_param(m_rid, PhysicsServer2D.BODY_PARAM_ANGULAR_DAMP, angular_damp)
 
 @export_group("Constant Forces", "constant_")
 @export var constant_force: Vector2 = Vector2.ZERO
@@ -78,6 +182,14 @@ signal body_exited(body: Node)
 signal sleeping_state_changed()
 
 # -- Private functions --
+func __reload_physics_characteristics() -> void:
+	if physics_material_override:
+		PhysicsServer2D.body_set_param(m_rid, PhysicsServer2D.BODY_PARAM_BOUNCE, physics_material_override.bounce)
+		PhysicsServer2D.body_set_param(m_rid, PhysicsServer2D.BODY_PARAM_FRICTION, physics_material_override.friction)
+	else:
+		PhysicsServer2D.body_set_param(m_rid, PhysicsServer2D.BODY_PARAM_BOUNCE, 0)
+		PhysicsServer2D.body_set_param(m_rid, PhysicsServer2D.BODY_PARAM_FRICTION, 1)
+
 func __body_enter_tree(id: int) -> void: 
 	var obj: Object = instance_from_id(id)
 	var node: Node = obj as Node
@@ -263,7 +375,10 @@ func _apply_body_mode() -> void:
 				set_body_mode(PhysicsServer2D.BODY_MODE_STATIC)
 			FreezeMode.KINEMATIC:
 				set_body_mode(PhysicsServer2D.BODY_MODE_KINEMATIC)
-	pass
+	elif lock_rotation:
+		set_body_mode(PhysicsServer2D.BODY_MODE_RIGID_LINEAR)
+	else:
+		set_body_mode(PhysicsServer2D.BODY_MODE_RIGID)
 
 # -- Public functions --
 func get_contact_count() -> int: return 0
