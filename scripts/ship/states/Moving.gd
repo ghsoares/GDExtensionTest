@@ -20,13 +20,13 @@ func _process(mode: int, delta: float) -> void:
 			var ship: Ship = target
 
 			# Get current position
-			var pos: Vector2 = ship.get_transform_2d().origin
-
+			var pos: Vector2 = body.transform.origin
+			
 			# Get gravitational field
 			var grav: Vector2 = ship.level.terrain.gravity_field(pos.x, pos.y)
 
 			# Apply gravity
-			apply_central_force(grav)
+			body.apply_central_force(grav)
 
 			# Apply drag
 			__apply_drag(delta)
@@ -73,11 +73,11 @@ func __apply_planet_collisions(delta: float) -> void:
 		contact_bitmask = 0
 
 		# Get transform
-		var tr: Transform2D = target.get_transform_2d()
+		var tr: Transform2D = target.transform
 
 		# Inverse inertia and mass
-		var inv_mass: float = body_state.inverse_mass
-		var inv_inertia: float = body_state.inverse_inertia
+		var inv_mass: float = body.inverse_mass
+		var inv_inertia: float = body.inverse_inertia
 
 		# For each corner
 		for j in count:
@@ -108,7 +108,7 @@ func __apply_planet_collisions(delta: float) -> void:
 				var nm: float = 1.0 / kn
 
 				# Get velocity
-				var v: Vector2 = body_state.get_velocity_at_local_position(o)
+				var v: Vector2 = body.get_velocity_at_local_position(o)
 
 				# Move and force impulse
 				var imp_move: Vector2 = Vector2.ZERO
@@ -128,7 +128,7 @@ func __apply_planet_collisions(delta: float) -> void:
 					imp_forc += tg * -tgv
 				# Dynamic friction
 				else:
-					imp_forc += tg * -tgv * clamp(32.0 * delta, 0.0, 1.0)
+					imp_forc += tg * -tgv * clamp(60.0 * delta, 0.0, 1.0)
 					
 				# Apply to both position and rotation
 				imp_pos += imp_move
@@ -150,12 +150,12 @@ func __apply_planet_collisions(delta: float) -> void:
 			var t: float = (1.0 / imp_count) * (1.0 / iterations)
 
 			# Apply impulses
-			body_state.linear_velocity += imp_lv * t
-			body_state.angular_velocity += imp_av * t
+			body.linear_velocity += imp_lv * t
+			body.angular_velocity += imp_av * t
 			tr.origin += imp_pos * t
 			tr.x = tr.x.rotated(imp_rot * t)
 			tr.y = tr.y.rotated(imp_rot * t)
-			body_state.transform = tr
+			body.transform = tr
 
 			imp_lv = Vector2.ZERO
 			imp_av = 0.0
@@ -172,9 +172,6 @@ func __apply_planet_collisions(delta: float) -> void:
 func __apply_drag(delta: float) -> void:
 	# Ship size
 	var size: Vector2 = target.size
-
-	# Get body
-	var body: PhysicsDirectBodyState2D = target.get_body_state()
 
 	# Get terrain
 	var terrain: LevelTerrain = target.level.terrain

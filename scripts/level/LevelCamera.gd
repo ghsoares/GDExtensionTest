@@ -10,6 +10,9 @@ var camera: Camera3D
 ## Current viewport size
 var view_size: Vector2 = Vector2.ONE
 
+## Current pixel scale
+var pixel_scale: float = 1.0
+
 ## Linear velocity
 var linear_velocity: Vector2
 
@@ -30,9 +33,6 @@ var target_transform: Transform3D
 
 ## Target zoom
 var target_zoom: float
-
-## Pixel size
-@export var pixel_size: float = 0.01
 
 ## Angular interpolation
 @export var rotation_lerp: float = 8.0
@@ -85,7 +85,7 @@ func _physics_process(delta: float) -> void:
 	var ship_tr: Transform3D = ship.global_transform
 
 	# Get current ship velocity
-	var vel: Vector2 = ship.get_body_state().linear_velocity
+	var vel: Vector2 = ship.linear_velocity
 	
 	# Get current ship acceleration
 	var acc: Vector2 = (vel - target_velocity) / delta
@@ -146,6 +146,9 @@ func _physics_process(delta: float) -> void:
 
 	# Interpolate zoom
 	curr_zoom = lerp(curr_zoom, target_zoom, clamp(delta * zoom_lerp, 0.0, 1.0))
+	# curr_zoom = (near_zoom + far_zoom) * 0.5
+	# curr_zoom = 15.76
+	# curr_zoom = 64.0
 	
 	# Set current transform position
 	curr_transform.origin = target_transform.origin
@@ -174,39 +177,39 @@ func __update_camera() -> void:
 
 	# Get viewport size
 	view_size = view.get_visible_rect().size
+	var pixel_view_size: Vector2 = view.size if view is SubViewport else view_size
 	
 	# Get aspect size
 	var asize: float = view_size.y if camera.keep_aspect == Camera3D.KEEP_HEIGHT else view_size.x
+	var psize: float = pixel_view_size.y if camera.keep_aspect == Camera3D.KEEP_HEIGHT else pixel_view_size.x
+
+	# Get pixel scale
+	pixel_scale = asize / psize
 
 	# Camera transform
 	var tr: Transform3D = get_camera_transform()
 
 	# Set camera size and get snap
-	camera.size = asize * curr_zoom
+	camera.size = floor(asize * curr_zoom)
 
-	# Get camera snap
-	var snap: float = get_camera_snap()
+	# Set camera snap
+	# pixel_snap = camera.size / psize
 
 	# # Snap the transform (relative to rotation)
 	# tr.origin = tr.basis.inverse() * tr.origin
-	# tr.origin.x = floor(tr.origin.x / snap) * snap
-	# tr.origin.y = floor(tr.origin.y / snap) * snap
+	# tr.origin.x = floor(tr.origin.x / pixel_snap) * pixel_snap
+	# tr.origin.y = floor(tr.origin.y / pixel_snap) * pixel_snap
 	# tr.origin = tr.basis * tr.origin
 
 	# Set camera transform
 	global_transform = tr
 
-## Get camera snap
-func get_camera_snap() -> float:
-	# Return snap
-	return 1.0 * curr_zoom
-
 ## Get camera global transform
 func get_camera_transform() -> Transform3D:
 	# Get transform
 	var tr: Transform3D = curr_transform
-	tr.origin.x += curr_offset.x * curr_zoom / pixel_size
-	tr.origin.y += curr_offset.y * curr_zoom / pixel_size
+	tr.origin.x += curr_offset.x * curr_zoom
+	tr.origin.y += curr_offset.y * curr_zoom
 
 	return tr
 

@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://d2q2gmuiilgbd"]
+[gd_scene load_steps=7 format=3 uid="uid://d2q2gmuiilgbd"]
 
 [ext_resource type="Script" path="res://scripts/game/Game.gd" id="1_4r4we"]
 [ext_resource type="PackedScene" uid="uid://c6dx7qlch51dd" path="res://scenes/Level.tscn" id="1_dphl7"]
 [ext_resource type="Script" path="res://scripts/game/GameView.gd" id="1_e4rh5"]
 [ext_resource type="Script" path="res://scripts/game/GameUI.gd" id="3_ofucc"]
+[ext_resource type="Script" path="res://scripts/game/ui/GameUIPlayerPosition.gd" id="5_rk2ch"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_5cd54"]
 viewport_path = NodePath("View/View")
@@ -27,6 +28,7 @@ grow_vertical = 2
 script = ExtResource("1_e4rh5")
 
 [node name="View" type="SubViewport" parent="View"]
+own_world_3d = true
 handle_input_locally = false
 size = Vector2i(400, 180)
 
@@ -51,3 +53,14 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("3_ofucc")
+
+[node name="PlayerPosition" type="Node2D" parent="UI"]
+position = Vector2(128, 128)
+scale = Vector2(0.25, 0.25)
+script = ExtResource("5_rk2ch")
+ui_margin = 256.0
+velocity_size = 256.0
+velocity_scale_factor = 0.005
+rotation_arrow_length = 128.0
+rotation_color = Color(1, 0, 0, 1)
+velocity_color = Color(0, 0, 1, 1)

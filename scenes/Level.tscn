@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/level/Level.gd" id="1_nlqcd"]
 [ext_resource type="Script" path="res://scripts/level/LevelTerrain.gd" id="2_kq0tc"]
 [ext_resource type="Script" path="res://scripts/ship/Ship.gd" id="2_loj4o"]
-[ext_resource type="Script" path="res://scripts/nodes/CollisionShape5D.gd" id="3_b310i"]
+[ext_resource type="Script" path="res://addons/physics_spatial_2d/nodes/CollisionShapeSpatial2D.gd" id="3_fc12t"]
 [ext_resource type="Script" path="res://scripts/level/LevelCamera.gd" id="4_46cbn"]
 [ext_resource type="PackedScene" uid="uid://csxgpxrxsef8s" path="res://scenes/planet/plantes/SimplePlanet.tscn" id="5_2ebml"]
 
@@ -18,7 +18,6 @@ sky_material = SubResource("ProceduralSkyMaterial_ny2o6")
 background_mode = 1
 sky = SubResource("Sky_5r6yi")
 tonemap_mode = 3
-glow_enabled = true
 glow_blend_mode = 1
 
 [sub_resource type="QuadMesh" id="QuadMesh_i5tax"]
@@ -26,8 +25,9 @@ size = Vector2(32, 32)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hn2t0"]
 shading_mode = 0
+albedo_color = Color(2, 2, 2, 1)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_8gyea"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_780vr"]
 size = Vector2(32, 32)
 
 [node name="Level" type="Node3D"]
@@ -37,7 +37,6 @@ script = ExtResource("1_nlqcd")
 environment = SubResource("Environment_t4b48")
 
 [node name="Ships" type="Node3D" parent="."]
-visible = false
 
 [node name="Ship" type="Node3D" parent="Ships"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 18000, 0)
@@ -45,16 +44,23 @@ script = ExtResource("2_loj4o")
 size = Vector2(32, 32)
 fuel_usage_ratio = 0.1
 max_thruster_force = 400.0
-max_turning_speed = 180.0
 turning_acceleration = 180.0
+landing_max_velocity = 64.0
+landing_max_rotation = 20.0
+landing_score_velocity = 32.0
+landing_score_rotation = 8.0
+landing_super_score_velocity = 20.0
+landing_super_score_rotation = 5.0
+gravity_scale = 0.0
 
 [node name="Model" type="MeshInstance3D" parent="Ships/Ship"]
 mesh = SubResource("QuadMesh_i5tax")
 surface_material_override/0 = SubResource("StandardMaterial3D_hn2t0")
 
 [node name="Col" type="Node3D" parent="Ships/Ship"]
-script = ExtResource("3_b310i")
-shape = SubResource("RectangleShape2D_8gyea")
+script = ExtResource("3_fc12t")
+shape = SubResource("RectangleShape2D_780vr")
+debug_color = Color(1, 0, 0, 1)
 
 [node name="Terrain" type="Node3D" parent="."]
 script = ExtResource("2_kq0tc")
@@ -63,16 +69,17 @@ script = ExtResource("2_kq0tc")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 500)
 
 [node name="SimplePlanet" parent="Planets" instance=ExtResource("5_2ebml")]
+gravity = 100.0
 
 [node name="Camera" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3000, 0)
 script = ExtResource("4_46cbn")
-acceleration_mul = 0.1
+acceleration_mul = 16.0
 spring_force = 256.0
 zoom_lerp = 4.0
-near_zoom = 0.25
+near_zoom = 1.0
 far_zoom = 64.0
-near_distance = 64.0
+near_distance = 512.0
 far_distance = 8000.0
 
 [node name="Pivot" type="Node3D" parent="Camera"]

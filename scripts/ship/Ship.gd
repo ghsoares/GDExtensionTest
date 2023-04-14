@@ -1,4 +1,5 @@
-extends RigidBody5D
+@tool
+extends RigidBodySpatial2D
 class_name Ship
 
 ## Current level
@@ -40,39 +41,61 @@ var input_thruster: float = 0.0
 ## Turning acceleration
 @export var turning_acceleration: float = 90.0
 
+## Max landing velocity
+@export var landing_max_velocity: float = 128.0
+
+## Max landing rotation
+@export var landing_max_rotation: float = 15.0
+
+## Landing score min velocity
+@export var landing_score_velocity: float = 64.0
+
+## Landing score min rotation
+@export var landing_score_rotation: float = 5.0
+
+## Landing super score velocity
+@export var landing_super_score_velocity: float = 32.0
+
+## Landing super socre rotation
+@export var landing_super_score_rotation: float = 3.0
+
 ## Initialize this ship
 func _init() -> void:
 	super._init()
-	Engine.time_scale = 1.0
-	# Setup the state machine
-	state_machine = ShipStateMachine.new()
-	state_machine.setup()
+	if not Engine.is_editor_hint():
+		# Setup the state machine
+		state_machine = ShipStateMachine.new()
+		state_machine.setup()
 
 ## Called when entering the tree
 func _enter_tree() -> void:
-	level = get_parent().get_parent()
+	if not Engine.is_editor_hint():
+		level = get_parent().get_parent()
 
 ## Called when ready
 func _ready() -> void:
-	# Set fuel to max
-	fuel = max_fuel
+	if not Engine.is_editor_hint():
+		# Set fuel to max
+		fuel = max_fuel
 
-	state_machine.initialize(self, "hovering")
+		state_machine.initialize(self, "hovering")
 
 ## Called to integrate forces
 func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
-	state_machine.process(ShipStateMachine.ProcessMode.INTEGRATE_FORCES, state.step, false)
+	if not Engine.is_editor_hint():
+		state_machine.process(ShipStateMachine.ProcessMode.INTEGRATE_FORCES, state.step, false)
 
 ## Called every frame
 func _process(delta: float) -> void:
-	# Get inputs
-	input_turn = Input.get_axis("turn_left", "turn_right")
-	input_thruster = Input.get_axis("thruster_decrease", "thruster_increase")
+	if not Engine.is_editor_hint():
+		# Get inputs
+		input_turn = Input.get_axis("turn_left", "turn_right")
+		input_thruster = Input.get_axis("thruster_decrease", "thruster_increase")
 
-	# Process state machine
-	state_machine.process(ShipStateMachine.ProcessMode.IDLE, delta)
+		# Process state machine
+		state_machine.process(ShipStateMachine.ProcessMode.IDLE, delta)
 
 ## Called every physics frame
 func _physics_process(delta: float) -> void:
-	state_machine.process(ShipStateMachine.ProcessMode.PHYSICS, delta)
-	# print(get_body_state().transform.origin)
+	if not Engine.is_editor_hint():
+		state_machine.process(ShipStateMachine.ProcessMode.PHYSICS, delta)

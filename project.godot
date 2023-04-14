@@ -24,15 +24,20 @@ gdscript/warnings/enable=false
 
 [display]
 
-window/size/viewport_width=1200
-window/size/viewport_height=600
+window/size/viewport_width=1600
+window/size/viewport_height=720
 window/size/window_width_override=1200
 window/size/window_height_override=600
 window/stretch/mode="viewport"
+window/stretch/aspect="keep_width"
 
 [editor]
 
 naming/scene_name_casing=1
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/physics_spatial_2d/plugin.cfg")
 
 [input]
 

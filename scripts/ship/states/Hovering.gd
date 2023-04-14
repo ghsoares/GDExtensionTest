@@ -23,8 +23,17 @@ func _process(mode: int, delta: float) -> void:
 					query("exploded")
 					return
 				
-				# Get ship body
-				var body: PhysicsDirectBodyState2D = target.get_body_state()
+				# Get max velocity and rotation
+				var max_vel: float = target.landing_max_velocity
+				var max_rot: float = target.landing_max_rotation
+
+				# Get score velocity and rotation
+				var min_vel: float = target.landing_score_velocity
+				var min_rot: float = target.landing_score_rotation
+
+				# Get super score velocity and rotation
+				var top_vel: float = target.landing_super_score_velocity
+				var top_rot: float = target.landing_super_score_rotation
 
 				# Get terrain
 				var terrain: LevelTerrain = target.level.terrain
@@ -33,7 +42,7 @@ func _process(mode: int, delta: float) -> void:
 				var spd: float = body.linear_velocity.length()
 
 				# Too fast, crashed
-				if spd > 64.0:
+				if spd > max_vel:
 					print("Too fast: %s" % spd)
 					query("exploded")
 					return
@@ -69,20 +78,22 @@ func _process(mode: int, delta: float) -> void:
 				var a: float = rad_to_deg(tr.x.angle())
 				
 				# Too much unaligned, crashed
-				if abs(a) > 15.0:
+				if abs(a) > max_rot:
 					print("Too unaligned: %s" % abs(a))
 					query("exploded")
 					return
 					
 				# Get score
-				var score: float = remap(abs(a), 2.0, 15.0, 5.0, 0.0)
-				score += remap(spd, 16.0, 64.0, 5.0, 0.0)
+				var score: float = remap(abs(a), min_rot, max_rot, 5.0, 0.0)
+				score += remap(spd, min_vel, max_vel, 5.0, 0.0)
 				score = clamp(score / 2.0, 0.0, 5.0)
 
 				# Superb score
-				if (abs(a) < 3.0 and spd < 4.0):
+				if (abs(a) < top_rot and spd < top_vel):
 					print("Suberb!")
 					score *= 2.0
+				else:
+					print(abs(a), ", ", spd)
 				
 				# Multiply by 100
 				score *= 100
@@ -102,9 +113,6 @@ func _process(mode: int, delta: float) -> void:
 func __process_turn(delta: float) -> void:
 	# Get turn input
 	var input_turn: float = target.input_turn
-
-	# Get body
-	var body: PhysicsDirectBodyState2D = target.get_body_state()
 
 	# Get turning acceleration
 	var turn_acc: float = target.turning_acceleration
@@ -127,9 +135,6 @@ func __process_turn(delta: float) -> void:
 func __process_thruster(delta: float) -> void:
 	# Get thruster input
 	var input_thruster: float = target.input_thruster
-
-	# Get body
-	var body: PhysicsDirectBodyState2D = target.get_body_state()
 
 	# Get thruster force acceleration
 	var thrf_acc: float = target.thruster_acceleration * input_thruster * delta

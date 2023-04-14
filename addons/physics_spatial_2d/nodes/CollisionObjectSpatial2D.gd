@@ -23,6 +23,12 @@ class ShapeData:
 	var one_way_collision_margin: float = 0.0
 
 # -- Private variables --
+var m_disable_mode: DisableMode = DisableMode.REMOVE
+var m_collision_layer: int = 1
+var m_collision_mask: int = 1
+var m_collision_priority: float = 1.0
+var m_transform_invert_y: bool = true
+
 var m_area: bool = false
 var m_rid: RID
 var m_callback_lock: int = 0
@@ -35,53 +41,54 @@ var m_only_update_transform_changes = false
 # -- Public variables --
 @export var disable_mode: DisableMode = DisableMode.REMOVE:
 	get:
-		return disable_mode
+		return m_disable_mode
 	set(value):
-		if disable_mode == value: return
+		if m_disable_mode == value: return
 		
 		var disabled: bool = is_inside_tree() and not can_process()
 
 		if disabled:
 			__apply_enabled()
 		
-		disable_mode = value
+		m_disable_mode = value
 
 		if disabled:
 			__apply_disabled()
 
 @export_group("Collision", "collision_")
 @export_flags_2d_physics var collision_layer: int = 1:
-	get: return collision_layer
+	get: return m_collision_layer
 	set(value):
-		collision_layer = value
+		m_collision_layer = value
 		if m_area: 
 			PhysicsServer2D.area_set_collision_layer(m_rid, value)
 		else: 
 			PhysicsServer2D.body_set_collision_layer(m_rid, value)
 
 @export_flags_2d_physics var collision_mask: int = 1:
-	get: return collision_mask
+	get: return m_collision_mask
 	set(value):
-		collision_mask = value
+		m_collision_mask = value
 		if m_area: 
 			PhysicsServer2D.area_set_collision_mask(m_rid, value)
 		else: 
 			PhysicsServer2D.body_set_collision_mask(m_rid, value)
 
 @export var collision_priority: float = 1.0:
-	get: return collision_priority
+	get: return m_collision_priority
 	set(value):
-		collision_priority = value
+		m_collision_priority = value
 		if not m_area:
 			PhysicsServer2D.body_set_collision_priority(m_rid, value)
 
-@export_group("Transform", "transform_")
-@export var transform_pixel_size: float = 1.0
-@export var transform_invert_y: bool = true
+@export var transform_invert_y: bool = true:
+	get: return m_transform_invert_y
+	set(value):
+		m_transform_invert_y = value
 
 # -- Private functions --
 func __apply_disabled() -> void:
-	match disable_mode:
+	match m_disable_mode:
 		DisableMode.REMOVE:
 			if is_inside_tree():
 				if m_callback_lock > 0:
@@ -98,7 +105,7 @@ func __apply_disabled() -> void:
 			pass
 
 func __apply_enabled() -> void:
-	match disable_mode:
+	match m_disable_mode:
 		DisableMode.REMOVE:
 			if is_inside_tree():
 				var space: RID = get_world_2d().space
@@ -142,12 +149,12 @@ func _notification(what: int) -> void:
 			else:
 				PhysicsServer2D.body_set_state(m_rid, PhysicsServer2D.BODY_STATE_TRANSFORM, gl_transform)
 			
-			var disabled: bool = can_process()
+			var disabled: bool = not can_process()
 
-			if disabled and disable_mode != DisableMode.REMOVE:
+			if disabled and m_disable_mode != DisableMode.REMOVE:
 				__apply_disabled()
 				
-			if not disabled or disable_mode != DisableMode.REMOVE:
+			if not disabled or m_disable_mode != DisableMode.REMOVE:
 				var world_ref: World2D = get_world_2d()
 				assert(world_ref != null)
 				var space: RID = world_ref.space
@@ -166,9 +173,9 @@ func _notification(what: int) -> void:
 			else:
 				PhysicsServer2D.body_set_state(m_rid, PhysicsServer2D.BODY_STATE_TRANSFORM, gl_transform)
 		NOTIFICATION_EXIT_TREE:
-			var disabled: bool = can_process()
+			var disabled: bool = not can_process()
 
-			if not disabled or disable_mode != DisableMode.REMOVE:
+			if not disabled or m_disable_mode != DisableMode.REMOVE:
 				if m_callback_lock > 0:
 					push_error("Removing a CollisionObject node during a physics callback is not allowed and will cause undesired behavior. Remove with call_deferred() instead.")
 				else:
@@ -177,12 +184,14 @@ func _notification(what: int) -> void:
 					else:
 						PhysicsServer2D.body_set_space(m_rid, RID())
 			
-			if disabled and disable_mode != DisableMode.REMOVE:
+			if disabled and m_disable_mode != DisableMode.REMOVE:
 				__apply_enabled()
 		NOTIFICATION_ENABLED:
 			__apply_enabled()
 		NOTIFICATION_DISABLED:
 			__apply_disabled()
+		NOTIFICATION_PREDELETE:
+			PhysicsServer2D.free_rid(m_rid)
 
 func _get_configuration_warnings() -> PackedStringArray:
 	var warnings: PackedStringArray
@@ -205,30 +214,42 @@ func _set_body_mode(mode: int) -> void:
 func get_world_2d() -> World2D:
 	return get_viewport().world_2d
 
-func convert_to_2d(tr: Transform3D) -> Transform2D:
-	var ret: Transform2D = Transform2D(
-		Vector2(tr.basis.x.x, tr.basis.x.y) / transform_pixel_size,
-		Vector2(tr.basis.y.x, tr.basis.y.y) / transform_pixel_size,
-		Vector2(tr.origin.x, tr.origin.y) / transform_pixel_size
+func tr2d() -> Transform2D:
+	return Transform2D(
+		Vector2(1.0, 0.0),
+		Vector2(0.0, 1.0),
+		Vector2(0.0, 0.0)
 	)
-	if transform_invert_y:
-		ret.x.y *= -1
-		ret.y.y *= -1
-		ret.origin.y *= -1
-	return ret
+
+func itr2d() -> Transform2D: return tr2d().affine_inverse()
+
+func convert_to_2d(tr: Transform3D) -> Transform2D:
+	return tr2d() * Transform2D(
+		Vector2(tr.basis.x.x, tr.basis.x.y),
+		Vector2(tr.basis.y.x, tr.basis.y.y),
+		Vector2(tr.origin.x, tr.origin.y)
+	)
 
 func convert_to_3d(tr: Transform2D) -> Transform3D:
-	var ret: Transform3D = Transform3D(
-		Vector3(tr.x.x, tr.x.y, 0.0) * transform_pixel_size,
-		Vector3(tr.y.x, tr.y.y, 0.0) * transform_pixel_size,
+	tr = itr2d() * tr
+	return Transform3D(
+		Vector3(tr.x.x, tr.x.y, 0.0),
+		Vector3(tr.y.x, tr.y.y, 0.0),
 		Vector3(0.0, 0.0, 1.0),
-		Vector3(tr.origin.x, tr.origin.y, 0.0) * transform_pixel_size
+		Vector3(tr.origin.x, tr.origin.y, 0.0)
 	)
-	if transform_invert_y:
-		ret.basis.x.y *= -1
-		ret.basis.y.y *= -1
-		ret.origin.y *= -1
-	return ret
+
+func get_transform_2d() -> Transform2D:
+	return convert_to_2d(transform)
+
+func set_transform_2d(tr: Transform2D) -> void:
+	var aux: Transform3D = transform
+	var tr3d: Transform3D = convert_to_3d(tr)
+	tr3d.basis.x.z = aux.basis.x.z
+	tr3d.basis.y.z = aux.basis.y.z
+	tr3d.basis.z = aux.basis.z
+	tr3d.origin.z = aux.origin.z
+	transform = tr3d
 
 func get_global_transform_2d() -> Transform2D:
 	return convert_to_2d(global_transform)
@@ -241,6 +262,9 @@ func set_global_transform_2d(tr: Transform2D) -> void:
 	tr3d.basis.z = aux.basis.z
 	tr3d.origin.z = aux.origin.z
 	global_transform = tr3d
+
+func get_rid() -> RID:
+	return m_rid
 
 func create_shape_owner(owner: Object) -> int:
 	var sd: ShapeData = ShapeData.new()
@@ -413,7 +437,7 @@ func set_body_mode(mode: int) -> void:
 
 	m_body_mode = mode
 
-	if is_inside_tree() and not can_process() && disable_mode == DisableMode.MAKE_STATIC:
+	if is_inside_tree() and not can_process() && m_disable_mode == DisableMode.MAKE_STATIC:
 		return
 	
 	PhysicsServer2D.body_set_mode(m_rid, mode)

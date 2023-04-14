@@ -10,9 +10,6 @@ var index: Vector2i
 ## Chunk lod
 var lod: int
 
-## Current lod factor
-var lodf: float
-
 ## Chunk quad mesh
 var mesh: Mesh
 
@@ -149,7 +146,7 @@ func update_transform() -> void:
 	RenderingServer.instance_set_transform(
 		instance, 
 		chunk_manager.global_transform * 
-		tr * Transform3D().translated(Vector3(0.0, 0.0, lod - lodf - 1.0))
+		tr * Transform3D().translated(Vector3(0.0, 0.0, color.a - 1.0))
 	)
 	RenderingServer.material_set_param(material.get_rid(), "transform", tr)
 
@@ -204,7 +201,8 @@ func _update_texture() -> void:
 
 	# Set texture in material
 	RenderingServer.material_set_param(material.get_rid(), "terrain_texture", tex)
-	RenderingServer.material_set_param(material.get_rid(), "terrain_size", Vector2(res.x, res.y))
+	RenderingServer.material_set_param(material.get_rid(), "terrain_resolution", Vector2(res.x, res.y))
+	RenderingServer.material_set_param(material.get_rid(), "terrain_size", size * 0.25)
 
 	# Finished generation
 	generation_finished = true

@@ -175,9 +175,6 @@ func update_all_chunks(delta: float, min_pos: Vector2, max_pos: Vector2, lod: in
 				assert(level.erase(index), "Couldn't erase the chunk")
 				assert(not level.has(index), "Bugggg")
 			else:
-				# Set lod factor
-				chunk.lodf = lod + lodf
-				
 				# Update transform
 				chunk.update_transform()
 

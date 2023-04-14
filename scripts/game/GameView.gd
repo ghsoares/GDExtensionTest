@@ -23,7 +23,7 @@ func _enter_tree() -> void:
 ## Called when ready
 func _ready() -> void:
 	_update_viewport_size()
-	# _update_viewport_transform()
+# 	_update_viewport_transform()
 
 # ## Called every frame
 # func _process(delta: float) -> void:
@@ -57,7 +57,7 @@ func _update_viewport_size() -> void:
 # 	var cam_tr: Transform3D = level.camera.get_camera_transform()
 
 # 	# Get the camera snap
-# 	var snap: float = level.camera.get_camera_snap()
+# 	var snap: float = level.camera.pixel_snap
 
 # 	# Get the camera position
 # 	var pos: Vector3 = cam_tr.basis.inverse() * cam_tr.origin
@@ -69,11 +69,18 @@ func _update_viewport_size() -> void:
 # 	var fy: float = py - floor(py)
 
 # 	# Set the scale
-# 	tr *= Transform2D().translated(
-# 		Vector2(0.0, -1.0) * pixel_scale + Vector2(-fx, fy) * pixel_scale
+# 	tr = Transform2D().translated(
+# 		Vector2(0.0, -pixel_scale) + 
+# 		Vector2(-fx, fy) * pixel_scale
 # 	) * Transform2D().scaled(
 # 		Vector2.ONE + (Vector2.ONE / size) * pixel_scale
 # 	)
+# 	# tr *= Transform2D().translated(
+# 	# 	Vector2.ZERO,
+# 	# 	# Vector2(-fx, -fy) * pixel_scale
+# 	# ) * Transform2D().scaled(
+# 	# 	Vector2.ONE + (Vector2.ONE / size) * pixel_scale
+# 	# )
 
 # 	# Set the view texture transform
 # 	RenderingServer.canvas_item_set_transform(
