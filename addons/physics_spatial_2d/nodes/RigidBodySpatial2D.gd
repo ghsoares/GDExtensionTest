@@ -1,6 +1,6 @@
 @tool
-extends PhysicsBodySpatial2D
-class_name RigidBodySpatial2D
+extends _PhysicsBodySpatial2D
+class_name _RigidBodySpatial2D
 
 enum FreezeMode {
 	STATIC, KINEMATIC

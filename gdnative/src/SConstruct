@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+import os
+import sys
+import glob
+
+env = SConscript("godot-cpp/SConstruct")
+env_modules = env.Clone()
+
+Export("env_modules")
+
+modules = glob.glob("modules/*")
+
+is_macos = env["platform"] == "macos"
+
+for module_path in modules:
+    module_name = os.path.basename(module_path)
+    
+    if is_macos:
+        lib_name = "{}.{}.{}".format(
+            module_name, env["platform"], env["target"]
+        )
+        lib_path = "../bin/{}/{}.framework/{}".format(module_name, lib_name, lib_name)
+    else:
+        lib_name = "{}{}{}".format(
+            module_name, env["suffix"], env["SHLIBSUFFIX"]
+        )
+        lib_path = "../bin/{}/{}".format(module_name, lib_name)
+
+    print(lib_name)
+
+    sources = SConscript("{}\SCsub".format(module_path))
+    library = env_modules.SharedLibrary(
+        lib_path, source = sources
+    )
+
+    Default(library)
+
+
+

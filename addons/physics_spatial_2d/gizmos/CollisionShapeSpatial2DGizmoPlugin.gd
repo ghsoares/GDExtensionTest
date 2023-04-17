@@ -1,6 +1,6 @@
 @tool
 extends EditorNode3DGizmoPlugin
-class_name CollisionShapeSpatial2DGizmoPlugin
+class_name _CollisionShapeSpatial2DGizmoPlugin
 
 var plugin: EditorPlugin
 
@@ -17,7 +17,7 @@ func _init(plugin: EditorPlugin) -> void:
 	create_handle_material("handles")
 
 func _has_gizmo(for_node_3d: Node3D) -> bool:
-	return for_node_3d is CollisionShapeSpatial2D
+	return for_node_3d is _CollisionShapeSpatial2D
 
 func _get_gizmo_name() -> String:
 	return "CollisionShapeSpatial2D"
@@ -26,7 +26,7 @@ func _get_priority() -> int:
 	return -1
 
 func _get_handle_name(gizmo: EditorNode3DGizmo, handle_id: int, secondary: bool) -> String:
-	var cs: CollisionShapeSpatial2D = gizmo.get_node_3d() as CollisionShapeSpatial2D
+	var cs: _CollisionShapeSpatial2D = gizmo.get_node_3d() as _CollisionShapeSpatial2D
 
 	var s: Shape2D = cs.shape
 	if not s:
@@ -47,7 +47,7 @@ func _get_handle_name(gizmo: EditorNode3DGizmo, handle_id: int, secondary: bool)
 	return ""
 
 func _get_handle_value(gizmo: EditorNode3DGizmo, handle_id: int, secondary: bool):
-	var cs: CollisionShapeSpatial2D = gizmo.get_node_3d() as CollisionShapeSpatial2D
+	var cs: _CollisionShapeSpatial2D = gizmo.get_node_3d() as _CollisionShapeSpatial2D
 
 	var s: Shape2D = cs.shape
 	if not s:
@@ -68,7 +68,7 @@ func _get_handle_value(gizmo: EditorNode3DGizmo, handle_id: int, secondary: bool
 	return null
 
 func _set_handle(gizmo: EditorNode3DGizmo, handle_id: int, secondary: bool, camera: Camera3D, screen_pos: Vector2) -> void:
-	var cs: CollisionShapeSpatial2D = gizmo.get_node_3d() as CollisionShapeSpatial2D
+	var cs: _CollisionShapeSpatial2D = gizmo.get_node_3d() as _CollisionShapeSpatial2D
 
 	var s: Shape2D = cs.shape
 	if not s:
@@ -152,7 +152,7 @@ func _set_handle(gizmo: EditorNode3DGizmo, handle_id: int, secondary: bool, came
 		s.length = d
 	
 func _commit_handle(gizmo: EditorNode3DGizmo, handle_id: int, secondary: bool, restore, cancel: bool) -> void:
-	var cs: CollisionShapeSpatial2D = gizmo.get_node_3d() as CollisionShapeSpatial2D
+	var cs: _CollisionShapeSpatial2D = gizmo.get_node_3d() as _CollisionShapeSpatial2D
 
 	var s: Shape2D = cs.shape
 	if not s:
@@ -209,7 +209,7 @@ func _commit_handle(gizmo: EditorNode3DGizmo, handle_id: int, secondary: bool, r
 		ur.commit_action()
 
 func _redraw(gizmo: EditorNode3DGizmo) -> void:
-	var cs: CollisionShapeSpatial2D = gizmo.get_node_3d() as CollisionShapeSpatial2D
+	var cs: _CollisionShapeSpatial2D = gizmo.get_node_3d() as _CollisionShapeSpatial2D
 
 	gizmo.clear()
 

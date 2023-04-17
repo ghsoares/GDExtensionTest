@@ -1,6 +1,6 @@
 @tool
 extends Node3D
-class_name CollisionObjectSpatial2D
+class_name _CollisionObjectSpatial2D
 
 enum DisableMode {
 	REMOVE,

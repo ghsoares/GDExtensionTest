@@ -1,0 +1,9 @@
+import os
+import sys
+
+Import("env_modules")
+
+env_modules.Append(CPPPATH=["./", "src/"])
+sources = Glob("./*.cpp") + Glob("src/*.cpp") + Glob("src/nodes/*.cpp")
+
+Return("sources")

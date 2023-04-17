@@ -1,6 +1,6 @@
 @tool
-extends PhysicsBodySpatial2D
-class_name StaticBodySpatial2D
+extends _PhysicsBodySpatial2D
+class_name _StaticBodySpatial2D
 
 # -- Public variables --
 @export var physics_material_override: PhysicsMaterial:

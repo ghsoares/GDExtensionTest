@@ -1,6 +1,6 @@
 @tool
-extends CollisionObjectSpatial2D
-class_name PhysicsBodySpatial2D
+extends _CollisionObjectSpatial2D
+class_name _PhysicsBodySpatial2D
 
 class KinematicCollisionSpatial2D:
 	var owner = null

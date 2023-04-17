@@ -1,6 +1,6 @@
 @tool
 extends Node3D
-class_name CollisionShapeSpatial2D
+class_name _CollisionShapeSpatial2D
 
 # -- Private variables --
 var m_shape: Shape2D = null
@@ -11,7 +11,7 @@ var m_debug_color: Color = Color()
 
 var m_rect: Rect2 = Rect2(-10, -10, 20, 20)
 var m_owner_id: int = 0
-var m_parent: CollisionObjectSpatial2D
+var m_parent: _CollisionObjectSpatial2D
 
 # -- Public variables --
 @export var shape: Shape2D:
@@ -85,7 +85,7 @@ func __get_default_debug_color() -> Color:
 func _notification(what: int) -> void: 
 	match what:
 		NOTIFICATION_PARENTED:
-			m_parent = get_parent() as CollisionObjectSpatial2D
+			m_parent = get_parent() as _CollisionObjectSpatial2D
 			if m_parent:
 				m_owner_id = m_parent.create_shape_owner(self)
 				if shape:
@@ -123,7 +123,7 @@ func _get_configuration_warnings() -> PackedStringArray:
 	var warnings: PackedStringArray
 
 	if m_parent == null:
-		warnings.push_back("CollisionShapeSpatial2D only serves to provide a collision shape to a CollisionObjectSpatial2D derived node. Please only use it as a child of Area2D, StaticBody2D, RigidBody2D, CharacterBody2D, etc. to give them a m_shape.")
+		warnings.push_back("CollisionShapeSpatial2D only serves to provide a collision shape to a _CollisionObjectSpatial2D derived node. Please only use it as a child of Area2D, StaticBody2D, RigidBody2D, CharacterBody2D, etc. to give them a m_shape.")
 	
 	if not m_shape:
 		warnings.push_back("A shape must be provided for CollisionShape2D to function. Please create a shape resource for it!")

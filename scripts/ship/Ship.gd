@@ -1,5 +1,5 @@
 @tool
-extends RigidBodySpatial2D
+extends _RigidBodySpatial2D
 class_name Ship
 
 ## Current level
