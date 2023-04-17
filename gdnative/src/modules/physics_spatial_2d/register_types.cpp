@@ -16,9 +16,9 @@ void initialize_physics_spatial_2d_module(ModuleInitializationLevel p_level) {
         return;
     }
 
-    ClassDB::register_abstract_class<CollisionObjectSpatial2D>();
+    ClassDB::register_class<CollisionObjectSpatial2D>(true);
     ClassDB::register_class<CollisionShapeSpatial2D>();
-    ClassDB::register_class<PhysicsBodySpatial2D>();
+    ClassDB::register_class<PhysicsBodySpatial2D>(true);
     ClassDB::register_class<StaticBodySpatial2D>();
     ClassDB::register_class<AnimatableBodySpatial2D>();
     ClassDB::register_class<CharacterBodySpatial2D>();
