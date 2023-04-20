@@ -4,7 +4,11 @@
 
 using namespace godot;
 
-template Callable Callable::bind<uint64_t>(const uint64_t &param) const;
+// template Callable Callable::bind<uint64_t>(const uint64_t &param) const;
+template<class... Args>
+Callable Callable::bind(const Args&... args) const {
+	return Callable(*this).bindv(Array::make(args...));
+}
 
 real_t result_get_angle(const Ref<PhysicsTestMotionResult2D> &p_res, const Vector2 &p_up) {
 	return Math::acos(p_res->get_collision_normal().dot(p_up));
