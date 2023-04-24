@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://b6yb3yumtb3ka"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vqpuw"]
+size = Vector2(8, 8)
+
+[sub_resource type="QuadMesh" id="QuadMesh_3o66m"]
+size = Vector2(4, 4)
+
+[node name="Test" type="Node3D"]
+
+[node name="RigidBodySpatial2D" type="RigidBodySpatial2D" parent="."]
+
+[node name="CollisionShapeSpatial2D" type="CollisionShapeSpatial2D" parent="RigidBodySpatial2D"]
+shape = SubResource("RectangleShape2D_vqpuw")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBodySpatial2D"]
+mesh = SubResource("QuadMesh_3o66m")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 16)
+projection = 1
+size = 32.0
